@@ -1,13 +1,19 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
-	"github.com/la
+	"strikepad-backend/internal/container"
+	"strikepad-backend/internal/handler"
+
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	c := container.BuildContainer()
+
 	e := echo.New()
 
 	e.Use(middleware.Logger())
@@ -17,16 +23,14 @@ func main() {
 		return c.String(http.StatusOK, "Hello from StrikePad Backend!")
 	})
 
-	e.GET("/health", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, map[string]string{
-			"status": "ok",
-		})
+	err := c.Invoke(func(healthHandler *handler.HealthHandler, apiHandler *handler.APIHandler) {
+		e.GET("/health", healthHandler.Health)
+		e.GET("/api/test", apiHandler.Test)
 	})
 
-	e.GET("/api/test", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, map[string]string{
-			"message": "API endpoint working",
-		})
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	fmt.Println("Server starting on port 8080...")
 	e.Logger.Fatal(e.Start(":8080"))
+}
