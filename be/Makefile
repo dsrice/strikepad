@@ -34,4 +34,22 @@ clean:
 
 # Run tests
 test:
-	go test -v ./...
+	CGO_ENABLED=1 go test -v ./...
+
+# Run tests with coverage
+test-coverage:
+	CGO_ENABLED=1 go test -v -coverprofile=coverage.out ./...
+	go tool cover -html=coverage.out -o coverage.html
+
+# Run tests in watch mode (requires entr)
+test-watch:
+	find . -name "*.go" | entr -c CGO_ENABLED=1 go test -v ./...
+
+# Run specific test
+test-run:
+	@read -p "Enter test name pattern: " pattern; \
+	CGO_ENABLED=1 go test -v -run $$pattern ./...
+
+# Run benchmark tests
+test-bench:
+	CGO_ENABLED=1 go test -v -bench=. ./...

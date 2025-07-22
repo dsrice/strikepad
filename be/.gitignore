@@ -25,8 +25,9 @@ tmp/
 .air.toml.bak
 
 # IDE
-.vscode/
 .idea/
+# Goland run configurations (uncomment to exclude from git)
+# .run/
 
 # Environment variables
 .env
@@ -39,3 +40,7 @@ tmp/
 # Logs
 *.log
 build-errors.log
+
+# Test coverage
+coverage.out
+coverage.html
