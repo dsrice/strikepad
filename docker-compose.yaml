@@ -1,0 +1,38 @@
+# docker-compose.dev.yml
+version: '3.8'
+services:
+  # データベース
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: bowling_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/migrations:/docker-entrypoint-initdb.d
+
+  # S3互換ストレージ
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"      # API
+      - "9001:9001"      # Web UI
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
+  # Redis（セッション・キャッシュ用）
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:
+  minio_data:
