@@ -1,4 +1,4 @@
-.PHONY: lint lint-fix build run clean test
+.PHONY: lint lint-fix build run clean test dev debug
 
 # Lint the code
 lint:
@@ -16,9 +16,21 @@ build:
 run:
 	go run main.go
 
+# Run with hot reloading using Air
+dev:
+	air
+
+# Debug the application with Delve
+debug:
+	dlv debug --headless --listen=:2345 --api-version=2 --accept-multiclient
+
+# Debug with specific breakpoint
+debug-break:
+	dlv debug --headless --listen=:2345 --api-version=2 --accept-multiclient --continue --accept-multiclient main.go
+
 # Clean build artifacts
 clean:
-	rm -rf bin/
+	rm -rf bin/ tmp/
 
 # Run tests
 test:
