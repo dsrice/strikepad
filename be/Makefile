@@ -53,3 +53,21 @@ test-run:
 # Run benchmark tests
 test-bench:
 	CGO_ENABLED=1 go test -v -bench=. ./...
+
+# Database migration commands
+migrate-status:
+	./atlas.exe migrate status --env dev
+
+migrate-apply:
+	./atlas.exe migrate apply --env dev
+
+migrate-diff:
+	@read -p "Enter migration name: " name; \
+	./atlas.exe migrate diff $$name --env dev
+
+migrate-validate:
+	./atlas.exe migrate validate --env dev
+
+migrate-down:
+	@read -p "Enter number of migrations to rollback: " count; \
+	./atlas.exe migrate down $$count --env dev
