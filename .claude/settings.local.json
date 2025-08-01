@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(go get:*)",
-      "Bash(./atlas.exe migrate diff:*)"
+      "Bash(./atlas.exe migrate diff:*)",
+      "Bash(mkdir:*)",
+      "Bash(go build:*)"
     ],
     "deny": []
   }

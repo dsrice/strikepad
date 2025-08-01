@@ -27,9 +27,3 @@ comment on column user_sessions.created_at is '作成日';
 comment on column user_sessions.updated_at is '更新日';
 comment on column user_sessions.is_deleted is '削除フラグ';
 comment on column user_sessions.deleted_at is '削除日';
-
--- Create indexes for user_sessions table
-CREATE INDEX "idx_user_sessions_user_id" ON "user_sessions" ("user_id");
-CREATE INDEX "idx_user_sessions_session_token" ON "user_sessions" ("session_token");
-CREATE INDEX "idx_user_sessions_expires_at" ON "user_sessions" ("expires_at");
-CREATE INDEX "idx_user_sessions_is_deleted" ON "user_sessions" ("is_deleted");
