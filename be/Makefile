@@ -48,9 +48,9 @@ clean:
 test:
 	CGO_ENABLED=1 go test -v ./...
 
-# Run tests with coverage
+# Run tests with coverage (excluding mock files and test utilities)
 test-coverage:
-	CGO_ENABLED=1 go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+	CGO_ENABLED=1 go test -v -race -coverprofile=coverage.out -covermode=atomic $$(go list ./... | grep -v -E '/mocks|/testutil')
 	go tool cover -html=coverage.out -o coverage.html
 	go tool cover -func=coverage.out
 
