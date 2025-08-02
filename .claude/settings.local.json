@@ -4,7 +4,13 @@
       "Bash(go get:*)",
       "Bash(./atlas.exe migrate diff:*)",
       "Bash(mkdir:*)",
-      "Bash(go build:*)"
+      "Bash(go build:*)",
+      "Bash(go test:*)",
+      "Bash(CGO_ENABLED=1 go test ./internal/repository/... -v)",
+      "Bash(go mod:*)",
+      "Bash(make test-coverage:*)",
+      "Bash(CGO_ENABLED=1 go test -v -race -coverprofile=coverage.out -covermode=atomic ./...)",
+      "Bash(go tool cover:*)"
     ],
     "deny": []
   }

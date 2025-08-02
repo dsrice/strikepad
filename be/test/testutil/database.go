@@ -26,10 +26,11 @@ func CleanupTestDB(db *gorm.DB) {
 	}
 }
 
-func CreateTestUser(t *testing.T, db *gorm.DB, name, email string) *model.User {
+func CreateTestUser(t *testing.T, db *gorm.DB, displayName, email string) *model.User {
 	user := &model.User{
-		Name:  name,
-		Email: email,
+		ProviderType: "email",
+		DisplayName:  displayName,
+		Email:        &email,
 	}
 
 	err := db.Create(user).Error

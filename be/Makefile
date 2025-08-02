@@ -38,8 +38,27 @@ test:
 
 # Run tests with coverage
 test-coverage:
-	CGO_ENABLED=1 go test -v -coverprofile=coverage.out ./...
+	CGO_ENABLED=1 go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
 	go tool cover -html=coverage.out -o coverage.html
+	go tool cover -func=coverage.out
+
+# Generate coverage report only
+coverage-report:
+	go tool cover -html=coverage.out -o coverage.html
+	go tool cover -func=coverage.out
+
+# View coverage in browser
+coverage-view: coverage-report
+	@echo "Opening coverage report in browser..."
+	@if command -v xdg-open > /dev/null; then \
+		xdg-open coverage.html; \
+	elif command -v open > /dev/null; then \
+		open coverage.html; \
+	elif command -v start > /dev/null; then \
+		start coverage.html; \
+	else \
+		echo "Please open coverage.html manually in your browser"; \
+	fi
 
 # Run tests in watch mode (requires entr)
 test-watch:
