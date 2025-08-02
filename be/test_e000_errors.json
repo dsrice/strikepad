@@ -1,0 +1,30 @@
+{
+  "examples": [
+    {
+      "description": "Validation error example",
+      "expected_code": "E003",
+      "request": {
+        "email": "invalid-email",
+        "password": "123",
+        "display_name": ""
+      }
+    },
+    {
+      "description": "User exists error example", 
+      "expected_code": "E102",
+      "request": {
+        "email": "existing@example.com",
+        "password": "password123",
+        "display_name": "Existing User"
+      }
+    },
+    {
+      "description": "Invalid credentials error example",
+      "expected_code": "E100", 
+      "request": {
+        "email": "test@example.com",
+        "password": "wrongpassword"
+      }
+    }
+  ]
+}
