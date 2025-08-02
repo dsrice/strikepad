@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-const testPasswordConstConst = "testPasswordConst123"
+const testPasswordConst = "testPasswordConst123"
 
 type PasswordTestSuite struct {
 	suite.Suite

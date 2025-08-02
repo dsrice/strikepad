@@ -39,7 +39,23 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={
+            <div className="min-h-screen flex items-center justify-center bg-gray-100">
+              <div className="text-center">
+                <h1 className="text-4xl font-bold text-gray-900 mb-4">StrikePad</h1>
+                <p className="text-gray-600 mb-6">Welcome to StrikePad Application</p>
+                <div className="space-x-4">
+                  <a href="/login" className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 inline-block">
+                    Login
+                  </a>
+                  <a href="/signup"
+                     className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 inline-block">
+                    Sign Up
+                  </a>
+                </div>
+              </div>
+            </div>
+          }/>
           <Route 
             path="/login" 
             element={
