@@ -5,7 +5,7 @@ const ChartComponent: React.FC = () => {
   const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
-    if (!svgRef.current) return;
+    if (!svgRef.current) {return;}
 
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove(); // Clear previous content
@@ -50,10 +50,10 @@ const ChartComponent: React.FC = () => {
       .attr('y', d => yScale(d.value))
       .attr('height', d => height - yScale(d.value))
       .attr('fill', '#3B82F6')
-      .on('mouseover', function(event, d) {
+      .on('mouseover', function(_event, _d) {
         d3.select(this).attr('fill', '#1D4ED8');
       })
-      .on('mouseout', function(event, d) {
+      .on('mouseout', function(_event, _d) {
         d3.select(this).attr('fill', '#3B82F6');
       });
 

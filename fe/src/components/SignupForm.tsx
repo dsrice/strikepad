@@ -13,7 +13,7 @@ const signupSchema = z.object({
     .max(50, 'パスワードは50文字以下である必要があります')
     .regex(/[a-z]/, 'パスワードには小文字を含める必要があります')
     .regex(/[A-Z]/, 'パスワードには大文字を含める必要があります')
-    .regex(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, 'パスワードには記号を含める必要があります'),
+    .regex(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/, 'パスワードには記号を含める必要があります'),
   displayName: z.string().min(1, '表示名を入力してください').max(50, '表示名は50文字以下である必要があります'),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {

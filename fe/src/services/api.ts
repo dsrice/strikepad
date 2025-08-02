@@ -19,7 +19,7 @@ api.interceptors.request.use(
   (error) => {
     console.error('❌ API Request Error:', error);
     return Promise.reject(error);
-  }
+  },
 );
 
 // Add response interceptor for error handling
@@ -31,7 +31,7 @@ api.interceptors.response.use(
   (error) => {
     console.error('❌ API Response Error:', error.response?.data || error.message);
     return Promise.reject(error);
-  }
+  },
 );
 
 // Auth API functions
@@ -88,7 +88,7 @@ export const healthAPI = {
     try {
       const response = await api.get('/health');
       return response.data;
-    } catch (error: any) {
+    } catch {
       throw new Error('Health check failed');
     }
   },
