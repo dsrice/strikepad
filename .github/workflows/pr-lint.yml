@@ -1,16 +1,15 @@
-name: Pull Request CI
+name: Pull Request Lint
 
 on:
   pull_request:
     branches: [ develop ]
     paths:
       - 'be/**'
-      - '.github/workflows/pr-test.yml'
       - '.github/workflows/pr-lint.yml'
 
 jobs:
-  lint:
-    name: Lint
+  golangci:
+    name: lint
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -68,32 +67,12 @@ jobs:
               ---
               *Powered by [golangci-lint](https://golangci-lint.run/)*`;
               
-              // Find existing lint comment
-              const { data: comments } = await github.rest.issues.listComments({
+              await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
+                body: successComment
               });
-              
-              const existingComment = comments.find(comment => 
-                comment.body.includes('🎯 Lint Results')
-              );
-              
-              if (existingComment) {
-                await github.rest.issues.updateComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  comment_id: existingComment.id,
-                  body: successComment
-                });
-              } else {
-                await github.rest.issues.createComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: context.issue.number,
-                  body: successComment
-                });
-              }
               return;
             }
             
@@ -282,210 +261,3 @@ jobs:
         name: golangci-lint-report
         path: be/golangci-lint-report.json
         retention-days: 7
-
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    needs: lint
-    
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: strikepad_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.24'
-
-    - name: Cache Go modules
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cache/go-build
-          ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
-
-    - name: Install dependencies
-      working-directory: ./be
-      run: go mod download
-
-    - name: Wait for PostgreSQL
-      run: |
-        until pg_isready -h localhost -p 5432 -U postgres; do
-          echo "Waiting for postgres..."
-          sleep 2
-        done
-
-    - name: Run tests with coverage
-      working-directory: ./be
-      env:
-        DB_HOST: localhost
-        DB_PORT: 5432
-        DB_USER: postgres
-        DB_PASSWORD: postgres
-        DB_NAME: strikepad_test
-        DB_SSLMODE: disable
-        ENV: test
-      run: |
-        go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
-
-    - name: Generate coverage report
-      working-directory: ./be
-      run: |
-        go tool cover -html=coverage.out -o coverage.html
-        go tool cover -func=coverage.out > coverage.txt
-
-    - name: Calculate coverage percentage
-      working-directory: ./be
-      id: coverage
-      run: |
-        COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
-        echo "COVERAGE=$COVERAGE" >> $GITHUB_OUTPUT
-        echo "Coverage: $COVERAGE%"
-
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        files: ./be/coverage.out
-        flags: backend
-        name: backend-coverage
-        fail_ci_if_error: false
-        working-directory: ./be
-
-    - name: Comment PR with coverage
-      uses: actions/github-script@v7
-      if: github.event_name == 'pull_request'
-      with:
-        script: |
-          const fs = require('fs');
-          const path = require('path');
-          
-          // Read coverage report
-          const coverageFile = path.join(process.cwd(), 'be', 'coverage.txt');
-          const coverage = fs.readFileSync(coverageFile, 'utf8');
-          
-          // Parse coverage percentage
-          const coverageMatch = coverage.match(/total:\s+\(statements\)\s+([\d.]+)%/);
-          const coveragePercent = coverageMatch ? coverageMatch[1] : 'Unknown';
-          
-          // Create coverage badge color
-          const getBadgeColor = (percent) => {
-            const num = parseFloat(percent);
-            if (num >= 80) return 'brightgreen';
-            if (num >= 60) return 'yellow';
-            if (num >= 40) return 'orange';
-            return 'red';
-          };
-          
-          const badgeColor = getBadgeColor(coveragePercent);
-          
-          // Format coverage report for comment
-          const lines = coverage.split('\n').filter(line => line.trim() && !line.includes('total:'));
-          const packageCoverage = lines.map(line => {
-            const parts = line.split('\t');
-            if (parts.length >= 3) {
-              const pkg = parts[0].replace('strikepad-backend/', '');
-              const percent = parts[2];
-              return `| ${pkg} | ${percent} |`;
-            }
-            return null;
-          }).filter(Boolean);
-          
-          const comment = `## 🧪 Test Coverage Report
-          
-          ![Coverage](https://img.shields.io/badge/coverage-${coveragePercent}%25-${badgeColor})
-          
-          **Overall Coverage: ${coveragePercent}%**
-          
-          ### Package Coverage Details
-          
-          | Package | Coverage |
-          |---------|----------|
-          ${packageCoverage.join('\n')}
-          
-          <details>
-          <summary>📊 Full Coverage Report</summary>
-          
-          \`\`\`
-          ${coverage}
-          \`\`\`
-          
-          </details>
-          
-          ---
-          
-          ${parseFloat(coveragePercent) >= 80 ? '✅ Excellent coverage!' : 
-            parseFloat(coveragePercent) >= 60 ? '⚠️ Good coverage, but could be improved.' :
-            '❌ Coverage is below recommended threshold (80%).'}
-          `;
-          
-          // Find existing coverage comment
-          const { data: comments } = await github.rest.issues.listComments({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            issue_number: context.issue.number,
-          });
-          
-          const existingComment = comments.find(comment => 
-            comment.body.includes('🧪 Test Coverage Report')
-          );
-          
-          if (existingComment) {
-            // Update existing comment
-            await github.rest.issues.updateComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              comment_id: existingComment.id,
-              body: comment
-            });
-          } else {
-            // Create new comment
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: comment
-            });
-          }
-
-    - name: Check coverage threshold
-      working-directory: ./be
-      run: |
-        COVERAGE=${{ steps.coverage.outputs.COVERAGE }}
-        THRESHOLD=60
-        
-        echo "Coverage: $COVERAGE%"
-        echo "Threshold: $THRESHOLD%"
-        
-        if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
-          echo "❌ Coverage $COVERAGE% is below threshold $THRESHOLD%"
-          echo "Please add more tests to improve coverage."
-          exit 1
-        else
-          echo "✅ Coverage $COVERAGE% meets threshold $THRESHOLD%"
-        fi
-
-    - name: Archive coverage reports
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-reports
-        path: |
-          be/coverage.out
-          be/coverage.html
-          be/coverage.txt
-        retention-days: 30

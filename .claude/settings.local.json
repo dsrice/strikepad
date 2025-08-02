@@ -10,7 +10,10 @@
       "Bash(go mod:*)",
       "Bash(make test-coverage:*)",
       "Bash(CGO_ENABLED=1 go test -v -race -coverprofile=coverage.out -covermode=atomic ./...)",
-      "Bash(go tool cover:*)"
+      "Bash(go tool cover:*)",
+      "Bash(rm:*)",
+      "Bash(make lint:*)",
+      "Bash(golangci-lint run:*)"
     ],
     "deny": []
   }

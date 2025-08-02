@@ -1,4 +1,4 @@
-.PHONY: lint lint-fix build run clean test dev debug
+.PHONY: lint lint-fix lint-verbose lint-ci build run clean test dev debug
 
 # Lint the code
 lint:
@@ -7,6 +7,18 @@ lint:
 # Lint and fix auto-fixable issues
 lint-fix:
 	golangci-lint run --fix
+
+# Lint with verbose output
+lint-verbose:
+	golangci-lint run --verbose
+
+# Lint and generate JSON report (same as CI)
+lint-ci:
+	golangci-lint run --timeout=10m --out-format=json:golangci-lint-report.json,line-number
+	@if [ -f golangci-lint-report.json ]; then \
+		echo "Lint report generated: golangci-lint-report.json"; \
+		cat golangci-lint-report.json; \
+	fi
 
 # Build the application
 build:

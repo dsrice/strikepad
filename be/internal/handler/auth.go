@@ -15,15 +15,17 @@ import (
 // AuthServiceInterface defines the interface for auth service
 type AuthServiceInterface interface {
 	Signup(req *dto.SignupRequest) (*dto.SignupResponse, error)
-	Lo
-type AuthHandler struct {
-	authService *service.AuthService
-	validator   *validator.Validator
-	authService AuthServiceInterface
+	Login(req *dto.LoginRequest) (*dto.UserInfo, error)
+}
 
-func NewAuthHandler(authService *service.AuthService) *AuthHandler {
-	return &AuthHandler{
+type AuthHandler struct {
+	authService AuthServiceInterface
+	validator   *validator.Validator
+}
+
 func NewAuthHandler(authService AuthServiceInterface) *AuthHandler {
+	return &AuthHandler{
+		authService: authService,
 		validator:   validator.New(),
 	}
 }

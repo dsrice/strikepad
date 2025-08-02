@@ -6,10 +6,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	"gorm.io/gorm"
-	"strikepad-backen
 	"strikepad-backend/internal/auth"
 	"strikepad-backend/internal/dto"
+	"strikepad-backend/internal/model"
 	"gorm.io/gorm"
 )
 
@@ -66,9 +65,9 @@ func (m *MockUserRepository) List() ([]model.User, error) {
 }
 
 type AuthServiceTestSuite struct {
+	suite.Suite
 	authService  *AuthService
 	mockUserRepo *MockUserRepository
-	mockUserRepo   *MockUserRepository
 }
 
 func (suite *AuthServiceTestSuite) SetupTest() {
@@ -316,7 +315,7 @@ func (suite *AuthServiceTestSuite) TestLoginInvalidEmail() {
 }
 
 func (suite *AuthServiceTestSuite) TestLoginUserWithoutPassword() {
-
+	email := "test@example.com"
 	
 	request := &dto.LoginRequest{
 		Email:    email,
@@ -402,5 +401,4 @@ func (suite *AuthServiceTestSuite) TestEmailNormalization() {
 
 func TestAuthServiceTestSuite(t *testing.T) {
 	suite.Run(t, new(AuthServiceTestSuite))
-t
 }
