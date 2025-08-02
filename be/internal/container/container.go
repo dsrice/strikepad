@@ -27,10 +27,16 @@ func BuildContainer() *dig.Container {
 	if err := container.Provide(service.NewAPIService); err != nil {
 		panic(err)
 	}
+	if err := container.Provide(service.NewAuthService); err != nil {
+		panic(err)
+	}
 	if err := container.Provide(handler.NewHealthHandler); err != nil {
 		panic(err)
 	}
 	if err := container.Provide(handler.NewAPIHandler); err != nil {
+		panic(err)
+	}
+	if err := container.Provide(handler.NewAuthHandler); err != nil {
 		panic(err)
 	}
 

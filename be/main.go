@@ -39,9 +39,13 @@ func main() {
 		return c.String(http.StatusOK, "Hello from StrikePad Backend!")
 	})
 
-	err := c.Invoke(func(healthHandler *handler.HealthHandler, apiHandler *handler.APIHandler) {
+	err := c.Invoke(func(healthHandler *handler.HealthHandler, apiHandler *handler.APIHandler, authHandler *handler.AuthHandler) {
 		e.GET("/health", healthHandler.Health)
 		e.GET("/api/test", apiHandler.Test)
+
+		// Auth endpoints
+		e.POST("/api/auth/signup", authHandler.Signup)
+		e.POST("/api/auth/login", authHandler.Login)
 	})
 
 	if err != nil {
