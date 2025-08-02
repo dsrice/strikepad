@@ -113,11 +113,11 @@ func (suite *ValidatorTestSuite) TestValidatePasswordComplexity() {
 				ve, ok := err.(ValidationErrors)
 				assert.True(t, ok)
 
-				// For empty password, it will fail on "required" first, not "password_complex"
+				// For empty password, it will fail on RequiredTag first, not "password_complex"
 				if tc.password == "" {
 					hasRequiredError := false
 					for _, validationErr := range ve.Errors {
-						if validationErr.Tag == "required" && validationErr.Field == testPasswordFieldConst {
+						if validationErr.Tag == RequiredTag && validationErr.Field == testPasswordFieldConst {
 							hasRequiredError = true
 							break
 						}
@@ -178,7 +178,7 @@ func (suite *ValidatorTestSuite) TestValidateRequiredFields() {
 		expectedMsg, exists := expectedFields[validationErr.Field]
 		assert.True(suite.T(), exists, "Unexpected field: %s", validationErr.Field)
 		assert.Equal(suite.T(), expectedMsg, validationErr.Message)
-		assert.Equal(suite.T(), "required", validationErr.Tag)
+		assert.Equal(suite.T(), RequiredTag, validationErr.Tag)
 	}
 }
 
@@ -217,7 +217,7 @@ func (suite *ValidatorTestSuite) TestValidateEmailFormat() {
 				// Find email validation error
 				hasEmailError := false
 				for _, validationErr := range ve.Errors {
-					if validationErr.Field == "email" && (validationErr.Tag == "email" || validationErr.Tag == "required") {
+					if validationErr.Field == "email" && (validationErr.Tag == EmailTag || validationErr.Tag == RequiredTag) {
 						hasEmailError = true
 						break
 					}
@@ -421,7 +421,7 @@ func (suite *ValidatorTestSuite) TestJSONFieldNames() {
 	for _, validationErr := range ve.Errors {
 		// Field names should come from JSON tags
 		assert.NotContains(suite.T(), validationErr.Field, "DisplayName")
-		if validationErr.Tag == "required" && validationErr.Value == "" {
+		if validationErr.Tag == RequiredTag && validationErr.Value == "" {
 			// Should use JSON field name
 			assert.True(suite.T(),
 				validationErr.Field == "display_name" ||

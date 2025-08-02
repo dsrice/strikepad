@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	requiredTag = "required"
-	emailTag    = "email"
-	passwordTag = "password"
+	RequiredTag = "required"
+	EmailTag    = "email"
+	PasswordTag = "password"
 )
 
 // ValidationError represents a single validation error
@@ -87,7 +87,18 @@ func (v *Validator) Validate(s interface{}) error {
 		return nil
 	}
 
-	validationErrs := err.(validator.ValidationErrors)
+	validationErrs, ok := err.(validator.ValidationErrors)
+	if !ok {
+		// If it's not a ValidationErrors type, return a generic validation error
+		return ValidationErrors{
+			Errors: []ValidationError{{
+				Field:   "unknown",
+				Tag:     "validation",
+				Value:   "",
+				Message: err.Error(),
+			}},
+		}
+	}
 	validationErrors := make([]ValidationError, 0, len(validationErrs))
 
 	for _, err := range validationErrs {
@@ -130,9 +141,9 @@ func getErrorMessage(fe validator.FieldError) string {
 // getBasicValidationMessage handles basic validation messages
 func getBasicValidationMessage(field, tag string) string {
 	switch tag {
-	case requiredTag:
+	case RequiredTag:
 		return fmt.Sprintf("%s is required", field)
-	case emailTag:
+	case EmailTag:
 		return fmt.Sprintf("%s must be a valid email address", field)
 	case "password_complex":
 		return fmt.Sprintf("%s must contain at least one lowercase letter, one uppercase letter, and one symbol", field)

@@ -46,10 +46,9 @@ type ErrorInfo struct {
 	HTTPStatus  int       `json:"-"` // Not included in JSON response
 }
 
-// GetErrorInfo returns error information for a given error code
-func GetErrorInfo(code ErrorCode) ErrorInfo {
-	errorMap := map[ErrorCode]ErrorInfo{
-		// General errors (E001-E099)
+// getGeneralErrors returns general error definitions (E001-E099)
+func getGeneralErrors() map[ErrorCode]ErrorInfo {
+	return map[ErrorCode]ErrorInfo{
 		ErrCodeInternalError: {
 			Code:        ErrCodeInternalError,
 			Message:     "Internal server error",
@@ -92,8 +91,12 @@ func GetErrorInfo(code ErrorCode) ErrorInfo {
 			Description: "The request conflicts with the current state of the resource",
 			HTTPStatus:  http.StatusConflict,
 		},
+	}
+}
 
-		// Authentication errors (E100-E199)
+// getAuthenticationErrors returns authentication error definitions (E100-E199)
+func getAuthenticationErrors() map[ErrorCode]ErrorInfo {
+	return map[ErrorCode]ErrorInfo{
 		ErrCodeInvalidCredentials: {
 			Code:        ErrCodeInvalidCredentials,
 			Message:     "Invalid credentials",
@@ -124,8 +127,12 @@ func GetErrorInfo(code ErrorCode) ErrorInfo {
 			Description: "The authentication token is invalid or malformed",
 			HTTPStatus:  http.StatusUnauthorized,
 		},
+	}
+}
 
-		// Validation errors (E200-E299)
+// getValidationErrors returns validation error definitions (E200-E299)
+func getValidationErrors() map[ErrorCode]ErrorInfo {
+	return map[ErrorCode]ErrorInfo{
 		ErrCodeEmailRequired: {
 			Code:        ErrCodeEmailRequired,
 			Message:     "Email is required",
@@ -174,8 +181,12 @@ func GetErrorInfo(code ErrorCode) ErrorInfo {
 			Description: "Display name must be at most 100 characters long",
 			HTTPStatus:  http.StatusBadRequest,
 		},
+	}
+}
 
-		// Business logic errors (E300-E399)
+// getBusinessLogicErrors returns business logic error definitions (E300-E399)
+func getBusinessLogicErrors() map[ErrorCode]ErrorInfo {
+	return map[ErrorCode]ErrorInfo{
 		ErrCodeEmailNotVerified: {
 			Code:        ErrCodeEmailNotVerified,
 			Message:     "Email not verified",
@@ -194,6 +205,25 @@ func GetErrorInfo(code ErrorCode) ErrorInfo {
 			Description: "This account has been deleted",
 			HTTPStatus:  http.StatusForbidden,
 		},
+	}
+}
+
+// GetErrorInfo returns error information for a given error code
+func GetErrorInfo(code ErrorCode) ErrorInfo {
+	errorMap := make(map[ErrorCode]ErrorInfo)
+
+	// Merge all error categories
+	for k, v := range getGeneralErrors() {
+		errorMap[k] = v
+	}
+	for k, v := range getAuthenticationErrors() {
+		errorMap[k] = v
+	}
+	for k, v := range getValidationErrors() {
+		errorMap[k] = v
+	}
+	for k, v := range getBusinessLogicErrors() {
+		errorMap[k] = v
 	}
 
 	if info, exists := errorMap[code]; exists {
