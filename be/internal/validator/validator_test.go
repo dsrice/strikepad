@@ -21,17 +21,17 @@ func (suite *ValidatorTestSuite) SetupTest() {
 // Test structs for validation
 type TestUser struct {
 	Email       string `json:"email" validate:"required,email,max=255"`
-	Password    string `json:testPasswordFieldConst validate:"required,min=8,max=128,password_complex"`
+	Password    string `json:"password" validate:"required,min=8,max=128,password_complex"`
 	DisplayName string `json:"display_name" validate:"required,min=1,max=100"`
 	Age         int    `json:"age" validate:"gte=0,lte=150"`
 }
 
 type TestProduct struct {
 	Name        string `json:"name" validate:"required,min=1,max=50"`
-	Price       int    `json:"price" validate:"required,gt=0"`
 	Category    string `json:"category" validate:"required,oneof=electronics clothing books"`
 	Description string `json:"description" validate:"max=500"`
 	Code        string `json:"code" validate:"required,alphanum,len=8"`
+	Price       int    `json:"price" validate:"required,gt=0"`
 }
 
 func (suite *ValidatorTestSuite) TestValidatePasswordComplexity() {

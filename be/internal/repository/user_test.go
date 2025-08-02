@@ -52,7 +52,7 @@ func (suite *UserRepositoryTestSuite) TestCreate() {
 
 	suite.mock.ExpectBegin()
 	suite.mock.ExpectExec("INSERT INTO `users`").
-		WithArgs("email", nil, "test@example.com", "Test User", nil, false, false, nil).
+		WithArgs(nil, nil, "test@example.com", nil, "email", "Test User", false, false).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	suite.mock.ExpectCommit()
 

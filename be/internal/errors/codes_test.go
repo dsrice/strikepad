@@ -17,8 +17,8 @@ func (suite *ErrorCodesTestSuite) TestGetErrorInfo_GeneralErrors() {
 		name           string
 		code           ErrorCode
 		expectedCode   ErrorCode
-		expectedStatus int
 		expectedMsg    string
+		expectedStatus int
 	}{
 		{
 			name:           "Internal error",
@@ -88,8 +88,8 @@ func (suite *ErrorCodesTestSuite) TestGetErrorInfo_AuthenticationErrors() {
 		name           string
 		code           ErrorCode
 		expectedCode   ErrorCode
-		expectedStatus int
 		expectedMsg    string
+		expectedStatus int
 	}{
 		{
 			name:           "Invalid credentials",
@@ -145,8 +145,8 @@ func (suite *ErrorCodesTestSuite) TestGetErrorInfo_ValidationErrors() {
 		name           string
 		code           ErrorCode
 		expectedCode   ErrorCode
-		expectedStatus int
 		expectedMsg    string
+		expectedStatus int
 	}{
 		{
 			name:           "Email required",
@@ -223,8 +223,8 @@ func (suite *ErrorCodesTestSuite) TestGetErrorInfo_BusinessLogicErrors() {
 		name           string
 		code           ErrorCode
 		expectedCode   ErrorCode
-		expectedStatus int
 		expectedMsg    string
+		expectedStatus int
 	}{
 		{
 			name:           "Email not verified",
