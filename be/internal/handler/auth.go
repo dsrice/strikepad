@@ -7,20 +7,23 @@ import (
 	"strikepad-backend/internal/auth"
 	"strikepad-backend/internal/dto"
 	"strikepad-backend/internal/errors"
-	"strikepad-backend/internal/service"
 	"strikepad-backend/internal/validator"
 
 	"github.com/labstack/echo/v4"
 )
 
+// AuthServiceInterface defines the interface for auth service
+type AuthServiceInterface interface {
+	Signup(req *dto.SignupRequest) (*dto.SignupResponse, error)
+	Lo
 type AuthHandler struct {
 	authService *service.AuthService
 	validator   *validator.Validator
-}
+	authService AuthServiceInterface
 
 func NewAuthHandler(authService *service.AuthService) *AuthHandler {
 	return &AuthHandler{
-		authService: authService,
+func NewAuthHandler(authService AuthServiceInterface) *AuthHandler {
 		validator:   validator.New(),
 	}
 }
