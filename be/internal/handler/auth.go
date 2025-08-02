@@ -26,6 +26,38 @@ func NewAuthHandler(authService service.AuthServiceInterface) AuthHandlerInterfa
 	}
 }
 
+// handleValidationError handles validation errors and returns appropriate JSON response
+func (h *AuthHandler) handleValidationError(c echo.Context, err error, operation string) error {
+	slog.Warn("Validation failed for "+operation, "error", err)
+	if ve, ok := err.(validator.ValidationErrors); ok {
+		errorInfo := errors.GetErrorInfo(errors.ErrCodeValidationFailed)
+
+		// Convert validator errors to our format
+		var validationErrors []dto.ValidationError
+		for _, validatorErr := range ve.Errors {
+			validationErrors = append(validationErrors, dto.ValidationError{
+				Field:   validatorErr.Field,
+				Tag:     validatorErr.Tag,
+				Value:   validatorErr.Value,
+				Message: validatorErr.Message,
+			})
+		}
+
+		return c.JSON(errorInfo.HTTPStatus, dto.ErrorResponse{
+			Code:        string(errorInfo.Code),
+			Message:     errorInfo.Message,
+			Description: errorInfo.Description,
+			Details:     validationErrors,
+		})
+	}
+	errorInfo := errors.GetErrorInfo(errors.ErrCodeValidationFailed)
+	return c.JSON(errorInfo.HTTPStatus, dto.ErrorResponse{
+		Code:        string(errorInfo.Code),
+		Message:     errorInfo.Message,
+		Description: err.Error(),
+	})
+}
+
 // Signup handles user registration
 func (h *AuthHandler) Signup(c echo.Context) error {
 	var req dto.SignupRequest
@@ -43,34 +75,7 @@ func (h *AuthHandler) Signup(c echo.Context) error {
 
 	// Validate request using validator
 	if err := h.validator.Validate(&req); err != nil {
-		slog.Warn("Validation failed for signup", "error", err)
-		if ve, ok := err.(validator.ValidationErrors); ok {
-			errorInfo := errors.GetErrorInfo(errors.ErrCodeValidationFailed)
-
-			// Convert validator errors to our format
-			var validationErrors []dto.ValidationError
-			for _, validatorErr := range ve.Errors {
-				validationErrors = append(validationErrors, dto.ValidationError{
-					Field:   validatorErr.Field,
-					Tag:     validatorErr.Tag,
-					Value:   validatorErr.Value,
-					Message: validatorErr.Message,
-				})
-			}
-
-			return c.JSON(errorInfo.HTTPStatus, dto.ErrorResponse{
-				Code:        string(errorInfo.Code),
-				Message:     errorInfo.Message,
-				Description: errorInfo.Description,
-				Details:     validationErrors,
-			})
-		}
-		errorInfo := errors.GetErrorInfo(errors.ErrCodeValidationFailed)
-		return c.JSON(errorInfo.HTTPStatus, dto.ErrorResponse{
-			Code:        string(errorInfo.Code),
-			Message:     errorInfo.Message,
-			Description: err.Error(),
-		})
+		return h.handleValidationError(c, err, "signup")
 	}
 
 	// Call service
@@ -138,34 +143,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 
 	// Validate request using validator
 	if err := h.validator.Validate(&req); err != nil {
-		slog.Warn("Validation failed for login", "error", err)
-		if ve, ok := err.(validator.ValidationErrors); ok {
-			errorInfo := errors.GetErrorInfo(errors.ErrCodeValidationFailed)
-
-			// Convert validator errors to our format
-			var validationErrors []dto.ValidationError
-			for _, validatorErr := range ve.Errors {
-				validationErrors = append(validationErrors, dto.ValidationError{
-					Field:   validatorErr.Field,
-					Tag:     validatorErr.Tag,
-					Value:   validatorErr.Value,
-					Message: validatorErr.Message,
-				})
-			}
-
-			return c.JSON(errorInfo.HTTPStatus, dto.ErrorResponse{
-				Code:        string(errorInfo.Code),
-				Message:     errorInfo.Message,
-				Description: errorInfo.Description,
-				Details:     validationErrors,
-			})
-		}
-		errorInfo := errors.GetErrorInfo(errors.ErrCodeValidationFailed)
-		return c.JSON(errorInfo.HTTPStatus, dto.ErrorResponse{
-			Code:        string(errorInfo.Code),
-			Message:     errorInfo.Message,
-			Description: err.Error(),
-		})
+		return h.handleValidationError(c, err, "login")
 	}
 
 	// Call service

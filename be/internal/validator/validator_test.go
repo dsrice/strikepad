@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-const testPasswordFieldConstConst = "password"
+const testPasswordFieldConst = "password"
 
 type ValidatorTestSuite struct {
 	suite.Suite
@@ -169,9 +169,9 @@ func (suite *ValidatorTestSuite) TestValidateRequiredFields() {
 	assert.Len(suite.T(), ve.Errors, 3) // email, password, display_name required
 
 	expectedFields := map[string]string{
-		"email":           "email is required",
+		"email":                "email is required",
 		testPasswordFieldConst: "password is required",
-		"display_name":    "display_name is required",
+		"display_name":         "display_name is required",
 	}
 
 	for _, validationErr := range ve.Errors {
