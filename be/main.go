@@ -39,14 +39,19 @@ func main() {
 		return c.String(http.StatusOK, "Hello from StrikePad Backend!")
 	})
 
-	err := c.Invoke(func(healthHandler handler.HealthHandlerInterface, apiHandler *handler.APIHandler, authHandler handler.AuthHandlerInterface) {
-		e.GET("/health", healthHandler.Check)
-		e.GET("/api/test", apiHandler.Test)
+	err := c.Invoke(
+		func(
+			healthHandler handler.HealthHandlerInterface,
+			apiHandler *handler.APIHandler,
+			authHandler handler.AuthHandlerInterface,
+		) {
+			e.GET("/health", healthHandler.Check)
+			e.GET("/api/test", apiHandler.Test)
 
-		// Auth endpoints
-		e.POST("/api/auth/signup", authHandler.Signup)
-		e.POST("/api/auth/login", authHandler.Login)
-	})
+			// Auth endpoints
+			e.POST("/api/auth/signup", authHandler.Signup)
+			e.POST("/api/auth/login", authHandler.Login)
+		})
 
 	if err != nil {
 		slog.Error("Failed to invoke handlers", "error", err)

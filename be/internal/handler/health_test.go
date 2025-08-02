@@ -5,15 +5,16 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"strikepad-backend/internal/dto"
-	"strikepad-backend/test/mocks"
+	"strikepad-backend/internal/service/mocks"
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
+
+	"strikepad-backend/internal/dto"
 )
 
 func TestHealthHandler_Check(t *testing.T) {
-	mockService := &mocks.MockHealthService{}
+	mockService := &mocks.MockHealthServiceInterface{}
 	handler := NewHealthHandler(mockService)
 
 	expectedResponse := &dto.HealthResponse{
@@ -37,7 +38,7 @@ func TestHealthHandler_Check(t *testing.T) {
 }
 
 func TestHealthHandler_Check_MockVerification(t *testing.T) {
-	mockService := &mocks.MockHealthService{}
+	mockService := &mocks.MockHealthServiceInterface{}
 	handler := NewHealthHandler(mockService)
 
 	expectedResponse := &dto.HealthResponse{

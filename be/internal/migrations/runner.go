@@ -27,7 +27,7 @@ func NewMigrationRunner(env string) (*MigrationRunner, error) {
 	atlasPath := filepath.Join(workingDir, "atlas.exe")
 
 	// Check if Atlas binary exists
-	if _, err := os.Stat(atlasPath); os.IsNotExist(err) {
+	if _, err = os.Stat(atlasPath); os.IsNotExist(err) {
 		return nil, fmt.Errorf("atlas binary not found at %s", atlasPath)
 	}
 
