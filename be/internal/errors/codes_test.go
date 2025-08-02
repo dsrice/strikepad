@@ -16,8 +16,8 @@ func (suite *ErrorCodesTestSuite) TestGetErrorInfoValidCodes() {
 	testCases := []struct {
 		code           ErrorCode
 		expectedCode   ErrorCode
-		expectedStatus int
 		expectedMsg    string
+		expectedStatus int
 	}{
 		// General errors
 		{ErrCodeInternalError, ErrCodeInternalError, http.StatusInternalServerError, "Internal server error"},
@@ -136,8 +136,8 @@ func (suite *ErrorCodesTestSuite) TestHTTPStatusMapping() {
 	// Test that HTTP status codes are mapped correctly for error categories
 	testCases := []struct {
 		code           ErrorCode
-		expectedStatus int
 		category       string
+		expectedStatus int
 	}{
 		// 400 errors
 		{ErrCodeInvalidRequest, http.StatusBadRequest, "client error"},

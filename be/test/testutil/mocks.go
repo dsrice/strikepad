@@ -3,6 +3,7 @@ package testutil
 import (
 	"github.com/stretchr/testify/mock"
 
+	"strikepad-backend/internal/dto"
 	"strikepad-backend/internal/model"
 	"strikepad-backend/internal/service"
 )
@@ -11,13 +12,13 @@ type MockHealthService struct {
 	mock.Mock
 }
 
-func (m *MockHealthService) Check() map[string]string {
+func (m *MockHealthService) GetHealth() *dto.HealthResponse {
 	args := m.Called()
-	result, _ := args.Get(0).(map[string]string)
+	result, _ := args.Get(0).(*dto.HealthResponse)
 	return result
 }
 
-func NewMockHealthService() service.HealthService {
+func NewMockHealthService() service.HealthServiceInterface {
 	return &MockHealthService{}
 }
 
@@ -39,9 +40,22 @@ type MockUserRepository struct {
 	mock.Mock
 }
 
-func (m *MockUserRepository) Create(user *model.User) error {
+func (m *MockUserRepository) Create(user *model.User) (*model.User, error) {
 	args := m.Called(user)
-	return args.Error(0)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	result, _ := args.Get(0).(*model.User)
+	return result, args.Error(1)
+}
+
+func (m *MockUserRepository) FindByEmail(email string) (*model.User, error) {
+	args := m.Called(email)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	result, _ := args.Get(0).(*model.User)
+	return result, args.Error(1)
 }
 
 func (m *MockUserRepository) GetByID(id uint) (*model.User, error) {

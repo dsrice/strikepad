@@ -9,34 +9,29 @@ import (
 
 type HealthServiceTestSuite struct {
 	suite.Suite
-	healthService HealthService
+	healthService HealthServiceInterface
 }
 
 func (suite *HealthServiceTestSuite) SetupTest() {
 	suite.healthService = NewHealthService()
 }
 
-func (suite *HealthServiceTestSuite) TestCheck() {
-	result := suite.healthService.Check()
+func (suite *HealthServiceTestSuite) TestGetHealth() {
+	result := suite.healthService.GetHealth()
 
 	assert.NotNil(suite.T(), result)
-	assert.Equal(suite.T(), "ok", result["status"])
-}
-
-func (suite *HealthServiceTestSuite) TestCheckReturnValue() {
-	result := suite.healthService.Check()
-
-	assert.Contains(suite.T(), result, "status")
-	assert.Len(suite.T(), result, 1)
+	assert.Equal(suite.T(), "ok", result.Status)
+	assert.Equal(suite.T(), "Server is healthy", result.Message)
 }
 
 func TestHealthServiceTestSuite(t *testing.T) {
 	suite.Run(t, new(HealthServiceTestSuite))
 }
 
-func TestHealthService_Check_Simple(t *testing.T) {
+func TestHealthService_GetHealth_Simple(t *testing.T) {
 	service := NewHealthService()
-	result := service.Check()
+	result := service.GetHealth()
 
-	assert.Equal(t, "ok", result["status"])
+	assert.Equal(t, "ok", result.Status)
+	assert.Equal(t, "Server is healthy", result.Message)
 }

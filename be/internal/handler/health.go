@@ -9,16 +9,16 @@ import (
 )
 
 type HealthHandler struct {
-	healthService service.HealthService
+	healthService service.HealthServiceInterface
 }
 
-func NewHealthHandler(healthService service.HealthService) *HealthHandler {
+func NewHealthHandler(healthService service.HealthServiceInterface) HealthHandlerInterface {
 	return &HealthHandler{
 		healthService: healthService,
 	}
 }
 
-func (h *HealthHandler) Health(c echo.Context) error {
-	result := h.healthService.Check()
+func (h *HealthHandler) Check(c echo.Context) error {
+	result := h.healthService.GetHealth()
 	return c.JSON(http.StatusOK, result)
 }

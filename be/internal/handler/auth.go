@@ -3,6 +3,7 @@ package handler
 import (
 	"log/slog"
 	"net/http"
+
 	"strikepad-backend/internal/service"
 
 	"strikepad-backend/internal/auth"
@@ -14,11 +15,11 @@ import (
 )
 
 type AuthHandler struct {
-	authService *service.AuthService
+	authService service.AuthServiceInterface
 	validator   *validator.Validator
 }
 
-func NewAuthHandler(authService *service.AuthService) *AuthHandler {
+func NewAuthHandler(authService service.AuthServiceInterface) AuthHandlerInterface {
 	return &AuthHandler{
 		authService: authService,
 		validator:   validator.New(),

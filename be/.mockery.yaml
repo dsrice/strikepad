@@ -1,0 +1,17 @@
+with-expecter: true
+dir: "{{.InterfaceDir}}/mocks"
+mockname: "Mock{{.InterfaceName}}"
+filename: "{{.MockName}}.go"
+outpkg: mocks
+packages:
+  strikepad-backend/internal/repository:
+    interfaces:
+      UserRepository:
+  strikepad-backend/internal/service:
+    interfaces:
+      AuthServiceInterface:
+      HealthServiceInterface:
+  strikepad-backend/internal/handler:
+    interfaces:
+      AuthHandlerInterface:
+      HealthHandlerInterface:

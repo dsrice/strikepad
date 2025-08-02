@@ -6,6 +6,7 @@ import (
 	"strikepad-backend/internal/auth"
 	"strikepad-backend/internal/dto"
 	"strikepad-backend/internal/model"
+	"strikepad-backend/internal/repository/mocks"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -14,70 +15,18 @@ import (
 )
 
 const (
-	testServiceEmailConstConst    = "test@example.com"
-	testServicePasswordConstConst = "Password123!"
+	testServiceEmailConst    = "test@example.com"
+	testServicePasswordConst = "Password123!"
 )
-
-// MockUserRepository implements the UserRepository interface for testing
-type MockUserRepository struct {
-	mock.Mock
-}
-
-func (m *MockUserRepository) Create(user *model.User) (*model.User, error) {
-	args := m.Called(user)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*model.User), args.Error(1)
-}
-
-func (m *MockUserRepository) GetByID(id uint) (*model.User, error) {
-	args := m.Called(id)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*model.User), args.Error(1)
-}
-
-func (m *MockUserRepository) GetByEmail(email string) (*model.User, error) {
-	args := m.Called(email)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*model.User), args.Error(1)
-}
-
-func (m *MockUserRepository) FindByEmail(email string) (*model.User, error) {
-	args := m.Called(email)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*model.User), args.Error(1)
-}
-
-func (m *MockUserRepository) Update(user *model.User) error {
-	args := m.Called(user)
-	return args.Error(0)
-}
-
-func (m *MockUserRepository) Delete(id uint) error {
-	args := m.Called(id)
-	return args.Error(0)
-}
-
-func (m *MockUserRepository) List() ([]model.User, error) {
-	args := m.Called()
-	return args.Get(0).([]model.User), args.Error(1)
-}
 
 type AuthServiceTestSuite struct {
 	suite.Suite
-	authService  *AuthService
-	mockUserRepo *MockUserRepository
+	authService  AuthServiceInterface
+	mockUserRepo *mocks.MockUserRepository
 }
 
 func (suite *AuthServiceTestSuite) SetupTest() {
-	suite.mockUserRepo = new(MockUserRepository)
+	suite.mockUserRepo = new(mocks.MockUserRepository)
 	suite.authService = NewAuthService(suite.mockUserRepo)
 }
 
@@ -371,7 +320,6 @@ func (suite *AuthServiceTestSuite) TestNewAuthService() {
 	// Test that NewAuthService creates a valid service
 	service := NewAuthService(suite.mockUserRepo)
 	assert.NotNil(suite.T(), service)
-	assert.Equal(suite.T(), suite.mockUserRepo, service.userRepo)
 }
 
 func (suite *AuthServiceTestSuite) TestEmailNormalization() {

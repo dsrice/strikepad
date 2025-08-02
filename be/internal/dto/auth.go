@@ -11,11 +11,11 @@ type SignupRequest struct {
 
 // SignupResponse represents the response payload for user signup
 type SignupResponse struct {
-	ID            uint      `json:"id" example:"1"`
-	EmailVerified bool      `json:"email_verified" example:"false"`
+	CreatedAt     time.Time `json:"created_at" example:"2025-01-27T10:15:30Z"`
 	Email         string    `json:"email" example:"user@example.com"`
 	DisplayName   string    `json:"display_name" example:"John Doe"`
-	CreatedAt     time.Time `json:"created_at" example:"2025-01-27T10:15:30Z"`
+	ID            uint      `json:"id" example:"1"`
+	EmailVerified bool      `json:"email_verified" example:"false"`
 }
 
 // LoginRequest represents the request payload for user login
@@ -33,10 +33,10 @@ type LoginResponse struct {
 
 // UserInfo represents basic user information
 type UserInfo struct {
-	ID            uint   `json:"id"`
-	EmailVerified bool   `json:"email_verified"`
 	Email         string `json:"email"`
 	DisplayName   string `json:"display_name"`
+	ID            uint   `json:"id"`
+	EmailVerified bool   `json:"email_verified"`
 }
 
 // ErrorResponse represents a unified error response structure
@@ -52,5 +52,11 @@ type ValidationError struct {
 	Field   string `json:"field"`
 	Tag     string `json:"tag"`
 	Value   string `json:"value"`
+	Message string `json:"message"`
+}
+
+// HealthResponse represents the health check response
+type HealthResponse struct {
+	Status  string `json:"status"`
 	Message string `json:"message"`
 }

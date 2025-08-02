@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"strikepad-backend/internal/service/mocks"
+
 	"strikepad-backend/internal/auth"
 	"strikepad-backend/internal/dto"
 
@@ -17,36 +19,15 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-// MockAuthService implements the AuthService interface for testing
-type MockAuthService struct {
-	mock.Mock
-}
-
-func (m *MockAuthService) Signup(req *dto.SignupRequest) (*dto.SignupResponse, error) {
-	args := m.Called(req)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*dto.SignupResponse), args.Error(1)
-}
-
-func (m *MockAuthService) Login(req *dto.LoginRequest) (*dto.UserInfo, error) {
-	args := m.Called(req)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*dto.UserInfo), args.Error(1)
-}
-
 type AuthHandlerTestSuite struct {
 	suite.Suite
-	authHandler *AuthHandler
-	mockService *MockAuthService
+	authHandler AuthHandlerInterface
+	mockService *mocks.MockAuthServiceInterface
 	echo        *echo.Echo
 }
 
 func (suite *AuthHandlerTestSuite) SetupTest() {
-	suite.mockService = new(MockAuthService)
+	suite.mockService = new(mocks.MockAuthServiceInterface)
 	suite.authHandler = NewAuthHandler(suite.mockService)
 	suite.echo = echo.New()
 }
@@ -463,8 +444,6 @@ func (suite *AuthHandlerTestSuite) TestNewAuthHandler() {
 	// Test that NewAuthHandler creates a valid handler
 	handler := NewAuthHandler(suite.mockService)
 	assert.NotNil(suite.T(), handler)
-	assert.Equal(suite.T(), suite.mockService, handler.authService)
-	assert.NotNil(suite.T(), handler.validator)
 }
 
 func TestAuthHandlerTestSuite(t *testing.T) {

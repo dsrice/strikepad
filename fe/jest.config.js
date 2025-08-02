@@ -1,7 +1,7 @@
 export default {
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
-  moduleNameMapping: {
+    moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
   transform: {
@@ -11,7 +11,8 @@ export default {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
   testMatch: [
     '<rootDir>/src/**/__tests__/**/*.(ts|tsx|js)',
-    '<rootDir>/src/**/?(*.)(spec|test).(ts|tsx|js)'
+      '<rootDir>/src/**/?(*.)(spec|test).(ts|tsx|js)',
+      '<rootDir>/src/**/*.test.(ts|tsx|js)'
   ],
   collectCoverageFrom: [
     'src/**/*.(ts|tsx)',

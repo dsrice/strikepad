@@ -1,6 +1,5 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import ChartComponent from './ChartComponent';
 
 const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
@@ -41,7 +40,6 @@ const Dashboard: React.FC = () => {
           
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-xl font-semibold mb-4">D3.js Chart Demo</h2>
-            <ChartComponent />
           </div>
         </div>
       </main>

@@ -39,8 +39,8 @@ func main() {
 		return c.String(http.StatusOK, "Hello from StrikePad Backend!")
 	})
 
-	err := c.Invoke(func(healthHandler *handler.HealthHandler, apiHandler *handler.APIHandler, authHandler *handler.AuthHandler) {
-		e.GET("/health", healthHandler.Health)
+	err := c.Invoke(func(healthHandler handler.HealthHandlerInterface, apiHandler *handler.APIHandler, authHandler handler.AuthHandlerInterface) {
+		e.GET("/health", healthHandler.Check)
 		e.GET("/api/test", apiHandler.Test)
 
 		// Auth endpoints
@@ -81,7 +81,7 @@ func initLogger() {
 
 	// Create logs directory if it doesn't exist
 	logsDir := "logs"
-	if err := os.MkdirAll(logsDir, 0755); err != nil {
+	if err := os.MkdirAll(logsDir, 0750); err != nil {
 		slog.Error("Failed to create logs directory", "error", err)
 		os.Exit(1)
 	}
@@ -175,15 +175,12 @@ func setupHourlyRotation(logFile *lumberjack.Logger) {
 		ticker := time.NewTicker(time.Hour)
 		defer ticker.Stop()
 
-		for {
-			select {
-			case <-ticker.C:
-				// Force rotation
-				if err := logFile.Rotate(); err != nil {
-					slog.Error("Failed to rotate log file", "error", err)
-				} else {
-					slog.Info("Log file rotated successfully")
-				}
+		for range ticker.C {
+			// Force rotation
+			if err := logFile.Rotate(); err != nil {
+				slog.Error("Failed to rotate log file", "error", err)
+			} else {
+				slog.Info("Log file rotated successfully")
 			}
 		}
 	}()

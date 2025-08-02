@@ -5,49 +5,59 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"strikepad-backend/test/testutil"
+	"strikepad-backend/internal/dto"
+	"strikepad-backend/test/mocks"
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHealthHandler_Health(t *testing.T) {
-	mockService := testutil.NewMockHealthService().(*testutil.MockHealthService)
+func TestHealthHandler_Check(t *testing.T) {
+	mockService := &mocks.MockHealthService{}
 	handler := NewHealthHandler(mockService)
 
-	mockService.On("Check").Return(map[string]string{"status": "ok"})
+	expectedResponse := &dto.HealthResponse{
+		Status:  "ok",
+		Message: "Server is healthy",
+	}
+	mockService.On("GetHealth").Return(expectedResponse)
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/health", nil)
+	req := httptest.NewRequest(http.MethodGet, "/health", http.NoBody)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	err := handler.Health(c)
+	err := handler.Check(c)
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 	assert.Contains(t, rec.Body.String(), `"status":"ok"`)
+	assert.Contains(t, rec.Body.String(), `"message":"Server is healthy"`)
 	mockService.AssertExpectations(t)
 }
 
-func TestHealthHandler_Health_MockVerification(t *testing.T) {
-	mockService := &testutil.MockHealthService{}
+func TestHealthHandler_Check_MockVerification(t *testing.T) {
+	mockService := &mocks.MockHealthService{}
 	handler := NewHealthHandler(mockService)
 
-	expectedResult := map[string]string{"status": "healthy"}
-	mockService.On("Check").Return(expectedResult)
+	expectedResponse := &dto.HealthResponse{
+		Status:  "healthy",
+		Message: "All systems operational",
+	}
+	mockService.On("GetHealth").Return(expectedResponse)
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/health", nil)
+	req := httptest.NewRequest(http.MethodGet, "/health", http.NoBody)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	err := handler.Health(c)
+	err := handler.Check(c)
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 	assert.Contains(t, rec.Body.String(), `"status":"healthy"`)
+	assert.Contains(t, rec.Body.String(), `"message":"All systems operational"`)
 
-	mockService.AssertCalled(t, "Check")
-	mockService.AssertNumberOfCalls(t, "Check", 1)
+	mockService.AssertCalled(t, "GetHealth")
+	mockService.AssertNumberOfCalls(t, "GetHealth", 1)
 }
