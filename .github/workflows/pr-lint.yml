@@ -40,6 +40,8 @@ jobs:
 
     - name: Run golangci-lint
       uses: golangci/golangci-lint-action@v4
+      continue-on-error: true
+      id: golangci-lint
       with:
         version: latest
         working-directory: ./be
@@ -71,13 +73,37 @@ jobs:
               
               ---
               *Powered by [golangci-lint](https://golangci-lint.run/)*`;
-              
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: successComment
-              });
+          
+              try {
+                // Find existing lint comment
+                const { data: comments } = await github.rest.issues.listComments({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                });
+          
+                const existingComment = comments.find(comment => 
+                  comment.body.includes('🎯 Lint Results')
+                );
+          
+                if (existingComment) {
+                  await github.rest.issues.updateComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    comment_id: existingComment.id,
+                    body: successComment
+                  });
+                } else {
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: context.issue.number,
+                    body: successComment
+                  });
+                }
+              } catch (commentError) {
+                console.log('⚠️ Could not create/update comment:', commentError.message);
+              }
               return;
             }
             
@@ -227,7 +253,7 @@ jobs:
             // Set exit code based on errors
             if (errors.length > 0) {
               console.log(`❌ Found ${errors.length} error(s). Failing the check.`);
-              process.exit(1);
+              core.setFailed(`Found ${errors.length} linting error(s)`);
             } else if (warnings.length > 0) {
               console.log(`⚠️ Found ${warnings.length} warning(s). Check passed with warnings.`);
             } else {
