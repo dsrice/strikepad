@@ -106,12 +106,44 @@ func (v *Validator) Validate(s interface{}) error {
 // getErrorMessage returns a human-readable error message for validation errors
 func getErrorMessage(fe validator.FieldError) string {
 	field := fe.Field()
+	tag := fe.Tag()
 
-	switch fe.Tag() {
+	if msg := getBasicValidationMessage(field, tag); msg != "" {
+		return msg
+	}
+
+	if msg := getLengthValidationMessage(field, tag, fe); msg != "" {
+		return msg
+	}
+
+	if msg := getNumericValidationMessage(field, tag, fe.Param()); msg != "" {
+		return msg
+	}
+
+	if msg := getFormatValidationMessage(field, tag, fe.Param()); msg != "" {
+		return msg
+	}
+
+	return fmt.Sprintf("%s is invalid", field)
+}
+
+// getBasicValidationMessage handles basic validation messages
+func getBasicValidationMessage(field, tag string) string {
+	switch tag {
 	case requiredTag:
 		return fmt.Sprintf("%s is required", field)
 	case emailTag:
 		return fmt.Sprintf("%s must be a valid email address", field)
+	case "password_complex":
+		return fmt.Sprintf("%s must contain at least one lowercase letter, one uppercase letter, and one symbol", field)
+	default:
+		return ""
+	}
+}
+
+// getLengthValidationMessage handles length-related validation messages
+func getLengthValidationMessage(field, tag string, fe validator.FieldError) string {
+	switch tag {
 	case "min":
 		if fe.Kind() == reflect.String {
 			return fmt.Sprintf("%s must be at least %s characters long", field, fe.Param())
@@ -124,16 +156,32 @@ func getErrorMessage(fe validator.FieldError) string {
 		return fmt.Sprintf("%s must be at most %s", field, fe.Param())
 	case "len":
 		return fmt.Sprintf("%s must be exactly %s characters long", field, fe.Param())
+	default:
+		return ""
+	}
+}
+
+// getNumericValidationMessage handles numeric comparison validation messages
+func getNumericValidationMessage(field, tag, param string) string {
+	switch tag {
 	case "gt":
-		return fmt.Sprintf("%s must be greater than %s", field, fe.Param())
+		return fmt.Sprintf("%s must be greater than %s", field, param)
 	case "gte":
-		return fmt.Sprintf("%s must be greater than or equal to %s", field, fe.Param())
+		return fmt.Sprintf("%s must be greater than or equal to %s", field, param)
 	case "lt":
-		return fmt.Sprintf("%s must be less than %s", field, fe.Param())
+		return fmt.Sprintf("%s must be less than %s", field, param)
 	case "lte":
-		return fmt.Sprintf("%s must be less than or equal to %s", field, fe.Param())
+		return fmt.Sprintf("%s must be less than or equal to %s", field, param)
+	default:
+		return ""
+	}
+}
+
+// getFormatValidationMessage handles format and content validation messages
+func getFormatValidationMessage(field, tag, param string) string {
+	switch tag {
 	case "oneof":
-		return fmt.Sprintf("%s must be one of: %s", field, fe.Param())
+		return fmt.Sprintf("%s must be one of: %s", field, param)
 	case "alpha":
 		return fmt.Sprintf("%s must contain only alphabetic characters", field)
 	case "alphanum":
@@ -144,9 +192,7 @@ func getErrorMessage(fe validator.FieldError) string {
 		return fmt.Sprintf("%s must be a valid URL", field)
 	case "uri":
 		return fmt.Sprintf("%s must be a valid URI", field)
-	case "password_complex":
-		return fmt.Sprintf("%s must contain at least one lowercase letter, one uppercase letter, and one symbol", field)
 	default:
-		return fmt.Sprintf("%s is invalid", field)
+		return ""
 	}
 }
