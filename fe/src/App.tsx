@@ -1,43 +1,72 @@
-import { useState } from 'react'
+import React from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+import LoginForm from './components/LoginForm'
+import SignupForm from './components/SignupForm'
+import Dashboard from './components/Dashboard'
 import './App.css'
-import ChartComponent from './components/ChartComponent'
+
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, isLoading } = useAuth()
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />
+}
+
+const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, isLoading } = useAuth()
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <>{children}</>
+}
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-blue-600 text-white p-6">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-bold">StrikePad Frontend</h1>
-          <p className="text-blue-100 mt-2">React + TypeScript + Tailwind + D3.js</p>
-        </div>
-      </header>
-      
-      <main className="max-w-6xl mx-auto p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4">Counter Demo</h2>
-            <div className="space-y-4">
-              <button 
-                onClick={() => setCount((count) => count + 1)}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition-colors"
-              >
-                Count is {count}
-              </button>
-              <p className="text-gray-600">
-                Edit <code className="bg-gray-100 px-2 py-1 rounded">src/App.tsx</code> and save to test HMR
-              </p>
-            </div>
-          </div>
-          
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4">D3.js Chart Demo</h2>
-            <ChartComponent />
-          </div>
-        </div>
-      </main>
-    </div>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route 
+            path="/login" 
+            element={
+              <PublicRoute>
+                <LoginForm />
+              </PublicRoute>
+            } 
+          />
+          <Route 
+            path="/signup" 
+            element={
+              <PublicRoute>
+                <SignupForm />
+              </PublicRoute>
+            } 
+          />
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
+        </Routes>
+      </Router>
+    </AuthProvider>
   )
 }
 
