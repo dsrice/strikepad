@@ -5,9 +5,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"strikepad-backend/test/testutil"
+
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
-	"strikepad-backend/test/testutil"
 )
 
 func TestHealthHandler_Health(t *testing.T) {
@@ -46,7 +47,7 @@ func TestHealthHandler_Health_MockVerification(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 	assert.Contains(t, rec.Body.String(), `"status":"healthy"`)
-	
+
 	mockService.AssertCalled(t, "Check")
 	mockService.AssertNumberOfCalls(t, "Check", 1)
 }

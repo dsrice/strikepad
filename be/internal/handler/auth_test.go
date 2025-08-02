@@ -8,12 +8,13 @@ import (
 	"testing"
 	"time"
 
+	"strikepad-backend/internal/auth"
+	"strikepad-backend/internal/dto"
+
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	"strikepad-backend/internal/auth"
-	"strikepad-backend/internal/dto"
 )
 
 // MockAuthService implements the AuthService interface for testing

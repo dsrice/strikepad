@@ -1,7 +1,7 @@
 env "dev" {
   src = "file://schema.sql"
-  dev = "postgres://postgres:password@localhost:5432/bowling_dev?sslmode=disable"
-  url = "postgres://postgres:password@localhost:5432/bowling_dev?sslmode=disable"
+  dev = "postgres://postgres:password@localhost:5432/strikepad?sslmode=disable"
+  url = "postgres://postgres:password@localhost:5432/strikepad?sslmode=disable"
   migration {
     dir = "file://migrations"
   }

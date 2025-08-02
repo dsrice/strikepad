@@ -3,13 +3,19 @@ package service
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/suite"
 	"strikepad-backend/internal/auth"
 	"strikepad-backend/internal/dto"
 	"strikepad-backend/internal/model"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/suite"
 	"gorm.io/gorm"
+)
+
+const (
+	testServiceEmailConstConst    = "test@example.com"
+	testServicePasswordConstConst = "Password123!"
 )
 
 // MockUserRepository implements the UserRepository interface for testing
@@ -80,10 +86,10 @@ func (suite *AuthServiceTestSuite) TearDownTest() {
 }
 
 func (suite *AuthServiceTestSuite) TestSignupSuccess() {
-	email := "test@example.com"
+	email := testServiceEmailConst
 	request := &dto.SignupRequest{
 		Email:       email,
-		Password:    "Password123!",
+		Password:    testServicePasswordConst,
 		DisplayName: "Test User",
 	}
 
@@ -97,12 +103,12 @@ func (suite *AuthServiceTestSuite) TestSignupSuccess() {
 	}
 
 	// Mock: FindByEmail returns not found error (user doesn't exist)
-	suite.mockUserRepo.On("FindByEmail", "test@example.com").Return(nil, gorm.ErrRecordNotFound)
+	suite.mockUserRepo.On("FindByEmail", testServiceEmailConst).Return(nil, gorm.ErrRecordNotFound)
 
 	// Mock: Create returns the new user
 	suite.mockUserRepo.On("Create", mock.MatchedBy(func(user *model.User) bool {
 		return user.ProviderType == "email" &&
-			*user.Email == "test@example.com" &&
+			*user.Email == testServiceEmailConst &&
 			user.DisplayName == "Test User" &&
 			user.PasswordHash != nil &&
 			!user.EmailVerified
@@ -124,7 +130,7 @@ func (suite *AuthServiceTestSuite) TestSignupUserAlreadyExists() {
 	email := "existing@example.com"
 	request := &dto.SignupRequest{
 		Email:       email,
-		Password:    "Password123!",
+		Password:    testServicePasswordConst,
 		DisplayName: "Test User",
 	}
 
@@ -149,7 +155,7 @@ func (suite *AuthServiceTestSuite) TestSignupUserAlreadyExists() {
 func (suite *AuthServiceTestSuite) TestSignupInvalidEmail() {
 	request := &dto.SignupRequest{
 		Email:       "invalid-email",
-		Password:    "Password123!",
+		Password:    testServicePasswordConst,
 		DisplayName: "Test User",
 	}
 
@@ -164,7 +170,7 @@ func (suite *AuthServiceTestSuite) TestSignupInvalidEmail() {
 
 func (suite *AuthServiceTestSuite) TestSignupPasswordTooShort() {
 	request := &dto.SignupRequest{
-		Email:       "test@example.com",
+		Email:       testServiceEmailConst,
 		Password:    "short",
 		DisplayName: "Test User",
 	}
@@ -179,9 +185,9 @@ func (suite *AuthServiceTestSuite) TestSignupPasswordTooShort() {
 }
 
 func (suite *AuthServiceTestSuite) TestSignupPasswordTooLong() {
-	longPassword := "Password123!" + string(make([]byte, 120)) // 132 chars total
+	longPassword := testServicePasswordConst + string(make([]byte, 120)) // 132 chars total
 	request := &dto.SignupRequest{
-		Email:       "test@example.com",
+		Email:       testServiceEmailConst,
 		Password:    longPassword,
 		DisplayName: "Test User",
 	}
@@ -196,15 +202,15 @@ func (suite *AuthServiceTestSuite) TestSignupPasswordTooLong() {
 }
 
 func (suite *AuthServiceTestSuite) TestSignupRepositoryCreateError() {
-	email := "test@example.com"
+	email := testServiceEmailConst
 	request := &dto.SignupRequest{
 		Email:       email,
-		Password:    "Password123!",
+		Password:    testServicePasswordConst,
 		DisplayName: "Test User",
 	}
 
 	// Mock: FindByEmail returns not found (user doesn't exist)
-	suite.mockUserRepo.On("FindByEmail", "test@example.com").Return(nil, gorm.ErrRecordNotFound)
+	suite.mockUserRepo.On("FindByEmail", testServiceEmailConst).Return(nil, gorm.ErrRecordNotFound)
 
 	// Mock: Create returns an error
 	suite.mockUserRepo.On("Create", mock.AnythingOfType("*model.User")).Return(nil, assert.AnError)
@@ -219,8 +225,8 @@ func (suite *AuthServiceTestSuite) TestSignupRepositoryCreateError() {
 }
 
 func (suite *AuthServiceTestSuite) TestLoginSuccess() {
-	email := "test@example.com"
-	password := "Password123!"
+	email := testServiceEmailConst
+	password := testServicePasswordConst
 	hashedPassword, _ := auth.HashPassword(password)
 
 	request := &dto.LoginRequest{
@@ -237,7 +243,7 @@ func (suite *AuthServiceTestSuite) TestLoginSuccess() {
 	}
 
 	// Mock: FindByEmail returns the user
-	suite.mockUserRepo.On("FindByEmail", "test@example.com").Return(existingUser, nil)
+	suite.mockUserRepo.On("FindByEmail", testServiceEmailConst).Return(existingUser, nil)
 
 	// Execute
 	result, err := suite.authService.Login(request)
@@ -253,7 +259,7 @@ func (suite *AuthServiceTestSuite) TestLoginSuccess() {
 func (suite *AuthServiceTestSuite) TestLoginUserNotFound() {
 	request := &dto.LoginRequest{
 		Email:    "nonexistent@example.com",
-		Password: "Password123!",
+		Password: testServicePasswordConst,
 	}
 
 	// Mock: FindByEmail returns not found error
@@ -269,8 +275,8 @@ func (suite *AuthServiceTestSuite) TestLoginUserNotFound() {
 }
 
 func (suite *AuthServiceTestSuite) TestLoginInvalidPassword() {
-	email := "test@example.com"
-	correctPassword := "Password123!"
+	email := testServiceEmailConst
+	correctPassword := testServicePasswordConst
 	wrongPassword := "WrongPassword456!"
 	hashedPassword, _ := auth.HashPassword(correctPassword)
 
@@ -288,7 +294,7 @@ func (suite *AuthServiceTestSuite) TestLoginInvalidPassword() {
 	}
 
 	// Mock: FindByEmail returns the user
-	suite.mockUserRepo.On("FindByEmail", "test@example.com").Return(existingUser, nil)
+	suite.mockUserRepo.On("FindByEmail", testServiceEmailConst).Return(existingUser, nil)
 
 	// Execute
 	result, err := suite.authService.Login(request)
@@ -302,7 +308,7 @@ func (suite *AuthServiceTestSuite) TestLoginInvalidPassword() {
 func (suite *AuthServiceTestSuite) TestLoginInvalidEmail() {
 	request := &dto.LoginRequest{
 		Email:    "invalid-email",
-		Password: "Password123!",
+		Password: testServicePasswordConst,
 	}
 
 	// Execute
@@ -315,11 +321,11 @@ func (suite *AuthServiceTestSuite) TestLoginInvalidEmail() {
 }
 
 func (suite *AuthServiceTestSuite) TestLoginUserWithoutPassword() {
-	email := "test@example.com"
-	
+	email := testServiceEmailConst
+
 	request := &dto.LoginRequest{
 		Email:    email,
-		Password: "Password123!",
+		Password: testServicePasswordConst,
 	}
 
 	// User exists but has no password (OAuth user, for example)
@@ -332,7 +338,7 @@ func (suite *AuthServiceTestSuite) TestLoginUserWithoutPassword() {
 	}
 
 	// Mock: FindByEmail returns the user
-	suite.mockUserRepo.On("FindByEmail", "test@example.com").Return(existingUser, nil)
+	suite.mockUserRepo.On("FindByEmail", testServiceEmailConst).Return(existingUser, nil)
 
 	// Execute
 	result, err := suite.authService.Login(request)
@@ -345,12 +351,12 @@ func (suite *AuthServiceTestSuite) TestLoginUserWithoutPassword() {
 
 func (suite *AuthServiceTestSuite) TestLoginRepositoryError() {
 	request := &dto.LoginRequest{
-		Email:    "test@example.com",
-		Password: "Password123!",
+		Email:    testServiceEmailConst,
+		Password: testServicePasswordConst,
 	}
 
 	// Mock: FindByEmail returns a repository error
-	suite.mockUserRepo.On("FindByEmail", "test@example.com").Return(nil, assert.AnError)
+	suite.mockUserRepo.On("FindByEmail", testServiceEmailConst).Return(nil, assert.AnError)
 
 	// Execute
 	result, err := suite.authService.Login(request)
@@ -371,7 +377,7 @@ func (suite *AuthServiceTestSuite) TestNewAuthService() {
 func (suite *AuthServiceTestSuite) TestEmailNormalization() {
 	email := "  Test.User@EXAMPLE.COM  "
 	normalizedEmail := "test.user@example.com"
-	password := "Password123!"
+	password := testServicePasswordConst
 	hashedPassword, _ := auth.HashPassword(password)
 
 	request := &dto.LoginRequest{

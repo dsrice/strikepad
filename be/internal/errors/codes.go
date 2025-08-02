@@ -23,12 +23,12 @@ const (
 	ErrCodeTokenInvalid       ErrorCode = "E104"
 
 	// Validation error codes (E200-E299)
-	ErrCodeEmailRequired      ErrorCode = "E200"
-	ErrCodeEmailInvalid       ErrorCode = "E201"
-	ErrCodePasswordRequired   ErrorCode = "E202"
-	ErrCodePasswordTooShort   ErrorCode = "E203"
-	ErrCodePasswordTooLong    ErrorCode = "E204"
-	ErrCodePasswordComplexity ErrorCode = "E205"
+	ErrCodeEmailRequired       ErrorCode = "E200"
+	ErrCodeEmailInvalid        ErrorCode = "E201"
+	ErrCodePasswordRequired    ErrorCode = "E202"
+	ErrCodePasswordTooShort    ErrorCode = "E203"
+	ErrCodePasswordTooLong     ErrorCode = "E204"
+	ErrCodePasswordComplexity  ErrorCode = "E205"
 	ErrCodeDisplayNameRequired ErrorCode = "E206"
 	ErrCodeDisplayNameTooLong  ErrorCode = "E207"
 
@@ -202,7 +202,7 @@ func GetErrorInfo(code ErrorCode) ErrorInfo {
 
 	// Return default error if code not found
 	return ErrorInfo{
-		Code:        ErrCodeInternalError,
+		Code:        code,
 		Message:     "Unknown error",
 		Description: "An unknown error occurred",
 		HTTPStatus:  http.StatusInternalServerError,

@@ -13,15 +13,15 @@ func ValidateEmail(email string) error {
 	if email == "" {
 		return ErrEmailRequired
 	}
-	
+
 	// Trim whitespace
 	email = strings.TrimSpace(email)
-	
+
 	// Check email format
 	if !emailRegex.MatchString(email) {
 		return ErrInvalidEmail
 	}
-	
+
 	return nil
 }
 

@@ -8,6 +8,8 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+const defaultVal = "default_value"
+
 type EnvConfigTestSuite struct {
 	suite.Suite
 	originalEnvVars map[string]string
@@ -46,52 +48,52 @@ func (suite *EnvConfigTestSuite) TearDownTest() {
 func (suite *EnvConfigTestSuite) TestGetEnvWithValue() {
 	key := "TEST_KEY"
 	expectedValue := "test_value"
-	defaultValue := "default_value"
+	defaultVal := defaultVal
 
 	os.Setenv(key, expectedValue)
 
-	result := getEnv(key, defaultValue)
+	result := getEnv(key, defaultVal)
 	assert.Equal(suite.T(), expectedValue, result)
 }
 
 func (suite *EnvConfigTestSuite) TestGetEnvWithDefault() {
 	key := "NONEXISTENT_KEY"
-	defaultValue := "default_value"
+	defaultVal := defaultVal
 
 	// Ensure the key doesn't exist
 	os.Unsetenv(key)
 
-	result := getEnv(key, defaultValue)
-	assert.Equal(suite.T(), defaultValue, result)
+	result := getEnv(key, defaultVal)
+	assert.Equal(suite.T(), defaultVal, result)
 }
 
 func (suite *EnvConfigTestSuite) TestGetEnvWithEmptyValue() {
 	key := "EMPTY_KEY"
-	defaultValue := "default_value"
+	defaultVal := defaultVal
 
 	os.Setenv(key, "")
 
-	result := getEnv(key, defaultValue)
-	assert.Equal(suite.T(), defaultValue, result)
+	result := getEnv(key, defaultVal)
+	assert.Equal(suite.T(), defaultVal, result)
 }
 
 func (suite *EnvConfigTestSuite) TestGetEnvWithWhitespaceValue() {
 	key := "WHITESPACE_KEY"
 	value := "  value_with_spaces  "
-	defaultValue := "default_value"
+	defaultVal := defaultVal
 
 	os.Setenv(key, value)
 
-	result := getEnv(key, defaultValue)
+	result := getEnv(key, defaultVal)
 	assert.Equal(suite.T(), value, result) // getEnv doesn't trim whitespace
 }
 
 func (suite *EnvConfigTestSuite) TestGetEnvVariousValues() {
 	testCases := []struct {
-		name         string
-		envValue     string
-		defaultValue string
-		expected     string
+		name       string
+		envValue   string
+		defaultVal string
+		expected   string
 	}{
 		{"Normal value", "hello", "default", "hello"},
 		{"Numeric value", "123", "default", "123"},
@@ -105,7 +107,7 @@ func (suite *EnvConfigTestSuite) TestGetEnvVariousValues() {
 			key := "TEST_VAR_" + tc.name
 			os.Setenv(key, tc.envValue)
 
-			result := getEnv(key, tc.defaultValue)
+			result := getEnv(key, tc.defaultVal)
 			assert.Equal(t, tc.expected, result)
 
 			os.Unsetenv(key)
@@ -116,8 +118,8 @@ func (suite *EnvConfigTestSuite) TestGetEnvVariousValues() {
 func (suite *EnvConfigTestSuite) TestGetEnvDefaultValues() {
 	// Test common default patterns
 	testCases := []struct {
-		key          string
-		defaultValue string
+		key        string
+		defaultVal string
 	}{
 		{"DB_HOST", "localhost"},
 		{"DB_PORT", "5432"},
@@ -130,8 +132,8 @@ func (suite *EnvConfigTestSuite) TestGetEnvDefaultValues() {
 			// Ensure env var is not set
 			os.Unsetenv(tc.key)
 
-			result := getEnv(tc.key, tc.defaultValue)
-			assert.Equal(t, tc.defaultValue, result)
+			result := getEnv(tc.key, tc.defaultVal)
+			assert.Equal(t, tc.defaultVal, result)
 		})
 	}
 }

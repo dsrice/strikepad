@@ -12,9 +12,9 @@ type SignupRequest struct {
 // SignupResponse represents the response payload for user signup
 type SignupResponse struct {
 	ID            uint      `json:"id" example:"1"`
+	EmailVerified bool      `json:"email_verified" example:"false"`
 	Email         string    `json:"email" example:"user@example.com"`
 	DisplayName   string    `json:"display_name" example:"John Doe"`
-	EmailVerified bool      `json:"email_verified" example:"false"`
 	CreatedAt     time.Time `json:"created_at" example:"2025-01-27T10:15:30Z"`
 }
 
@@ -26,17 +26,17 @@ type LoginRequest struct {
 
 // LoginResponse represents the response payload for user login
 type LoginResponse struct {
+	ExpiresAt   time.Time `json:"expires_at"`
 	User        UserInfo  `json:"user"`
 	AccessToken string    `json:"access_token"`
-	ExpiresAt   time.Time `json:"expires_at"`
 }
 
 // UserInfo represents basic user information
 type UserInfo struct {
 	ID            uint   `json:"id"`
+	EmailVerified bool   `json:"email_verified"`
 	Email         string `json:"email"`
 	DisplayName   string `json:"display_name"`
-	EmailVerified bool   `json:"email_verified"`
 }
 
 // ErrorResponse represents a unified error response structure

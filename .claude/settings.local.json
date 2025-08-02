@@ -16,7 +16,9 @@
       "Bash(golangci-lint run:*)",
       "Bash(npm install:*)",
       "Bash(npm run lint)",
-      "Bash(npm run lint:*)"
+      "Bash(npm run lint:*)",
+      "Bash(gofmt:*)",
+      "Bash(goimports:*)"
     ],
     "deny": []
   }

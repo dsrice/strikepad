@@ -3,13 +3,10 @@ package container
 import (
 	"strikepad-backend/internal/config"
 	"strikepad-backend/internal/handler"
-	"strikepad-backend/internal/model"
 	"strikepad-backend/internal/repository"
 	"strikepad-backend/internal/service"
 
 	"go.uber.org/dig"
-
-	"gorm.io/gorm"
 )
 
 func BuildContainer() *dig.Container {
@@ -37,14 +34,6 @@ func BuildContainer() *dig.Container {
 		panic(err)
 	}
 	if err := container.Provide(handler.NewAuthHandler); err != nil {
-		panic(err)
-	}
-
-	if err := container.Invoke(func(db *gorm.DB) {
-		if err := db.AutoMigrate(&model.User{}); err != nil {
-			panic(err)
-		}
-	}); err != nil {
 		panic(err)
 	}
 

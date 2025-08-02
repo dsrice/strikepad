@@ -4,13 +4,16 @@ import (
 	"testing"
 	"time"
 
+	"strikepad-backend/internal/model"
+
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"strikepad-backend/internal/model"
 )
+
+const testEmail = "test@example.com"
 
 type UserRepositoryTestSuite struct {
 	suite.Suite
@@ -40,7 +43,7 @@ func (suite *UserRepositoryTestSuite) TearDownTest() {
 }
 
 func (suite *UserRepositoryTestSuite) TestCreate() {
-	email := "test@example.com"
+	email := testEmail
 	user := &model.User{
 		ProviderType: "email",
 		DisplayName:  "Test User",
@@ -60,9 +63,9 @@ func (suite *UserRepositoryTestSuite) TestCreate() {
 }
 
 func (suite *UserRepositoryTestSuite) TestGetByID() {
-	email := "test@example.com"
+	email := testEmail
 	now := time.Now()
-	
+
 	suite.mock.ExpectQuery("SELECT \\* FROM `users` WHERE `users`.`id` = \\? ORDER BY `users`.`id` LIMIT \\?").
 		WithArgs(1, 1).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "provider_type", "provider_user_id", "email", "display_name", "password_hash", "email_verified", "created_at", "updated_at", "is_deleted", "deleted_at"}).
@@ -75,7 +78,7 @@ func (suite *UserRepositoryTestSuite) TestGetByID() {
 }
 
 func (suite *UserRepositoryTestSuite) TestGetByEmail() {
-	email := "test@example.com"
+	email := testEmail
 	now := time.Now()
 
 	suite.mock.ExpectQuery("SELECT \\* FROM `users` WHERE email = \\? ORDER BY `users`.`id` LIMIT \\?").

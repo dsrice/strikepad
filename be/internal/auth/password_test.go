@@ -8,12 +8,14 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+const testPasswordConstConst = "testPasswordConst123"
+
 type PasswordTestSuite struct {
 	suite.Suite
 }
 
 func (suite *PasswordTestSuite) TestHashPassword() {
-	password := "testPassword123"
+	password := testPasswordConst
 
 	hash, err := HashPassword(password)
 	assert.NoError(suite.T(), err)
@@ -31,7 +33,7 @@ func (suite *PasswordTestSuite) TestHashPasswordEmptyString() {
 }
 
 func (suite *PasswordTestSuite) TestCheckPasswordHashValid() {
-	password := "testPassword123"
+	password := testPasswordConst
 
 	hash, err := HashPassword(password)
 	assert.NoError(suite.T(), err)
@@ -42,7 +44,7 @@ func (suite *PasswordTestSuite) TestCheckPasswordHashValid() {
 }
 
 func (suite *PasswordTestSuite) TestCheckPasswordHashInvalid() {
-	password := "testPassword123"
+	password := testPasswordConst
 	wrongPassword := "wrongPassword456"
 
 	hash, err := HashPassword(password)
@@ -54,7 +56,7 @@ func (suite *PasswordTestSuite) TestCheckPasswordHashInvalid() {
 }
 
 func (suite *PasswordTestSuite) TestCheckPasswordHashInvalidHash() {
-	password := "testPassword123"
+	password := testPasswordConst
 	invalidHash := "invalid_hash"
 
 	// Check with invalid hash format
@@ -63,7 +65,7 @@ func (suite *PasswordTestSuite) TestCheckPasswordHashInvalidHash() {
 }
 
 func (suite *PasswordTestSuite) TestCheckPasswordHashEmptyPassword() {
-	hash, err := HashPassword("testPassword123")
+	hash, err := HashPassword(testPasswordConst)
 	assert.NoError(suite.T(), err)
 
 	// Check with empty password
@@ -73,7 +75,7 @@ func (suite *PasswordTestSuite) TestCheckPasswordHashEmptyPassword() {
 
 func (suite *PasswordTestSuite) TestCheckPasswordHashEmptyHash() {
 	// Check with empty hash
-	isValid := CheckPasswordHash("testPassword123", "")
+	isValid := CheckPasswordHash(testPasswordConst, "")
 	assert.False(suite.T(), isValid)
 }
 
@@ -134,7 +136,7 @@ func (suite *PasswordTestSuite) TestValidatePasswordExactLimits() {
 }
 
 func (suite *PasswordTestSuite) TestHashPasswordConsistency() {
-	password := "testPassword123"
+	password := testPasswordConst
 
 	// Hash the same password multiple times
 	hash1, err1 := HashPassword(password)

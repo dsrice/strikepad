@@ -9,6 +9,12 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
+const (
+	requiredTag = "required"
+	emailTag    = "email"
+	passwordTag = "password"
+)
+
 // ValidationError represents a single validation error
 type ValidationError struct {
 	Field   string `json:"field"`
@@ -23,7 +29,7 @@ type ValidationErrors struct {
 }
 
 func (ve ValidationErrors) Error() string {
-	var messages []string
+	messages := make([]string, 0, len(ve.Errors))
 	for _, err := range ve.Errors {
 		messages = append(messages, err.Message)
 	}
@@ -38,7 +44,7 @@ type Validator struct {
 // New creates a new validator instance
 func New() *Validator {
 	v := validator.New()
-	
+
 	// Register field name function to use JSON tags
 	v.RegisterTagNameFunc(func(fld reflect.StructField) string {
 		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
@@ -47,10 +53,12 @@ func New() *Validator {
 		}
 		return name
 	})
-	
+
 	// Register custom password validation
-	v.RegisterValidation("password_complex", validatePasswordComplexity)
-	
+	if err := v.RegisterValidation("password_complex", validatePasswordComplexity); err != nil {
+		panic("Failed to register password_complex validation: " + err.Error())
+	}
+
 	return &Validator{
 		validator: v,
 	}
@@ -59,16 +67,16 @@ func New() *Validator {
 // validatePasswordComplexity validates that password contains lowercase, uppercase, and symbol
 func validatePasswordComplexity(fl validator.FieldLevel) bool {
 	password := fl.Field().String()
-	
+
 	// Check for at least one lowercase letter
 	hasLower := regexp.MustCompile(`[a-z]`).MatchString(password)
-	
+
 	// Check for at least one uppercase letter
 	hasUpper := regexp.MustCompile(`[A-Z]`).MatchString(password)
-	
+
 	// Check for at least one symbol (non-alphanumeric character)
 	hasSymbol := regexp.MustCompile(`[^a-zA-Z0-9]`).MatchString(password)
-	
+
 	return hasLower && hasUpper && hasSymbol
 }
 
@@ -79,13 +87,14 @@ func (v *Validator) Validate(s interface{}) error {
 		return nil
 	}
 
-	var validationErrors []ValidationError
-	
-	for _, err := range err.(validator.ValidationErrors) {
+	validationErrs := err.(validator.ValidationErrors)
+	validationErrors := make([]ValidationError, 0, len(validationErrs))
+
+	for _, err := range validationErrs {
 		ve := ValidationError{
-			Field: err.Field(),
-			Tag:   err.Tag(),
-			Value: fmt.Sprintf("%v", err.Value()),
+			Field:   err.Field(),
+			Tag:     err.Tag(),
+			Value:   fmt.Sprintf("%v", err.Value()),
 			Message: getErrorMessage(err),
 		}
 		validationErrors = append(validationErrors, ve)
@@ -97,11 +106,11 @@ func (v *Validator) Validate(s interface{}) error {
 // getErrorMessage returns a human-readable error message for validation errors
 func getErrorMessage(fe validator.FieldError) string {
 	field := fe.Field()
-	
+
 	switch fe.Tag() {
-	case "required":
+	case requiredTag:
 		return fmt.Sprintf("%s is required", field)
-	case "email":
+	case emailTag:
 		return fmt.Sprintf("%s must be a valid email address", field)
 	case "min":
 		if fe.Kind() == reflect.String {

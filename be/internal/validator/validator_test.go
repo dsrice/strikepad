@@ -7,6 +7,8 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+const testPasswordFieldConstConst = "password"
+
 type ValidatorTestSuite struct {
 	suite.Suite
 	validator *Validator
@@ -19,7 +21,7 @@ func (suite *ValidatorTestSuite) SetupTest() {
 // Test structs for validation
 type TestUser struct {
 	Email       string `json:"email" validate:"required,email,max=255"`
-	Password    string `json:"password" validate:"required,min=8,max=128,password_complex"`
+	Password    string `json:testPasswordFieldConst validate:"required,min=8,max=128,password_complex"`
 	DisplayName string `json:"display_name" validate:"required,min=1,max=100"`
 	Age         int    `json:"age" validate:"gte=0,lte=150"`
 }
@@ -65,7 +67,7 @@ func (suite *ValidatorTestSuite) TestValidatePasswordComplexity() {
 		},
 		{
 			name:     "Only lowercase",
-			password: "password",
+			password: testPasswordFieldConst,
 			expected: false,
 		},
 		{
@@ -95,7 +97,7 @@ func (suite *ValidatorTestSuite) TestValidatePasswordComplexity() {
 			}
 
 			err := suite.validator.Validate(&user)
-			
+
 			if tc.expected {
 				// Should not have password_complex validation error
 				if err != nil {
@@ -110,12 +112,12 @@ func (suite *ValidatorTestSuite) TestValidatePasswordComplexity() {
 				assert.Error(t, err)
 				ve, ok := err.(ValidationErrors)
 				assert.True(t, ok)
-				
+
 				// For empty password, it will fail on "required" first, not "password_complex"
 				if tc.password == "" {
 					hasRequiredError := false
 					for _, validationErr := range ve.Errors {
-						if validationErr.Tag == "required" && validationErr.Field == "password" {
+						if validationErr.Tag == "required" && validationErr.Field == testPasswordFieldConst {
 							hasRequiredError = true
 							break
 						}
@@ -127,7 +129,7 @@ func (suite *ValidatorTestSuite) TestValidatePasswordComplexity() {
 					for _, validationErr := range ve.Errors {
 						if validationErr.Tag == "password_complex" {
 							hasPasswordComplexError = true
-							assert.Equal(t, "password", validationErr.Field)
+							assert.Equal(t, testPasswordFieldConst, validationErr.Field)
 							assert.Contains(t, validationErr.Message, "must contain at least one lowercase letter, one uppercase letter, and one symbol")
 							break
 						}
@@ -167,9 +169,9 @@ func (suite *ValidatorTestSuite) TestValidateRequiredFields() {
 	assert.Len(suite.T(), ve.Errors, 3) // email, password, display_name required
 
 	expectedFields := map[string]string{
-		"email":        "email is required",
-		"password":     "password is required", 
-		"display_name": "display_name is required",
+		"email":           "email is required",
+		testPasswordFieldConst: "password is required",
+		"display_name":    "display_name is required",
 	}
 
 	for _, validationErr := range ve.Errors {
@@ -204,14 +206,14 @@ func (suite *ValidatorTestSuite) TestValidateEmailFormat() {
 			}
 
 			err := suite.validator.Validate(&user)
-			
+
 			if tc.valid {
 				assert.NoError(t, err)
 			} else {
 				assert.Error(t, err)
 				ve, ok := err.(ValidationErrors)
 				assert.True(t, ok)
-				
+
 				// Find email validation error
 				hasEmailError := false
 				for _, validationErr := range ve.Errors {
@@ -237,13 +239,13 @@ func (suite *ValidatorTestSuite) TestValidateStringLength() {
 
 	err := suite.validator.Validate(&user)
 	assert.Error(suite.T(), err)
-	
+
 	ve, ok := err.(ValidationErrors)
 	assert.True(suite.T(), ok)
-	
+
 	hasMinLengthError := false
 	for _, validationErr := range ve.Errors {
-		if validationErr.Field == "password" && validationErr.Tag == "min" {
+		if validationErr.Field == testPasswordFieldConst && validationErr.Tag == "min" {
 			hasMinLengthError = true
 			assert.Contains(suite.T(), validationErr.Message, "must be at least 8 characters long")
 			break
@@ -256,7 +258,7 @@ func (suite *ValidatorTestSuite) TestValidateStringLength() {
 	for i := 3; i < len(longPassword); i++ {
 		longPassword = longPassword[:i] + "a" + longPassword[i+1:]
 	}
-	
+
 	user.Password = longPassword
 	err = suite.validator.Validate(&user)
 	assert.Error(suite.T(), err)
@@ -273,10 +275,10 @@ func (suite *ValidatorTestSuite) TestValidateNumericRange() {
 
 	err := suite.validator.Validate(&user)
 	assert.Error(suite.T(), err)
-	
+
 	ve, ok := err.(ValidationErrors)
 	assert.True(suite.T(), ok)
-	
+
 	hasGteError := false
 	for _, validationErr := range ve.Errors {
 		if validationErr.Field == "age" && validationErr.Tag == "gte" {
@@ -291,10 +293,10 @@ func (suite *ValidatorTestSuite) TestValidateNumericRange() {
 	user.Age = 151 // Too old
 	err = suite.validator.Validate(&user)
 	assert.Error(suite.T(), err)
-	
+
 	ve, ok = err.(ValidationErrors)
 	assert.True(suite.T(), ok)
-	
+
 	hasLteError := false
 	for _, validationErr := range ve.Errors {
 		if validationErr.Field == "age" && validationErr.Tag == "lte" {
@@ -317,10 +319,10 @@ func (suite *ValidatorTestSuite) TestValidateOneOf() {
 
 	err := suite.validator.Validate(&product)
 	assert.Error(suite.T(), err)
-	
+
 	ve, ok := err.(ValidationErrors)
 	assert.True(suite.T(), ok)
-	
+
 	hasOneOfError := false
 	for _, validationErr := range ve.Errors {
 		if validationErr.Field == "category" && validationErr.Tag == "oneof" {
@@ -343,10 +345,10 @@ func (suite *ValidatorTestSuite) TestValidateAlphaNum() {
 
 	err := suite.validator.Validate(&product)
 	assert.Error(suite.T(), err)
-	
+
 	ve, ok := err.(ValidationErrors)
 	assert.True(suite.T(), ok)
-	
+
 	hasAlphaNumError := false
 	for _, validationErr := range ve.Errors {
 		if validationErr.Field == "code" && validationErr.Tag == "alphanum" {
@@ -369,10 +371,10 @@ func (suite *ValidatorTestSuite) TestValidateExactLength() {
 
 	err := suite.validator.Validate(&product)
 	assert.Error(suite.T(), err)
-	
+
 	ve, ok := err.(ValidationErrors)
 	assert.True(suite.T(), ok)
-	
+
 	hasLenError := false
 	for _, validationErr := range ve.Errors {
 		if validationErr.Field == "code" && validationErr.Tag == "len" {
@@ -394,10 +396,10 @@ func (suite *ValidatorTestSuite) TestValidationErrorsMessage() {
 
 	err := suite.validator.Validate(&user)
 	assert.Error(suite.T(), err)
-	
+
 	ve, ok := err.(ValidationErrors)
 	assert.True(suite.T(), ok)
-	
+
 	// Test that Error() method joins messages
 	errorMsg := ve.Error()
 	assert.Contains(suite.T(), errorMsg, ";")
@@ -412,19 +414,19 @@ func (suite *ValidatorTestSuite) TestJSONFieldNames() {
 
 	err := suite.validator.Validate(&user)
 	assert.Error(suite.T(), err)
-	
+
 	ve, ok := err.(ValidationErrors)
 	assert.True(suite.T(), ok)
-	
+
 	for _, validationErr := range ve.Errors {
 		// Field names should come from JSON tags
 		assert.NotContains(suite.T(), validationErr.Field, "DisplayName")
 		if validationErr.Tag == "required" && validationErr.Value == "" {
 			// Should use JSON field name
-			assert.True(suite.T(), 
-				validationErr.Field == "display_name" || 
-				validationErr.Field == "email" || 
-				validationErr.Field == "password")
+			assert.True(suite.T(),
+				validationErr.Field == "display_name" ||
+					validationErr.Field == "email" ||
+					validationErr.Field == testPasswordFieldConst)
 		}
 	}
 }

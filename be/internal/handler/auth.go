@@ -7,22 +7,18 @@ import (
 	"strikepad-backend/internal/auth"
 	"strikepad-backend/internal/dto"
 	"strikepad-backend/internal/errors"
+	"strikepad-backend/internal/service"
+	
 	"strikepad-backend/internal/validator"
 
 	"github.com/labstack/echo/v4"
 )
 
-// AuthServiceInterface defines the interface for auth service
-type AuthServiceInterface interface {
-	Signup(req *dto.SignupRequest) (*dto.SignupResponse, error)
-	Login(req *dto.LoginRequest) (*dto.UserInfo, error)
-}
-
-type AuthHandler struct {
+	authService *service.AuthService
 	authService AuthServiceInterface
 	validator   *validator.Validator
 }
-
+func NewAuthHandler(authService *service.AuthService) *AuthHandler {
 func NewAuthHandler(authService AuthServiceInterface) *AuthHandler {
 	return &AuthHandler{
 		authService: authService,
@@ -46,34 +42,7 @@ func (h *AuthHandler) Signup(c echo.Context) error {
 	}
 
 	// Validate request using validator
-	if err := h.validator.Validate(&req); err != nil {
-		slog.Warn("Validation failed for signup", "error", err)
-		if ve, ok := err.(validator.ValidationErrors); ok {
-			errorInfo := errors.GetErrorInfo(errors.ErrCodeValidationFailed)
-
-			// Convert validator errors to our format
-			var validationErrors []dto.ValidationError
-			for _, validatorErr := range ve.Errors {
-				validationErrors = append(validationErrors, dto.ValidationError{
-					Field:   validatorErr.Field,
-					Tag:     validatorErr.Tag,
-					Value:   validatorErr.Value,
-					Message: validatorErr.Message,
-				})
-			}
-
-			return c.JSON(errorInfo.HTTPStatus, dto.ErrorResponse{
-				Code:        string(errorInfo.Code),
-				Message:     errorInfo.Message,
-				Description: errorInfo.Description,
-				Details:     validationErrors,
-			})
-		}
-		errorInfo := errors.GetErrorInfo(errors.ErrCodeValidationFailed)
-		return c.JSON(errorInfo.HTTPStatus, dto.ErrorResponse{
-			Code:        string(errorInfo.Code),
-			Message:     errorInfo.Message,
-			Description: err.Error(),
+		return h.handleValidationError(c, err, "signup")
 		})
 	}
 
@@ -141,34 +110,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 	}
 
 	// Validate request using validator
-	if err := h.validator.Validate(&req); err != nil {
-		slog.Warn("Validation failed for login", "error", err)
-		if ve, ok := err.(validator.ValidationErrors); ok {
-			errorInfo := errors.GetErrorInfo(errors.ErrCodeValidationFailed)
-
-			// Convert validator errors to our format
-			var validationErrors []dto.ValidationError
-			for _, validatorErr := range ve.Errors {
-				validationErrors = append(validationErrors, dto.ValidationError{
-					Field:   validatorErr.Field,
-					Tag:     validatorErr.Tag,
-					Value:   validatorErr.Value,
-					Message: validatorErr.Message,
-				})
-			}
-
-			return c.JSON(errorInfo.HTTPStatus, dto.ErrorResponse{
-				Code:        string(errorInfo.Code),
-				Message:     errorInfo.Message,
-				Description: errorInfo.Description,
-				Details:     validationErrors,
-			})
-		}
-		errorInfo := errors.GetErrorInfo(errors.ErrCodeValidationFailed)
-		return c.JSON(errorInfo.HTTPStatus, dto.ErrorResponse{
-			Code:        string(errorInfo.Code),
-			Message:     errorInfo.Message,
-			Description: err.Error(),
+		return h.handleValidationError(c, err, "login")
 		})
 	}
 
@@ -197,4 +139,5 @@ func (h *AuthHandler) Login(c echo.Context) error {
 
 	slog.Info("User login successful", "user_id", userInfo.ID, "email", userInfo.Email)
 	return c.JSON(http.StatusOK, userInfo)
+u
 }
