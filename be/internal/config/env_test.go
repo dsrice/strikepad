@@ -45,95 +45,150 @@ func (suite *EnvConfigTestSuite) TearDownTest() {
 	}
 }
 
-func (suite *EnvConfigTestSuite) TestGetEnvWithValue() {
-	key := "TEST_KEY"
-	expectedValue := "test_value"
-	defaultVal := defaultVal
-
-	os.Setenv(key, expectedValue)
-
-	result := getEnv(key, defaultVal)
-	assert.Equal(suite.T(), expectedValue, result)
-}
-
-func (suite *EnvConfigTestSuite) TestGetEnvWithDefault() {
-	key := "NONEXISTENT_KEY"
-	defaultVal := defaultVal
-
-	// Ensure the key doesn't exist
-	os.Unsetenv(key)
-
-	result := getEnv(key, defaultVal)
-	assert.Equal(suite.T(), defaultVal, result)
-}
-
-func (suite *EnvConfigTestSuite) TestGetEnvWithEmptyValue() {
-	key := "EMPTY_KEY"
-	defaultVal := defaultVal
-
-	os.Setenv(key, "")
-
-	result := getEnv(key, defaultVal)
-	assert.Equal(suite.T(), defaultVal, result)
-}
-
-func (suite *EnvConfigTestSuite) TestGetEnvWithWhitespaceValue() {
-	key := "WHITESPACE_KEY"
-	value := "  value_with_spaces  "
-	defaultVal := defaultVal
-
-	os.Setenv(key, value)
-
-	result := getEnv(key, defaultVal)
-	assert.Equal(suite.T(), value, result) // getEnv doesn't trim whitespace
-}
-
-func (suite *EnvConfigTestSuite) TestGetEnvVariousValues() {
+func (suite *EnvConfigTestSuite) TestGetEnv() {
 	testCases := []struct {
-		name       string
-		envValue   string
-		defaultVal string
-		expected   string
+		name         string
+		key          string
+		envValue     *string // nil means env var is not set
+		defaultValue string
+		expected     string
+		description  string
 	}{
-		{"Normal value", "hello", "default", "hello"},
-		{"Numeric value", "123", "default", "123"},
-		{"Special chars", "user@domain.com", "default", "user@domain.com"},
-		{"Path value", "/path/to/file", "default", "/path/to/file"},
-		{"URL value", "https://example.com", "default", "https://example.com"},
+		{
+			name:         "existing value",
+			key:          "TEST_KEY",
+			envValue:     stringPtr("test_value"),
+			defaultValue: defaultVal,
+			expected:     "test_value",
+			description:  "should return env value when set",
+		},
+		{
+			name:         "nonexistent key",
+			key:          "NONEXISTENT_KEY",
+			envValue:     nil,
+			defaultValue: defaultVal,
+			expected:     defaultVal,
+			description:  "should return default when env var doesn't exist",
+		},
+		{
+			name:         "empty value",
+			key:          "EMPTY_KEY",
+			envValue:     stringPtr(""),
+			defaultValue: defaultVal,
+			expected:     defaultVal,
+			description:  "should return default when env var is empty",
+		},
+		{
+			name:         "whitespace value",
+			key:          "WHITESPACE_KEY",
+			envValue:     stringPtr("  value_with_spaces  "),
+			defaultValue: defaultVal,
+			expected:     "  value_with_spaces  ",
+			description:  "should preserve whitespace in env values",
+		},
+		{
+			name:         "numeric value",
+			key:          "NUMERIC_KEY",
+			envValue:     stringPtr("123456"),
+			defaultValue: "0",
+			expected:     "123456",
+			description:  "should handle numeric strings correctly",
+		},
+		{
+			name:         "special characters",
+			key:          "SPECIAL_KEY",
+			envValue:     stringPtr("user@domain.com!#$%"),
+			defaultValue: "default@example.com",
+			expected:     "user@domain.com!#$%",
+			description:  "should handle special characters correctly",
+		},
+		{
+			name:         "url value",
+			key:          "URL_KEY",
+			envValue:     stringPtr("https://api.example.com/v1"),
+			defaultValue: "http://localhost",
+			expected:     "https://api.example.com/v1",
+			description:  "should handle URL strings correctly",
+		},
+		{
+			name:         "path value",
+			key:          "PATH_KEY",
+			envValue:     stringPtr("/usr/local/bin:/usr/bin"),
+			defaultValue: "/bin",
+			expected:     "/usr/local/bin:/usr/bin",
+			description:  "should handle file paths correctly",
+		},
+		{
+			name:         "unicode value",
+			key:          "UNICODE_KEY",
+			envValue:     stringPtr("こんにちは世界"),
+			defaultValue: "hello",
+			expected:     "こんにちは世界",
+			description:  "should handle unicode characters correctly",
+		},
 	}
 
 	for _, tc := range testCases {
 		suite.T().Run(tc.name, func(t *testing.T) {
-			key := "TEST_VAR_" + tc.name
-			os.Setenv(key, tc.envValue)
+			// Clean up any existing value
+			os.Unsetenv(tc.key)
 
-			result := getEnv(key, tc.defaultVal)
-			assert.Equal(t, tc.expected, result)
+			// Set environment variable if specified
+			if tc.envValue != nil {
+				os.Setenv(tc.key, *tc.envValue)
+			}
 
-			os.Unsetenv(key)
+			result := getEnv(tc.key, tc.defaultValue)
+			assert.Equal(t, tc.expected, result, tc.description)
+
+			// Clean up
+			os.Unsetenv(tc.key)
 		})
 	}
 }
 
-func (suite *EnvConfigTestSuite) TestGetEnvDefaultValues() {
-	// Test common default patterns
+// Helper function to create string pointers
+func stringPtr(s string) *string {
+	return &s
+}
+
+func (suite *EnvConfigTestSuite) TestGetEnvCommonDefaults() {
+	// Test common application configuration patterns
 	testCases := []struct {
-		key        string
-		defaultVal string
+		name         string
+		key          string
+		defaultValue string
+		category     string
 	}{
-		{"DB_HOST", "localhost"},
-		{"DB_PORT", "5432"},
-		{"DB_USER", "postgres"},
-		{"ENV", "development"},
+		// Database configuration
+		{"database host", "DB_HOST", "localhost", "database"},
+		{"database port", "DB_PORT", "5432", "database"},
+		{"database user", "DB_USER", "postgres", "database"},
+		{"database name", "DB_NAME", "strikepad", "database"},
+		{"database ssl mode", "DB_SSLMODE", "disable", "database"},
+
+		// Application configuration
+		{"environment", "ENV", "development", "application"},
+		{"port", "PORT", "8080", "application"},
+		{"host", "HOST", "0.0.0.0", "application"},
+
+		// Authentication configuration
+		{"jwt secret", "JWT_SECRET", "default-secret", "auth"},
+		{"jwt expiry", "JWT_EXPIRY", "24h", "auth"},
+
+		// External service configuration
+		{"redis url", "REDIS_URL", "redis://localhost:6379", "cache"},
+		{"api base url", "API_BASE_URL", "http://localhost:8080", "external"},
 	}
 
 	for _, tc := range testCases {
-		suite.T().Run(tc.key, func(t *testing.T) {
+		suite.T().Run(tc.name, func(t *testing.T) {
 			// Ensure env var is not set
 			os.Unsetenv(tc.key)
 
-			result := getEnv(tc.key, tc.defaultVal)
-			assert.Equal(t, tc.defaultVal, result)
+			result := getEnv(tc.key, tc.defaultValue)
+			assert.Equal(t, tc.defaultValue, result,
+				"getEnv should return default value for %s configuration", tc.category)
 		})
 	}
 }

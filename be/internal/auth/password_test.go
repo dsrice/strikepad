@@ -15,68 +15,120 @@ type PasswordTestSuite struct {
 }
 
 func (suite *PasswordTestSuite) TestHashPassword() {
-	password := testPasswordConst
+	testCases := []struct {
+		name           string
+		password       string
+		expectError    bool
+		validateFormat bool
+		validateUnique bool
+	}{
+		{
+			name:           "valid password",
+			password:       testPasswordConst,
+			expectError:    false,
+			validateFormat: true,
+			validateUnique: true,
+		},
+		{
+			name:           "empty string",
+			password:       "",
+			expectError:    false,
+			validateFormat: true,
+			validateUnique: false,
+		},
+		{
+			name:           "long password",
+			password:       "very_long_password_" + strings.Repeat("a", 30), // 49 chars total, under 72 byte limit
+			expectError:    false,
+			validateFormat: true,
+			validateUnique: true,
+		},
+	}
 
-	hash, err := HashPassword(password)
+	for _, tc := range testCases {
+		suite.T().Run(tc.name, func(t *testing.T) {
+			hash, err := HashPassword(tc.password)
+
+			if tc.expectError {
+				assert.Error(t, err)
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.NotEmpty(t, hash)
+			assert.NotEqual(t, tc.password, hash)
+
+			if tc.validateFormat {
+				// Hash should start with bcrypt prefix
+				assert.True(t, strings.HasPrefix(hash, "$2a$") || strings.HasPrefix(hash, "$2b$") || strings.HasPrefix(hash, "$2y$"))
+			}
+
+			if tc.validateUnique {
+				// Generate another hash and ensure they're different
+				hash2, err2 := HashPassword(tc.password)
+				assert.NoError(t, err2)
+				assert.NotEqual(t, hash, hash2, "Two hashes of the same password should be different due to salt")
+			}
+		})
+	}
+}
+
+func (suite *PasswordTestSuite) TestCheckPasswordHash() {
+	// Generate a valid hash for testing
+	validPassword := testPasswordConst
+	validHash, err := HashPassword(validPassword)
 	assert.NoError(suite.T(), err)
-	assert.NotEmpty(suite.T(), hash)
-	assert.NotEqual(suite.T(), password, hash)
 
-	// Hash should start with bcrypt prefix
-	assert.True(suite.T(), strings.HasPrefix(hash, "$2a$") || strings.HasPrefix(hash, "$2b$") || strings.HasPrefix(hash, "$2y$"))
-}
+	testCases := []struct {
+		name     string
+		password string
+		hash     string
+		expected bool
+	}{
+		{
+			name:     "correct password",
+			password: validPassword,
+			hash:     validHash,
+			expected: true,
+		},
+		{
+			name:     "wrong password",
+			password: "wrongPassword456",
+			hash:     validHash,
+			expected: false,
+		},
+		{
+			name:     "invalid hash format",
+			password: validPassword,
+			hash:     "invalid_hash",
+			expected: false,
+		},
+		{
+			name:     "empty password",
+			password: "",
+			hash:     validHash,
+			expected: false,
+		},
+		{
+			name:     "empty hash",
+			password: validPassword,
+			hash:     "",
+			expected: false,
+		},
+		{
+			name:     "both empty",
+			password: "",
+			hash:     "",
+			expected: false,
+		},
+	}
 
-func (suite *PasswordTestSuite) TestHashPasswordEmptyString() {
-	hash, err := HashPassword("")
-	assert.NoError(suite.T(), err)
-	assert.NotEmpty(suite.T(), hash)
-}
-
-func (suite *PasswordTestSuite) TestCheckPasswordHashValid() {
-	password := testPasswordConst
-
-	hash, err := HashPassword(password)
-	assert.NoError(suite.T(), err)
-
-	// Check with correct password
-	isValid := CheckPasswordHash(password, hash)
-	assert.True(suite.T(), isValid)
-}
-
-func (suite *PasswordTestSuite) TestCheckPasswordHashInvalid() {
-	password := testPasswordConst
-	wrongPassword := "wrongPassword456"
-
-	hash, err := HashPassword(password)
-	assert.NoError(suite.T(), err)
-
-	// Check with wrong password
-	isValid := CheckPasswordHash(wrongPassword, hash)
-	assert.False(suite.T(), isValid)
-}
-
-func (suite *PasswordTestSuite) TestCheckPasswordHashInvalidHash() {
-	password := testPasswordConst
-	invalidHash := "invalid_hash"
-
-	// Check with invalid hash format
-	isValid := CheckPasswordHash(password, invalidHash)
-	assert.False(suite.T(), isValid)
-}
-
-func (suite *PasswordTestSuite) TestCheckPasswordHashEmptyPassword() {
-	hash, err := HashPassword(testPasswordConst)
-	assert.NoError(suite.T(), err)
-
-	// Check with empty password
-	isValid := CheckPasswordHash("", hash)
-	assert.False(suite.T(), isValid)
-}
-
-func (suite *PasswordTestSuite) TestCheckPasswordHashEmptyHash() {
-	// Check with empty hash
-	isValid := CheckPasswordHash(testPasswordConst, "")
-	assert.False(suite.T(), isValid)
+	for _, tc := range testCases {
+		suite.T().Run(tc.name, func(t *testing.T) {
+			isValid := CheckPasswordHash(tc.password, tc.hash)
+			assert.Equal(t, tc.expected, isValid)
+		})
+	}
 }
 
 func (suite *PasswordTestSuite) TestValidatePasswordValid() {
@@ -99,58 +151,75 @@ func (suite *PasswordTestSuite) TestValidatePasswordValid() {
 	}
 }
 
-func (suite *PasswordTestSuite) TestValidatePasswordTooShort() {
-	shortPasswords := []string{
-		"",
-		"a",
-		"Pass1!",  // 6 chars
-		"Test12!", // 7 chars
+func (suite *PasswordTestSuite) TestValidatePasswordLength() {
+	testCases := []struct {
+		name        string
+		password    string
+		expectedErr error
+		description string
+	}{
+		// Too short passwords
+		{"empty password", "", ErrPasswordTooShort, "0 chars"},
+		{"single character", "a", ErrPasswordTooShort, "1 char"},
+		{"six characters", "Pass1!", ErrPasswordTooShort, "6 chars"},
+		{"seven characters", "Test12!", ErrPasswordTooShort, "7 chars"},
+
+		// Valid length passwords
+		{"minimum valid", "Pass123!", nil, "8 chars (minimum)"},
+		{"maximum valid", "Pass123!" + strings.Repeat("a", 120), nil, "128 chars (maximum)"},
+		{"medium length", "MySecurePassword123!", nil, "20 chars"},
+
+		// Too long passwords
+		{"too long", "Password123!" + strings.Repeat("a", 120), ErrPasswordTooLong, "132 chars"},
+		{"way too long", strings.Repeat("a", 200), ErrPasswordTooLong, "200 chars"},
 	}
 
-	for _, password := range shortPasswords {
-		err := ValidatePassword(password)
-		assert.Equal(suite.T(), ErrPasswordTooShort, err, "Password should be too short: %s", password)
+	for _, tc := range testCases {
+		suite.T().Run(tc.name, func(t *testing.T) {
+			err := ValidatePassword(tc.password)
+
+			if tc.expectedErr != nil {
+				assert.Equal(t, tc.expectedErr, err, "Password validation failed for %s", tc.description)
+			} else {
+				assert.NoError(t, err, "Password should be valid for %s", tc.description)
+			}
+		})
 	}
-}
-
-func (suite *PasswordTestSuite) TestValidatePasswordTooLong() {
-	// Create password longer than 128 characters
-	longPassword := "Password123!" + strings.Repeat("a", 120) // 132 chars total
-
-	err := ValidatePassword(longPassword)
-	assert.Equal(suite.T(), ErrPasswordTooLong, err)
-}
-
-func (suite *PasswordTestSuite) TestValidatePasswordExactLimits() {
-	// Test exactly 8 characters (minimum)
-	minPassword := "Pass123!"
-	assert.Len(suite.T(), minPassword, 8)
-	err := ValidatePassword(minPassword)
-	assert.NoError(suite.T(), err)
-
-	// Test exactly 128 characters (maximum)
-	maxPassword := "Pass123!" + strings.Repeat("a", 120) // 128 chars total
-	assert.Len(suite.T(), maxPassword, 128)
-	err = ValidatePassword(maxPassword)
-	assert.NoError(suite.T(), err)
 }
 
 func (suite *PasswordTestSuite) TestHashPasswordConsistency() {
-	password := testPasswordConst
+	testCases := []struct {
+		name     string
+		password string
+	}{
+		{"standard password", testPasswordConst},
+		{"empty password", ""},
+		{"special characters", "P@ssw0rd!#$%"},
+		{"unicode password", "パスワード123!"},
+		{"long password", "MyVeryLongPassword" + strings.Repeat("a", 45)}, // 65 chars total, under 72 byte limit
+	}
 
-	// Hash the same password multiple times
-	hash1, err1 := HashPassword(password)
-	hash2, err2 := HashPassword(password)
+	for _, tc := range testCases {
+		suite.T().Run(tc.name, func(t *testing.T) {
+			// Hash the same password multiple times
+			hash1, err1 := HashPassword(tc.password)
+			hash2, err2 := HashPassword(tc.password)
 
-	assert.NoError(suite.T(), err1)
-	assert.NoError(suite.T(), err2)
+			assert.NoError(t, err1)
+			assert.NoError(t, err2)
 
-	// Hashes should be different (due to salt)
-	assert.NotEqual(suite.T(), hash1, hash2)
+			// Hashes should be different (due to salt)
+			assert.NotEqual(t, hash1, hash2, "Two hashes of the same password should be different due to salt")
 
-	// But both should verify correctly
-	assert.True(suite.T(), CheckPasswordHash(password, hash1))
-	assert.True(suite.T(), CheckPasswordHash(password, hash2))
+			// But both should verify correctly
+			assert.True(t, CheckPasswordHash(tc.password, hash1), "First hash should verify correctly")
+			assert.True(t, CheckPasswordHash(tc.password, hash2), "Second hash should verify correctly")
+
+			// Cross-verification should also work
+			assert.True(t, CheckPasswordHash(tc.password, hash1), "Password should verify against first hash")
+			assert.True(t, CheckPasswordHash(tc.password, hash2), "Password should verify against second hash")
+		})
+	}
 }
 
 func (suite *PasswordTestSuite) TestPasswordWorkflow() {
