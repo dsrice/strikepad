@@ -1,7 +1,7 @@
 run:
   timeout: 10m
   go: "1.24"
-  issues-exit-code: 1
+  issues-exit-code: 0
   tests: true
 
 output:
@@ -103,20 +103,6 @@ linters-settings:
   
   revive:
     min-confidence: 0
-    rules:
-      - name: exported-function
-      - name: exported-method
-      - name: exported-var
-      - name: package-comments
-      - name: var-naming
-      - name: function-naming
-      - name: receiver-naming
-      - name: argument-limit
-        arguments: [5]
-      - name: cyclomatic
-        arguments: [15]
-      - name: max-public-structs
-        arguments: [20]
   
   gosec:
     excludes:

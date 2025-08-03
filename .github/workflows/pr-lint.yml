@@ -213,9 +213,11 @@ jobs:
             </details>
             
             ---
-            
-            ${totalIssues > 0 ? 
-              '❌ Please fix the linting issues above before merging.' : 
+          
+            ${errors.length > 0 ? 
+              '❌ Please fix the linting errors above before merging.' : 
+              warnings.length > 0 ?
+              '⚠️ There are linting warnings above. These are informational and do not block merging.' :
               '✅ All linting checks passed!'
             }
             
@@ -249,13 +251,14 @@ jobs:
                 body: comment
               });
             }
-            
-            // Set exit code based on errors
+          
+            // Set exit code based on errors (only fail on actual errors, not warnings)
             if (errors.length > 0) {
               console.log(`❌ Found ${errors.length} error(s). Failing the check.`);
               core.setFailed(`Found ${errors.length} linting error(s)`);
             } else if (warnings.length > 0) {
               console.log(`⚠️ Found ${warnings.length} warning(s). Check passed with warnings.`);
+              console.log('✅ Lint check completed successfully (warnings are informational only)');
             } else {
               console.log('✅ All lint checks passed!');
             }

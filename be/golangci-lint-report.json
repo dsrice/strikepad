@@ -1,0 +1,521 @@
+{
+  "Issues": [
+    {
+      "FromLinter": "revive",
+      "Text": "exported: comment on exported var ErrPasswordTooShort should be of the form \"ErrPasswordTooShort ...\"",
+      "Severity": "warning",
+      "SourceLines": [
+        "\t// Password validation errors"
+      ],
+      "Pos": {
+        "Filename": "internal\\auth\\errors.go",
+        "Offset": 38,
+        "Line": 6,
+        "Column": 2
+      },
+      "LineRange": {
+        "From": 6,
+        "To": 6
+      },
+      "ExpectNoLint": false,
+      "ExpectedNoLintLinter": ""
+    },
+    {
+      "FromLinter": "revive",
+      "Text": "exported: comment on exported var ErrInvalidEmail should be of the form \"ErrInvalidEmail ...\"",
+      "Severity": "warning",
+      "SourceLines": [
+        "\t// Email validation errors"
+      ],
+      "Pos": {
+        "Filename": "internal\\auth\\errors.go",
+        "Offset": 233,
+        "Line": 10,
+        "Column": 2
+      },
+      "LineRange": {
+        "From": 10,
+        "To": 10
+      },
+      "ExpectNoLint": false,
+      "ExpectedNoLintLinter": ""
+    },
+    {
+      "FromLinter": "revive",
+      "Text": "exported: comment on exported var ErrUserAlreadyExists should be of the form \"ErrUserAlreadyExists ...\"",
+      "Severity": "warning",
+      "SourceLines": [
+        "\t// User creation errors"
+      ],
+      "Pos": {
+        "Filename": "internal\\auth\\errors.go",
+        "Offset": 369,
+        "Line": 14,
+        "Column": 2
+      },
+      "LineRange": {
+        "From": 14,
+        "To": 14
+      },
+      "ExpectNoLint": false,
+      "ExpectedNoLintLinter": ""
+    },
+    {
+      "FromLinter": "revive",
+      "Text": "exported: comment on exported var ErrInvalidCredentials should be of the form \"ErrInvalidCredentials ...\"",
+      "Severity": "warning",
+      "SourceLines": [
+        "\t// Authentication errors"
+      ],
+      "Pos": {
+        "Filename": "internal\\auth\\errors.go",
+        "Offset": 522,
+        "Line": 18,
+        "Column": 2
+      },
+      "LineRange": {
+        "From": 18,
+        "To": 18
+      },
+      "ExpectNoLint": false,
+      "ExpectedNoLintLinter": ""
+    },
+    {
+      "FromLinter": "revive",
+      "Text": "var-naming: don't use underscores in Go names; struct field default_ should be default",
+      "Severity": "warning",
+      "SourceLines": [
+        "\t\tdefault_ string"
+      ],
+      "Pos": {
+        "Filename": "internal\\config\\database_test.go",
+        "Offset": 1880,
+        "Line": 76,
+        "Column": 3
+      },
+      "LineRange": {
+        "From": 76,
+        "To": 76
+      },
+      "ExpectNoLint": false,
+      "ExpectedNoLintLinter": ""
+    }
+  ],
+  "Report": {
+    "Linters": [
+      {
+        "Name": "asasalint"
+      },
+      {
+        "Name": "asciicheck"
+      },
+      {
+        "Name": "bidichk"
+      },
+      {
+        "Name": "bodyclose",
+        "Enabled": true
+      },
+      {
+        "Name": "canonicalheader"
+      },
+      {
+        "Name": "containedctx"
+      },
+      {
+        "Name": "contextcheck"
+      },
+      {
+        "Name": "copyloopvar",
+        "Enabled": true
+      },
+      {
+        "Name": "cyclop"
+      },
+      {
+        "Name": "decorder"
+      },
+      {
+        "Name": "deadcode"
+      },
+      {
+        "Name": "depguard"
+      },
+      {
+        "Name": "dogsled",
+        "Enabled": true
+      },
+      {
+        "Name": "dupl",
+        "Enabled": true
+      },
+      {
+        "Name": "dupword"
+      },
+      {
+        "Name": "durationcheck"
+      },
+      {
+        "Name": "errcheck",
+        "Enabled": true,
+        "EnabledByDefault": true
+      },
+      {
+        "Name": "errchkjson"
+      },
+      {
+        "Name": "errname"
+      },
+      {
+        "Name": "errorlint"
+      },
+      {
+        "Name": "execinquery"
+      },
+      {
+        "Name": "exhaustive"
+      },
+      {
+        "Name": "exhaustivestruct"
+      },
+      {
+        "Name": "exhaustruct"
+      },
+      {
+        "Name": "exportloopref"
+      },
+      {
+        "Name": "exptostd"
+      },
+      {
+        "Name": "forbidigo"
+      },
+      {
+        "Name": "forcetypeassert"
+      },
+      {
+        "Name": "fatcontext"
+      },
+      {
+        "Name": "funlen",
+        "Enabled": true
+      },
+      {
+        "Name": "gci"
+      },
+      {
+        "Name": "ginkgolinter"
+      },
+      {
+        "Name": "gocheckcompilerdirectives"
+      },
+      {
+        "Name": "gochecknoglobals"
+      },
+      {
+        "Name": "gochecknoinits"
+      },
+      {
+        "Name": "gochecksumtype"
+      },
+      {
+        "Name": "gocognit",
+        "Enabled": true
+      },
+      {
+        "Name": "goconst",
+        "Enabled": true
+      },
+      {
+        "Name": "gocritic",
+        "Enabled": true
+      },
+      {
+        "Name": "gocyclo",
+        "Enabled": true
+      },
+      {
+        "Name": "godot"
+      },
+      {
+        "Name": "godox"
+      },
+      {
+        "Name": "err113"
+      },
+      {
+        "Name": "gofmt",
+        "Enabled": true
+      },
+      {
+        "Name": "gofumpt"
+      },
+      {
+        "Name": "goheader"
+      },
+      {
+        "Name": "goimports",
+        "Enabled": true
+      },
+      {
+        "Name": "golint"
+      },
+      {
+        "Name": "mnd"
+      },
+      {
+        "Name": "gomnd"
+      },
+      {
+        "Name": "gomoddirectives"
+      },
+      {
+        "Name": "gomodguard"
+      },
+      {
+        "Name": "goprintffuncname",
+        "Enabled": true
+      },
+      {
+        "Name": "gosec",
+        "Enabled": true
+      },
+      {
+        "Name": "gosimple",
+        "Enabled": true,
+        "EnabledByDefault": true
+      },
+      {
+        "Name": "gosmopolitan"
+      },
+      {
+        "Name": "govet",
+        "Enabled": true,
+        "EnabledByDefault": true
+      },
+      {
+        "Name": "grouper"
+      },
+      {
+        "Name": "ifshort"
+      },
+      {
+        "Name": "iface"
+      },
+      {
+        "Name": "importas"
+      },
+      {
+        "Name": "inamedparam"
+      },
+      {
+        "Name": "ineffassign",
+        "Enabled": true,
+        "EnabledByDefault": true
+      },
+      {
+        "Name": "interfacebloat"
+      },
+      {
+        "Name": "interfacer"
+      },
+      {
+        "Name": "intrange"
+      },
+      {
+        "Name": "ireturn"
+      },
+      {
+        "Name": "lll",
+        "Enabled": true
+      },
+      {
+        "Name": "loggercheck"
+      },
+      {
+        "Name": "maintidx"
+      },
+      {
+        "Name": "makezero"
+      },
+      {
+        "Name": "maligned"
+      },
+      {
+        "Name": "mirror"
+      },
+      {
+        "Name": "misspell",
+        "Enabled": true
+      },
+      {
+        "Name": "musttag"
+      },
+      {
+        "Name": "nakedret",
+        "Enabled": true
+      },
+      {
+        "Name": "nestif",
+        "Enabled": true
+      },
+      {
+        "Name": "nilerr"
+      },
+      {
+        "Name": "nilnesserr"
+      },
+      {
+        "Name": "nilnil"
+      },
+      {
+        "Name": "nlreturn"
+      },
+      {
+        "Name": "noctx",
+        "Enabled": true
+      },
+      {
+        "Name": "nonamedreturns"
+      },
+      {
+        "Name": "nosnakecase"
+      },
+      {
+        "Name": "nosprintfhostport"
+      },
+      {
+        "Name": "paralleltest"
+      },
+      {
+        "Name": "perfsprint"
+      },
+      {
+        "Name": "prealloc",
+        "Enabled": true
+      },
+      {
+        "Name": "predeclared"
+      },
+      {
+        "Name": "promlinter"
+      },
+      {
+        "Name": "protogetter"
+      },
+      {
+        "Name": "reassign"
+      },
+      {
+        "Name": "recvcheck"
+      },
+      {
+        "Name": "revive",
+        "Enabled": true
+      },
+      {
+        "Name": "rowserrcheck",
+        "Enabled": true
+      },
+      {
+        "Name": "sloglint"
+      },
+      {
+        "Name": "scopelint"
+      },
+      {
+        "Name": "sqlclosecheck",
+        "Enabled": true
+      },
+      {
+        "Name": "spancheck"
+      },
+      {
+        "Name": "staticcheck",
+        "Enabled": true,
+        "EnabledByDefault": true
+      },
+      {
+        "Name": "structcheck"
+      },
+      {
+        "Name": "stylecheck",
+        "Enabled": true
+      },
+      {
+        "Name": "tagalign"
+      },
+      {
+        "Name": "tagliatelle"
+      },
+      {
+        "Name": "tenv"
+      },
+      {
+        "Name": "testableexamples"
+      },
+      {
+        "Name": "testifylint"
+      },
+      {
+        "Name": "testpackage"
+      },
+      {
+        "Name": "thelper"
+      },
+      {
+        "Name": "tparallel"
+      },
+      {
+        "Name": "typecheck",
+        "Enabled": true,
+        "EnabledByDefault": true
+      },
+      {
+        "Name": "unconvert",
+        "Enabled": true
+      },
+      {
+        "Name": "unparam",
+        "Enabled": true
+      },
+      {
+        "Name": "unused",
+        "Enabled": true,
+        "EnabledByDefault": true
+      },
+      {
+        "Name": "usestdlibvars"
+      },
+      {
+        "Name": "usetesting"
+      },
+      {
+        "Name": "varcheck"
+      },
+      {
+        "Name": "varnamelen"
+      },
+      {
+        "Name": "wastedassign"
+      },
+      {
+        "Name": "whitespace",
+        "Enabled": true
+      },
+      {
+        "Name": "wrapcheck"
+      },
+      {
+        "Name": "wsl"
+      },
+      {
+        "Name": "zerologlint"
+      },
+      {
+        "Name": "nolintlint",
+        "Enabled": true
+      }
+    ]
+  }
+}
