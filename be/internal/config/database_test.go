@@ -43,146 +43,184 @@ func (suite *DatabaseConfigTestSuite) TearDownTest() {
 	}
 }
 
-func (suite *DatabaseConfigTestSuite) TestGetEnvDefaults() {
-	// Test that getEnv returns expected defaults for database config
+func (suite *DatabaseConfigTestSuite) TestDatabaseConfigVariables() {
+	// Comprehensive test for all database configuration scenarios
 	testCases := []struct {
+		name         string
 		key          string
+		envValue     *string // nil means env var is not set
 		defaultValue string
 		expected     string
+		testType     string
+		description  string
 	}{
-		{"DB_HOST", "localhost", "localhost"},
-		{"DB_PORT", "5432", "5432"},
-		{"DB_USER", "postgres", "postgres"},
-		{"DB_PASSWORD", "password", "password"},
-		{"DB_NAME", "strikepad", "strikepad"},
-	}
+		// Default value tests
+		{"default host", "DB_HOST", nil, "localhost", "localhost", "default", "should use default localhost"},
+		{"default port", "DB_PORT", nil, "5432", "5432", "default", "should use default PostgreSQL port"},
+		{"default user", "DB_USER", nil, "postgres", "postgres", "default", "should use default postgres user"},
+		{"default password", "DB_PASSWORD", nil, "password", "password", "default", "should use default password"},
+		{"default database", "DB_NAME", nil, "strikepad", "strikepad", "default", "should use default database name"},
+		{"default sslmode", "DB_SSLMODE", nil, "disable", "disable", "default", "should use default SSL mode"},
 
-	for _, tc := range testCases {
-		suite.T().Run(tc.key, func(t *testing.T) {
-			// Ensure env var is not set
-			os.Unsetenv(tc.key)
+		// Custom value tests
+		{"custom host", "DB_HOST", stringPtr("custom-host"), "localhost", "custom-host", "custom", "should use custom host"},
+		{"mysql port", "DB_PORT", stringPtr("3306"), "5432", "3306", "custom", "should use MySQL port"},
+		{"custom user", "DB_USER", stringPtr("myuser"), "postgres", "myuser", "custom", "should use custom user"},
+		{"secure password", "DB_PASSWORD", stringPtr("mypassword"), "password", "mypassword", "custom", "should use custom password"},
+		{"custom database", "DB_NAME", stringPtr("mydatabase"), "strikepad", "mydatabase", "custom", "should use custom database"},
+		{"enable ssl", "DB_SSLMODE", stringPtr("require"), "disable", "require", "custom", "should enable SSL mode"},
 
-			result := getEnv(tc.key, tc.defaultValue)
-			assert.Equal(t, tc.expected, result)
-		})
-	}
-}
+		// Empty value tests (should use defaults)
+		{"empty host", "DB_HOST", stringPtr(""), "localhost", "localhost", "empty", "should use default when host is empty"},
+		{"empty port", "DB_PORT", stringPtr(""), "5432", "5432", "empty", "should use default when port is empty"},
+		{"empty user", "DB_USER", stringPtr(""), "postgres", "postgres", "empty", "should use default when user is empty"},
 
-func (suite *DatabaseConfigTestSuite) TestGetEnvCustomValues() {
-	// Test that getEnv returns custom values when set
-	testCases := []struct {
-		key          string
-		setValue     string
-		defaultValue string
-		expected     string
-	}{
-		{"DB_HOST", "custom-host", "localhost", "custom-host"},
-		{"DB_PORT", "3306", "5432", "3306"},
-		{"DB_USER", "myuser", "postgres", "myuser"},
-		{"DB_PASSWORD", "mypassword", "password", "mypassword"},
-		{"DB_NAME", "mydatabase", "strikepad", "mydatabase"},
-	}
+		// Special character tests
+		{"special chars password", "DB_PASSWORD", stringPtr("pass@word#123!"), "password", "pass@word#123!", "special", "should handle special characters in password"},
+		{"host with spaces", "DB_HOST", stringPtr("my host"), "localhost", "my host", "special", "should handle spaces in host"},
+		{"unicode database", "DB_NAME", stringPtr("データベース"), "strikepad", "データベース", "special", "should handle unicode characters"},
+		{"socket path", "DB_HOST", stringPtr("/var/run/postgresql"), "localhost", "/var/run/postgresql", "special", "should handle unix socket paths"},
+		{"url connection", "DB_HOST", stringPtr("postgres://user:pass@host:5432/db"), "localhost", "postgres://user:pass@host:5432/db", "special", "should handle connection URLs"},
 
-	for _, tc := range testCases {
-		suite.T().Run(tc.key, func(t *testing.T) {
-			os.Setenv(tc.key, tc.setValue)
-
-			result := getEnv(tc.key, tc.defaultValue)
-			assert.Equal(t, tc.expected, result)
-
-			os.Unsetenv(tc.key)
-		})
-	}
-}
-
-func (suite *DatabaseConfigTestSuite) TestGetEnvEmptyValues() {
-	// Test that getEnv returns defaults for empty values
-	testCases := []struct {
-		key          string
-		defaultValue string
-	}{
-		{"DB_HOST", "localhost"},
-		{"DB_PORT", "5432"},
-		{"DB_USER", "postgres"},
-	}
-
-	for _, tc := range testCases {
-		suite.T().Run(tc.key+"_empty", func(t *testing.T) {
-			os.Setenv(tc.key, "")
-
-			result := getEnv(tc.key, tc.defaultValue)
-			assert.Equal(t, tc.defaultValue, result)
-
-			os.Unsetenv(tc.key)
-		})
-	}
-}
-
-func (suite *DatabaseConfigTestSuite) TestGetEnvSpecialCharacters() {
-	// Test that getEnv handles special characters correctly
-	testCases := []struct {
-		name     string
-		key      string
-		setValue string
-		expected string
-	}{
-		{"Special chars", "DB_PASSWORD", "pass@word#123!", "pass@word#123!"},
-		{"Spaces", "DB_HOST", "my host", "my host"},
-		{"Unicode", "DB_NAME", "データベース", "データベース"},
-		{"Path", "DB_HOST", "/var/run/postgresql", "/var/run/postgresql"},
+		// Production-like values
+		{"production host", "DB_HOST", stringPtr("prod-db.example.com"), "localhost", "prod-db.example.com", "production", "should handle production hostnames"},
+		{"production user", "DB_USER", stringPtr("app_prod_user"), "postgres", "app_prod_user", "production", "should handle production usernames"},
+		{"production database", "DB_NAME", stringPtr("strikepad_production"), "strikepad", "strikepad_production", "production", "should handle production database names"},
+		{"require ssl", "DB_SSLMODE", stringPtr("require"), "disable", "require", "production", "should handle SSL requirements"},
 	}
 
 	for _, tc := range testCases {
 		suite.T().Run(tc.name, func(t *testing.T) {
-			os.Setenv(tc.key, tc.setValue)
+			// Clean up any existing value
+			os.Unsetenv(tc.key)
 
-			result := getEnv(tc.key, "default")
-			assert.Equal(t, tc.expected, result)
+			// Set environment variable if specified
+			if tc.envValue != nil {
+				os.Setenv(tc.key, *tc.envValue)
+			}
 
+			result := getEnv(tc.key, tc.defaultValue)
+			assert.Equal(t, tc.expected, result, tc.description)
+
+			// Clean up
 			os.Unsetenv(tc.key)
 		})
 	}
 }
 
 func (suite *DatabaseConfigTestSuite) TestDatabaseConfigurationScenarios() {
-	// Test common database configuration scenarios
+	// Test complete database configuration scenarios
 	scenarios := []struct {
-		name    string
-		envVars map[string]string
-		desc    string
+		name        string
+		envVars     map[string]string
+		expectedDSN map[string]string // key-value pairs that should be in DSN
+		description string
+		environment string
 	}{
 		{
-			name: "PostgreSQL local development",
+			name: "local development",
 			envVars: map[string]string{
 				"DB_HOST":     "localhost",
 				"DB_PORT":     "5432",
 				"DB_USER":     "developer",
 				"DB_PASSWORD": "devpass",
 				"DB_NAME":     "dev_db",
+				"DB_SSLMODE":  "disable",
 			},
-			desc: "Local PostgreSQL setup",
+			expectedDSN: map[string]string{
+				"host":     "localhost",
+				"port":     "5432",
+				"user":     "developer",
+				"password": "devpass",
+				"dbname":   "dev_db",
+				"sslmode":  "disable",
+			},
+			description: "Local PostgreSQL development setup",
+			environment: "development",
 		},
 		{
-			name: "MySQL configuration",
+			name: "docker compose",
 			envVars: map[string]string{
-				"DB_HOST":     "mysql-server",
-				"DB_PORT":     "3306",
-				"DB_USER":     "app_user",
-				"DB_PASSWORD": "secure_pass",
-				"DB_NAME":     "app_database",
+				"DB_HOST":     "db",
+				"DB_PORT":     "5432",
+				"DB_USER":     "strikepad",
+				"DB_PASSWORD": "strikepad123",
+				"DB_NAME":     "strikepad",
+				"DB_SSLMODE":  "disable",
 			},
-			desc: "MySQL server setup",
+			expectedDSN: map[string]string{
+				"host":     "db",
+				"port":     "5432",
+				"user":     "strikepad",
+				"password": "strikepad123",
+				"dbname":   "strikepad",
+				"sslmode":  "disable",
+			},
+			description: "Docker Compose setup with service name",
+			environment: "development",
 		},
 		{
-			name: "Production configuration",
+			name: "production with ssl",
 			envVars: map[string]string{
 				"DB_HOST":     "prod-db.example.com",
 				"DB_PORT":     "5432",
 				"DB_USER":     "prod_user",
-				"DB_PASSWORD": "very_secure_password",
-				"DB_NAME":     "production_db",
+				"DB_PASSWORD": "very_secure_password_123!",
+				"DB_NAME":     "strikepad_production",
+				"DB_SSLMODE":  "require",
 			},
-			desc: "Production database setup",
+			expectedDSN: map[string]string{
+				"host":     "prod-db.example.com",
+				"port":     "5432",
+				"user":     "prod_user",
+				"password": "very_secure_password_123!",
+				"dbname":   "strikepad_production",
+				"sslmode":  "require",
+			},
+			description: "Production setup with SSL enabled",
+			environment: "production",
+		},
+		{
+			name: "staging environment",
+			envVars: map[string]string{
+				"DB_HOST":     "staging-db.internal",
+				"DB_PORT":     "5432",
+				"DB_USER":     "staging_user",
+				"DB_PASSWORD": "staging_pass_456",
+				"DB_NAME":     "strikepad_staging",
+				"DB_SSLMODE":  "prefer",
+			},
+			expectedDSN: map[string]string{
+				"host":     "staging-db.internal",
+				"port":     "5432",
+				"user":     "staging_user",
+				"password": "staging_pass_456",
+				"dbname":   "strikepad_staging",
+				"sslmode":  "prefer",
+			},
+			description: "Staging environment with preferred SSL",
+			environment: "staging",
+		},
+		{
+			name: "cloud database",
+			envVars: map[string]string{
+				"DB_HOST":     "db.aws.region.rds.amazonaws.com",
+				"DB_PORT":     "5432",
+				"DB_USER":     "app_user",
+				"DB_PASSWORD": "cloud_secure_pass_789!",
+				"DB_NAME":     "strikepad",
+				"DB_SSLMODE":  "require",
+			},
+			expectedDSN: map[string]string{
+				"host":     "db.aws.region.rds.amazonaws.com",
+				"port":     "5432",
+				"user":     "app_user",
+				"password": "cloud_secure_pass_789!",
+				"dbname":   "strikepad",
+				"sslmode":  "require",
+			},
+			description: "Cloud database (AWS RDS) configuration",
+			environment: "production",
 		},
 	}
 
@@ -193,11 +231,19 @@ func (suite *DatabaseConfigTestSuite) TestDatabaseConfigurationScenarios() {
 				os.Setenv(key, value)
 			}
 
-			// Test that getEnv returns the correct values
-			for key, expectedValue := range scenario.envVars {
-				result := getEnv(key, "default")
+			// Test that getEnv returns the correct values for each configuration
+			for envKey, expectedValue := range scenario.envVars {
+				result := getEnv(envKey, "default")
 				assert.Equal(t, expectedValue, result,
-					"getEnv should return correct value for %s in %s", key, scenario.desc)
+					"getEnv should return correct value for %s in %s (%s)",
+					envKey, scenario.description, scenario.environment)
+			}
+
+			// Additional validation: ensure all required DSN components are set
+			requiredKeys := []string{"DB_HOST", "DB_PORT", "DB_USER", "DB_PASSWORD", "DB_NAME", "DB_SSLMODE"}
+			for _, key := range requiredKeys {
+				value := getEnv(key, "")
+				assert.NotEmpty(t, value, "Required database config %s should not be empty in %s", key, scenario.name)
 			}
 
 			// Clean up
