@@ -15,29 +15,29 @@ type AuthValidatorTestSuite struct {
 
 func (suite *AuthValidatorTestSuite) TestValidateEmail() {
 	testCases := []struct {
+		expectErr error
 		name      string
 		email     string
-		expectErr error
 	}{
 		// Valid emails
-		{"valid basic email", "test@example.com", nil},
-		{"valid with dots", "user.name@domain.co.uk", nil},
-		{"valid with plus", "user+tag@example.org", nil},
-		{"valid with underscore", "user_name@example-domain.com", nil},
-		{"valid with numbers", "123@numbers.com", nil},
-		{"valid subdomain", "test@sub.domain.example.com", nil},
-		{"valid long email", "very.long.email.address@very.long.domain.name.example.com", nil},
+		{nil, "valid basic email", "test@example.com"},
+		{nil, "valid with dots", "user.name@domain.co.uk"},
+		{nil, "valid with plus", "user+tag@example.org"},
+		{nil, "valid with underscore", "user_name@example-domain.com"},
+		{nil, "valid with numbers", "123@numbers.com"},
+		{nil, "valid subdomain", "test@sub.domain.example.com"},
+		{nil, "valid long email", "very.long.email.address@very.long.domain.name.example.com"},
 
 		// Invalid emails
-		{"empty email", "", auth.ErrEmailRequired},
-		{"no @ symbol", "invalid", auth.ErrInvalidEmail},
-		{"no local part", "@example.com", auth.ErrInvalidEmail},
-		{"no domain", "test@", auth.ErrInvalidEmail},
-		{"no TLD", "test@example", auth.ErrInvalidEmail},
-		{"space in local", "te st@example.com", auth.ErrInvalidEmail},
-		{"space in domain", "test@exam ple.com", auth.ErrInvalidEmail},
-		{"tab in domain", "test@exam\tple.com", auth.ErrInvalidEmail},
-		{"newline in domain", "test@exam\nple.com", auth.ErrInvalidEmail},
+		{auth.ErrEmailRequired, "empty email", ""},
+		{auth.ErrInvalidEmail, "no @ symbol", "invalid"},
+		{auth.ErrInvalidEmail, "no local part", "@example.com"},
+		{auth.ErrInvalidEmail, "no domain", "test@"},
+		{auth.ErrInvalidEmail, "no TLD", "test@example"},
+		{auth.ErrInvalidEmail, "space in local", "te st@example.com"},
+		{auth.ErrInvalidEmail, "space in domain", "test@exam ple.com"},
+		{auth.ErrInvalidEmail, "tab in domain", "test@exam\tple.com"},
+		{auth.ErrInvalidEmail, "newline in domain", "test@exam\nple.com"},
 	}
 
 	for _, tc := range testCases {
