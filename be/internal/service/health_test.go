@@ -1,7 +1,9 @@
-package service
+package service_test
 
 import (
 	"testing"
+
+	"strikepad-backend/internal/service"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -9,11 +11,11 @@ import (
 
 type HealthServiceTestSuite struct {
 	suite.Suite
-	healthService HealthServiceInterface
+	healthService service.HealthServiceInterface
 }
 
 func (suite *HealthServiceTestSuite) SetupTest() {
-	suite.healthService = NewHealthService()
+	suite.healthService = service.NewHealthService()
 }
 
 func (suite *HealthServiceTestSuite) TestGetHealth() {
@@ -59,8 +61,8 @@ func TestHealthService_GetHealth_Simple(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			service := NewHealthService()
-			result := service.GetHealth()
+			svc := service.NewHealthService()
+			result := svc.GetHealth()
 
 			assert.Equal(t, tc.expectedStatus, result.Status)
 			assert.Equal(t, tc.expectedMessage, result.Message)

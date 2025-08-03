@@ -1,7 +1,9 @@
-package service
+package service_test
 
 import (
 	"testing"
+
+	"strikepad-backend/internal/service"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -9,11 +11,11 @@ import (
 
 type APIServiceTestSuite struct {
 	suite.Suite
-	apiService APIService
+	apiService service.APIServiceInterface
 }
 
 func (suite *APIServiceTestSuite) SetupTest() {
-	suite.apiService = NewAPIService()
+	suite.apiService = service.NewAPIService()
 }
 
 func (suite *APIServiceTestSuite) TestGetTestMessage() {
@@ -69,8 +71,8 @@ func TestAPIService_GetTestMessage_Simple(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			service := NewAPIService()
-			result := service.GetTestMessage()
+			svc := service.NewAPIService()
+			result := svc.GetTestMessage()
 
 			assert.Equal(t, tc.expectedMsg, result["message"])
 		})

@@ -1,4 +1,4 @@
-package service
+package service_test
 
 import (
 	"testing"
@@ -7,6 +7,7 @@ import (
 	"strikepad-backend/internal/dto"
 	"strikepad-backend/internal/model"
 	"strikepad-backend/internal/repository/mocks"
+	"strikepad-backend/internal/service"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -21,13 +22,13 @@ const (
 
 type AuthServiceTestSuite struct {
 	suite.Suite
-	authService  AuthServiceInterface
+	authService  service.AuthServiceInterface
 	mockUserRepo *mocks.MockUserRepository
 }
 
 func (suite *AuthServiceTestSuite) SetupTest() {
 	suite.mockUserRepo = new(mocks.MockUserRepository)
-	suite.authService = NewAuthService(suite.mockUserRepo)
+	suite.authService = service.NewAuthService(suite.mockUserRepo)
 }
 
 func (suite *AuthServiceTestSuite) TearDownTest() {
@@ -401,8 +402,8 @@ func (suite *AuthServiceTestSuite) TestLogin() {
 
 func (suite *AuthServiceTestSuite) TestNewAuthService() {
 	// Test that NewAuthService creates a valid service
-	service := NewAuthService(suite.mockUserRepo)
-	assert.NotNil(suite.T(), service)
+	svc := service.NewAuthService(suite.mockUserRepo)
+	assert.NotNil(suite.T(), svc)
 }
 
 func (suite *AuthServiceTestSuite) TestEmailNormalization() {
