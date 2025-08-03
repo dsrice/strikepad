@@ -1,9 +1,10 @@
 package repository_test
 
 import (
-	"strikepad-backend/internal/repository"
 	"testing"
 	"time"
+
+	"strikepad-backend/internal/repository"
 
 	"strikepad-backend/internal/model"
 
@@ -14,7 +15,10 @@ import (
 	"gorm.io/gorm"
 )
 
-const testEmail = "test@example.com"
+const (
+	testEmail      = "test@example.com"
+	testOAuthEmail = "oauth@example.com"
+)
 
 type UserRepositoryTestSuite struct {
 	suite.Suite
@@ -81,12 +85,12 @@ func (suite *UserRepositoryTestSuite) TestCreate() {
 				ProviderType:   "oauth",
 				ProviderUserID: func() *string { s := "oauth123"; return &s }(),
 				DisplayName:    "OAuth User",
-				Email:          func() *string { s := "oauth@example.com"; return &s }(),
+				Email:          func() *string { s := testOAuthEmail; return &s }(),
 			},
 			mockSetup: func() {
 				suite.mock.ExpectBegin()
 				suite.mock.ExpectExec("INSERT INTO `users`").
-					WithArgs(nil, "oauth123", "oauth@example.com", nil, "oauth", "OAuth User", false, false).
+					WithArgs(nil, "oauth123", testOAuthEmail, nil, "oauth", "OAuth User", false, false).
 					WillReturnResult(sqlmock.NewResult(2, 1))
 				suite.mock.ExpectCommit()
 			},
@@ -176,7 +180,7 @@ func (suite *UserRepositoryTestSuite) TestGetByID() {
 			name:   "get oauth user by ID",
 			userID: 2,
 			mockSetup: func() {
-				email := "oauth@example.com"
+				email := testOAuthEmail
 				providerUserID := "oauth123"
 				now := time.Now()
 				suite.mock.ExpectQuery("SELECT \\* FROM `users` WHERE `users`.`id` = \\? ORDER BY `users`.`id` LIMIT \\?").
@@ -188,7 +192,7 @@ func (suite *UserRepositoryTestSuite) TestGetByID() {
 			validateUser: func(user *model.User) {
 				assert.Equal(suite.T(), uint(2), user.ID)
 				assert.Equal(suite.T(), "OAuth User", user.DisplayName)
-				assert.Equal(suite.T(), "oauth@example.com", *user.Email)
+				assert.Equal(suite.T(), testOAuthEmail, *user.Email)
 				assert.Equal(suite.T(), "oauth", user.ProviderType)
 				assert.Equal(suite.T(), "oauth123", *user.ProviderUserID)
 				assert.Equal(suite.T(), true, user.EmailVerified)
@@ -267,19 +271,19 @@ func (suite *UserRepositoryTestSuite) TestGetByEmail() {
 		},
 		{
 			name:  "get oauth user by email",
-			email: "oauth@example.com",
+			email: testOAuthEmail,
 			mockSetup: func() {
 				now := time.Now()
 				suite.mock.ExpectQuery("SELECT \\* FROM `users` WHERE email = \\? ORDER BY `users`.`id` LIMIT \\?").
-					WithArgs("oauth@example.com", 1).
+					WithArgs(testOAuthEmail, 1).
 					WillReturnRows(sqlmock.NewRows([]string{"id", "provider_type", "provider_user_id", "email", "display_name", "password_hash", "email_verified", "created_at", "updated_at", "is_deleted", "deleted_at"}).
-						AddRow(2, "oauth", "oauth123", "oauth@example.com", "OAuth User", nil, true, now, now, false, nil))
+						AddRow(2, "oauth", "oauth123", testOAuthEmail, "OAuth User", nil, true, now, now, false, nil))
 			},
 			expectError: false,
 			validateUser: func(user *model.User) {
 				assert.Equal(suite.T(), uint(2), user.ID)
 				assert.Equal(suite.T(), "OAuth User", user.DisplayName)
-				assert.Equal(suite.T(), "oauth@example.com", *user.Email)
+				assert.Equal(suite.T(), testOAuthEmail, *user.Email)
 				assert.Equal(suite.T(), "oauth", user.ProviderType)
 				assert.Equal(suite.T(), true, user.EmailVerified)
 			},
@@ -363,7 +367,7 @@ func (suite *UserRepositoryTestSuite) TestList() {
 				suite.mock.ExpectQuery("SELECT \\* FROM `users`").
 					WillReturnRows(sqlmock.NewRows([]string{"id", "provider_type", "provider_user_id", "email", "display_name", "password_hash", "email_verified", "created_at", "updated_at", "is_deleted", "deleted_at"}).
 						AddRow(1, "email", nil, "email@example.com", "Email User", "hash123", true, now, now, false, nil).
-						AddRow(2, "oauth", "oauth456", "oauth@example.com", "OAuth User", nil, true, now, now, false, nil).
+						AddRow(2, "oauth", "oauth456", testOAuthEmail, "OAuth User", nil, true, now, now, false, nil).
 						AddRow(3, "email", nil, "another@example.com", "Another User", "hash456", false, now, now, false, nil))
 			},
 			expectError:   false,
@@ -509,19 +513,19 @@ func (suite *UserRepositoryTestSuite) TestFindByEmail() {
 		},
 		{
 			name:  "find verified oauth user by email",
-			email: "oauth@example.com",
+			email: testOAuthEmail,
 			mockSetup: func() {
 				now := time.Now()
 				suite.mock.ExpectQuery("SELECT \\* FROM `users` WHERE email = \\? AND is_deleted = \\? ORDER BY `users`.`id` LIMIT \\?").
-					WithArgs("oauth@example.com", false, 1).
+					WithArgs(testOAuthEmail, false, 1).
 					WillReturnRows(sqlmock.NewRows([]string{"id", "provider_type", "provider_user_id", "email", "display_name", "password_hash", "email_verified", "created_at", "updated_at", "is_deleted", "deleted_at"}).
-						AddRow(2, "oauth", "oauth123", "oauth@example.com", "OAuth User", nil, true, now, now, false, nil))
+						AddRow(2, "oauth", "oauth123", testOAuthEmail, "OAuth User", nil, true, now, now, false, nil))
 			},
 			expectError: false,
 			validateUser: func(user *model.User) {
 				assert.Equal(suite.T(), uint(2), user.ID)
 				assert.Equal(suite.T(), "OAuth User", user.DisplayName)
-				assert.Equal(suite.T(), "oauth@example.com", *user.Email)
+				assert.Equal(suite.T(), testOAuthEmail, *user.Email)
 				assert.Equal(suite.T(), false, user.IsDeleted)
 				assert.Equal(suite.T(), "oauth", user.ProviderType)
 				assert.Equal(suite.T(), true, user.EmailVerified)
@@ -640,7 +644,7 @@ func (suite *UserRepositoryTestSuite) TestUpdate() {
 				ProviderType:   "oauth",
 				ProviderUserID: func() *string { s := "oauth456"; return &s }(),
 				DisplayName:    "Updated OAuth User",
-				Email:          func() *string { s := "oauth@example.com"; return &s }(),
+				Email:          func() *string { s := testOAuthEmail; return &s }(),
 				EmailVerified:  true,
 			},
 			mockSetup: func() {

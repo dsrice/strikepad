@@ -3,8 +3,9 @@ package handler_test
 import (
 	"net/http"
 	"net/http/httptest"
-	"strikepad-backend/internal/handler"
 	"testing"
+
+	"strikepad-backend/internal/handler"
 
 	"strikepad-backend/internal/service/mocks"
 

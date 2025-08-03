@@ -1,8 +1,9 @@
 package auth_test
 
 import (
-	"strikepad-backend/internal/auth"
 	"testing"
+
+	"strikepad-backend/internal/auth"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"

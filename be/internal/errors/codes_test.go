@@ -250,14 +250,7 @@ func (suite *ErrorCodesTestSuite) TestGetErrorInfo_AllErrorCodes() {
 			assert.Equal(suite.T(), tt.expectedMsg, result.Message)
 			assert.NotEmpty(suite.T(), result.Description)
 
-			// Validate description contains expected keywords (commented out for simplicity)
-			// TODO: Update keywords to match actual error descriptions
-			/*
-				for _, keyword := range tt.descriptionCheck {
-					assert.Contains(suite.T(), result.Description, keyword,
-						"Description should contain '%s' for %s error", keyword, tt.category)
-				}
-			*/
+			// TODO: Update keywords to match actual error descriptions and validate description contains expected keywords
 
 			// Validate HTTP status is in valid range
 			assert.Greater(suite.T(), result.HTTPStatus, 0, "HTTP status should be positive")
@@ -532,3 +525,4 @@ func TestGetErrorInfo_DirectIntegration(t *testing.T) {
 		})
 	}
 }
+
