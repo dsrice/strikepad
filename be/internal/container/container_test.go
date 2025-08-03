@@ -48,8 +48,8 @@ func (suite *ContainerTestSuite) TestContainerProvides() {
 
 	// Test that each component can be resolved
 	testCases := []struct {
-		name       string
 		invokeFunc interface{}
+		name       string
 	}{
 		{
 			name: "HealthService",

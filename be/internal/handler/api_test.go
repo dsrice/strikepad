@@ -39,7 +39,7 @@ func (suite *APIHandlerTestSuite) TestTest() {
 	suite.apiService.On("GetTestMessage").Return(expectedMessage)
 
 	// Create request
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequest(http.MethodGet, "/test", http.NoBody)
 	rec := httptest.NewRecorder()
 	c := suite.echo.NewContext(req, rec)
 
