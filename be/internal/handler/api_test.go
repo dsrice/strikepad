@@ -26,33 +26,137 @@ func (suite *APIHandlerTestSuite) SetupTest() {
 }
 
 func (suite *APIHandlerTestSuite) TestNewAPIHandler() {
-	// Test handler creation
-	assert.NotNil(suite.T(), suite.handler)
-	assert.NotNil(suite.T(), suite.handler.apiService)
+	// Test handler creation with various scenarios
+	tests := []struct {
+		name        string
+		service     *mocks.MockAPIServiceInterface
+		expectNil   bool
+		description string
+	}{
+		{
+			name:        "valid service",
+			service:     &mocks.MockAPIServiceInterface{},
+			expectNil:   false,
+			description: "should create handler with valid service",
+		},
+		{
+			name:        "different service instance",
+			service:     &mocks.MockAPIServiceInterface{},
+			expectNil:   false,
+			description: "should create handler with different service instance",
+		},
+	}
+
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			handler := NewAPIHandler(tt.service)
+
+			if tt.expectNil {
+				assert.Nil(suite.T(), handler, tt.description)
+			} else {
+				assert.NotNil(suite.T(), handler, tt.description)
+				assert.NotNil(suite.T(), handler.apiService, "API service should be set")
+				assert.Equal(suite.T(), tt.service, handler.apiService, "Service should match provided service")
+			}
+		})
+	}
 }
 
 func (suite *APIHandlerTestSuite) TestTest() {
-	// Setup mock
-	expectedMessage := map[string]string{
-		"message": "API is working",
+	// Table-driven test for API test endpoint
+	tests := []struct {
+		name              string
+		mockResponse      map[string]string
+		expectedStatus    int
+		expectedInBody    []string
+		checkMockCalls    bool
+		expectedCallCount int
+		description       string
+	}{
+		{
+			name: "standard API test",
+			mockResponse: map[string]string{
+				"message": "API is working",
+			},
+			expectedStatus:    http.StatusOK,
+			expectedInBody:    []string{"API is working"},
+			checkMockCalls:    true,
+			expectedCallCount: 1,
+			description:       "should return standard API working message",
+		},
+		{
+			name: "custom API message",
+			mockResponse: map[string]string{
+				"message": "Service is operational",
+				"status":  "active",
+			},
+			expectedStatus:    http.StatusOK,
+			expectedInBody:    []string{"Service is operational", "active"},
+			checkMockCalls:    true,
+			expectedCallCount: 1,
+			description:       "should return custom message with additional fields",
+		},
+		{
+			name: "minimal response",
+			mockResponse: map[string]string{
+				"status": "OK",
+			},
+			expectedStatus:    http.StatusOK,
+			expectedInBody:    []string{"OK"},
+			checkMockCalls:    false,
+			expectedCallCount: 0,
+			description:       "should handle minimal response",
+		},
+		{
+			name: "detailed API info",
+			mockResponse: map[string]string{
+				"message": "API endpoint functioning normally",
+				"version": "1.0.0",
+				"env":     "test",
+			},
+			expectedStatus:    http.StatusOK,
+			expectedInBody:    []string{"API endpoint functioning normally", "1.0.0", "test"},
+			checkMockCalls:    true,
+			expectedCallCount: 1,
+			description:       "should return detailed API information",
+		},
 	}
-	suite.apiService.On("GetTestMessage").Return(expectedMessage)
 
-	// Create request
-	req := httptest.NewRequest(http.MethodGet, "/test", http.NoBody)
-	rec := httptest.NewRecorder()
-	c := suite.echo.NewContext(req, rec)
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			// Setup fresh mock for each test
+			apiService := &mocks.MockAPIServiceInterface{}
+			handler := NewAPIHandler(apiService)
+			apiService.On("GetTestMessage").Return(tt.mockResponse)
 
-	// Execute
-	err := suite.handler.Test(c)
+			// Create request
+			req := httptest.NewRequest(http.MethodGet, "/test", http.NoBody)
+			rec := httptest.NewRecorder()
+			c := suite.echo.NewContext(req, rec)
 
-	// Assert
-	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, rec.Code)
-	assert.Contains(suite.T(), rec.Body.String(), "API is working")
+			// Execute
+			err := handler.Test(c)
 
-	// Verify mock was called
-	suite.apiService.AssertExpectations(suite.T())
+			// Assert
+			assert.NoError(suite.T(), err, tt.description)
+			assert.Equal(suite.T(), tt.expectedStatus, rec.Code, tt.description)
+
+			// Check response body contains expected content
+			for _, expectedContent := range tt.expectedInBody {
+				assert.Contains(suite.T(), rec.Body.String(), expectedContent,
+					"Response should contain: %s", expectedContent)
+			}
+
+			// Verify mock expectations
+			apiService.AssertExpectations(suite.T())
+
+			// Additional mock verification if requested
+			if tt.checkMockCalls {
+				apiService.AssertCalled(suite.T(), "GetTestMessage")
+				apiService.AssertNumberOfCalls(suite.T(), "GetTestMessage", tt.expectedCallCount)
+			}
+		})
+	}
 }
 
 func TestAPIHandlerTestSuite(t *testing.T) {

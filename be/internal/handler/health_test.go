@@ -14,51 +14,109 @@ import (
 )
 
 func TestHealthHandler_Check(t *testing.T) {
-	mockService := &mocks.MockHealthServiceInterface{}
-	handler := NewHealthHandler(mockService)
-
-	expectedResponse := &dto.HealthResponse{
-		Status:  "ok",
-		Message: "Server is healthy",
+	// Table-driven test for health check endpoint
+	tests := []struct {
+		name              string
+		mockResponse      *dto.HealthResponse
+		expectedStatus    int
+		expectedInBody    []string
+		checkMockCalls    bool
+		expectedCallCount int
+		description       string
+	}{
+		{
+			name: "standard health check",
+			mockResponse: &dto.HealthResponse{
+				Status:  "ok",
+				Message: "Server is healthy",
+			},
+			expectedStatus:    http.StatusOK,
+			expectedInBody:    []string{`"status":"ok"`, `"message":"Server is healthy"`},
+			checkMockCalls:    true,
+			expectedCallCount: 1,
+			description:       "should return healthy status with standard message",
+		},
+		{
+			name: "alternate health message",
+			mockResponse: &dto.HealthResponse{
+				Status:  "healthy",
+				Message: "All systems operational",
+			},
+			expectedStatus:    http.StatusOK,
+			expectedInBody:    []string{`"status":"healthy"`, `"message":"All systems operational"`},
+			checkMockCalls:    true,
+			expectedCallCount: 1,
+			description:       "should return healthy status with alternate message",
+		},
+		{
+			name: "service ready status",
+			mockResponse: &dto.HealthResponse{
+				Status:  "ready",
+				Message: "Service is ready to accept requests",
+			},
+			expectedStatus:    http.StatusOK,
+			expectedInBody:    []string{`"status":"ready"`, `"message":"Service is ready to accept requests"`},
+			checkMockCalls:    true,
+			expectedCallCount: 1,
+			description:       "should return ready status with custom message",
+		},
+		{
+			name: "minimal response",
+			mockResponse: &dto.HealthResponse{
+				Status:  "up",
+				Message: "OK",
+			},
+			expectedStatus:    http.StatusOK,
+			expectedInBody:    []string{`"status":"up"`, `"message":"OK"`},
+			checkMockCalls:    false, // Just check basic functionality
+			expectedCallCount: 0,
+			description:       "should handle minimal response correctly",
+		},
 	}
-	mockService.On("GetHealth").Return(expectedResponse)
 
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/health", http.NoBody)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Setup
+			mockService := &mocks.MockHealthServiceInterface{}
+			handler := NewHealthHandler(mockService)
+			mockService.On("GetHealth").Return(tt.mockResponse)
 
-	err := handler.Check(c)
+			// Create request
+			e := echo.New()
+			req := httptest.NewRequest(http.MethodGet, "/health", http.NoBody)
+			rec := httptest.NewRecorder()
+			c := e.NewContext(req, rec)
 
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, rec.Code)
-	assert.Contains(t, rec.Body.String(), `"status":"ok"`)
-	assert.Contains(t, rec.Body.String(), `"message":"Server is healthy"`)
-	mockService.AssertExpectations(t)
+			// Execute
+			err := handler.Check(c)
+
+			// Assert
+			assert.NoError(t, err, tt.description)
+			assert.Equal(t, tt.expectedStatus, rec.Code, tt.description)
+
+			// Check response body contains expected content
+			for _, expectedContent := range tt.expectedInBody {
+				assert.Contains(t, rec.Body.String(), expectedContent,
+					"Response should contain: %s", expectedContent)
+			}
+
+			// Verify mock expectations
+			mockService.AssertExpectations(t)
+
+			// Additional mock verification if requested
+			if tt.checkMockCalls {
+				mockService.AssertCalled(t, "GetHealth")
+				mockService.AssertNumberOfCalls(t, "GetHealth", tt.expectedCallCount)
+			}
+		})
+	}
 }
 
-func TestHealthHandler_Check_MockVerification(t *testing.T) {
+func TestHealthHandler_NewHealthHandler(t *testing.T) {
+	// Test handler creation
 	mockService := &mocks.MockHealthServiceInterface{}
 	handler := NewHealthHandler(mockService)
 
-	expectedResponse := &dto.HealthResponse{
-		Status:  "healthy",
-		Message: "All systems operational",
-	}
-	mockService.On("GetHealth").Return(expectedResponse)
-
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/health", http.NoBody)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-
-	err := handler.Check(c)
-
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, rec.Code)
-	assert.Contains(t, rec.Body.String(), `"status":"healthy"`)
-	assert.Contains(t, rec.Body.String(), `"message":"All systems operational"`)
-
-	mockService.AssertCalled(t, "GetHealth")
-	mockService.AssertNumberOfCalls(t, "GetHealth", 1)
+	assert.NotNil(t, handler, "Handler should not be nil")
+	assert.NotNil(t, handler, "Handler should be properly initialized")
 }
