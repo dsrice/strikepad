@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+
 	"strikepad-backend/internal/model"
 )
 
@@ -20,16 +21,17 @@ func SetupTestDB(t *testing.T) *gorm.DB {
 }
 
 func CleanupTestDB(db *gorm.DB) {
-	sqlDB, _ := db.DB()
-	if sqlDB != nil {
-		sqlDB.Close()
+	sqlDB, err := db.DB()
+	if err == nil && sqlDB != nil {
+		_ = sqlDB.Close()
 	}
 }
 
-func CreateTestUser(t *testing.T, db *gorm.DB, name, email string) *model.User {
+func CreateTestUser(t *testing.T, db *gorm.DB, displayName, email string) *model.User {
 	user := &model.User{
-		Name:  name,
-		Email: email,
+		ProviderType: "email",
+		DisplayName:  displayName,
+		Email:        &email,
 	}
 
 	err := db.Create(user).Error

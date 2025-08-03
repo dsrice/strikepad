@@ -1,10 +1,10 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="All Tests" type="GoTestRunConfiguration" factoryName="Go Test">
-    <module name="strikepad-backend" />
-    <working_directory value="$PROJECT_DIR$" />
+      <module name="strikepad"/>
+    <working_directory value="$PROJECT_DIR$/be" />
     <kind value="DIRECTORY" />
     <package value="strikepad-backend" />
-    <directory value="$PROJECT_DIR$" />
+    <directory value="$PROJECT_DIR$/be" />
     <filePath value="$PROJECT_DIR$" />
     <framework value="gotest" />
     <pattern value=".*" />

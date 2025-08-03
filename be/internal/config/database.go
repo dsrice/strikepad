@@ -11,11 +11,11 @@ import (
 )
 
 func NewDatabase() *gorm.DB {
-	host := getEnv("DB_HOST", "localhost")
-	port := getEnv("DB_PORT", "5432")
-	user := getEnv("DB_USER", "postgres")
-	password := getEnv("DB_PASSWORD", "password")
-	dbname := getEnv("DB_NAME", "strikepad")
+	host := GetEnv("DB_HOST", "localhost")
+	port := GetEnv("DB_PORT", "5432")
+	user := GetEnv("DB_USER", "postgres")
+	password := GetEnv("DB_PASSWORD", "password")
+	dbname := GetEnv("DB_NAME", "strikepad")
 
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
@@ -31,7 +31,8 @@ func NewDatabase() *gorm.DB {
 	return db
 }
 
-func getEnv(key, defaultValue string) string {
+// GetEnv retrieves an environment variable or returns a default value if not set or empty
+func GetEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
 	}

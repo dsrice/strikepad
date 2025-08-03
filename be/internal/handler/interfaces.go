@@ -1,0 +1,14 @@
+package handler
+
+import "github.com/labstack/echo/v4"
+
+// AuthHandlerInterface defines the interface for authentication handlers
+type AuthHandlerInterface interface {
+	Signup(c echo.Context) error
+	Login(c echo.Context) error
+}
+
+// HealthHandlerInterface defines the interface for health handlers
+type HealthHandlerInterface interface {
+	Check(c echo.Context) error
+}

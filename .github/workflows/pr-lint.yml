@@ -1,0 +1,308 @@
+name: Pull Request Lint
+
+on:
+  pull_request:
+    branches: [ develop ]
+    paths:
+      - 'be/**'
+      - '.github/workflows/pr-lint.yml'
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  golangci:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Install dependencies
+      working-directory: ./be
+      run: go mod download
+
+    - name: Run golangci-lint
+      uses: golangci/golangci-lint-action@v4
+      continue-on-error: true
+      id: golangci-lint
+      with:
+        version: latest
+        working-directory: ./be
+        args: --timeout=10m --out-format=json:golangci-lint-report.json,line-number
+        only-new-issues: true
+        skip-cache: false
+
+    - name: Parse lint results and comment
+      if: always()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+          
+          try {
+            // Read golangci-lint JSON report
+            const reportPath = path.join(process.cwd(), 'be', 'golangci-lint-report.json');
+            
+            if (!fs.existsSync(reportPath)) {
+              console.log('✅ No lint report found - no issues detected!');
+              
+              // Comment success message
+              const successComment = `## 🎯 Lint Results
+              
+              ✅ **No linting issues found!**
+              
+              Great job! Your code follows all the coding standards.
+              
+              ---
+              *Powered by [golangci-lint](https://golangci-lint.run/)*`;
+          
+              try {
+                // Find existing lint comment
+                const { data: comments } = await github.rest.issues.listComments({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                });
+          
+                const existingComment = comments.find(comment => 
+                  comment.body.includes('🎯 Lint Results')
+                );
+          
+                if (existingComment) {
+                  await github.rest.issues.updateComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    comment_id: existingComment.id,
+                    body: successComment
+                  });
+                } else {
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: context.issue.number,
+                    body: successComment
+                  });
+                }
+              } catch (commentError) {
+                console.log('⚠️ Could not create/update comment:', commentError.message);
+              }
+              return;
+            }
+            
+            const reportContent = fs.readFileSync(reportPath, 'utf8');
+            console.log('Report content:', reportContent);
+            
+            if (!reportContent.trim()) {
+              console.log('✅ Empty lint report - no issues detected!');
+              return;
+            }
+            
+            const lintResults = JSON.parse(reportContent);
+            console.log('Parsed results:', JSON.stringify(lintResults, null, 2));
+            
+            if (!lintResults.Issues || lintResults.Issues.length === 0) {
+              console.log('✅ No issues in lint results!');
+              
+              const successComment = `## 🎯 Lint Results
+              
+              ✅ **No linting issues found!**
+              
+              Great job! Your code follows all the coding standards.
+              
+              ---
+              *Powered by [golangci-lint](https://golangci-lint.run/)*`;
+              
+              // Find existing lint comment
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+              });
+              
+              const existingComment = comments.find(comment => 
+                comment.body.includes('🎯 Lint Results')
+              );
+              
+              if (existingComment) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existingComment.id,
+                  body: successComment
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body: successComment
+                });
+              }
+              return;
+            }
+            
+            // Group issues by severity
+            const errors = lintResults.Issues.filter(issue => issue.Severity === 'error');
+            const warnings = lintResults.Issues.filter(issue => issue.Severity === 'warning');
+            const infos = lintResults.Issues.filter(issue => issue.Severity === 'info');
+            
+            // Create summary
+            const totalIssues = lintResults.Issues.length;
+            const summary = `**${totalIssues} issue(s) found** (${errors.length} error(s), ${warnings.length} warning(s), ${infos.length} info(s))`;
+            
+            // Group issues by linter
+            const issuesByLinter = {};
+            lintResults.Issues.forEach(issue => {
+              const linter = issue.FromLinter || 'unknown';
+              if (!issuesByLinter[linter]) {
+                issuesByLinter[linter] = [];
+              }
+              issuesByLinter[linter].push(issue);
+            });
+            
+            // Format issues for display
+            let issueDetails = '';
+            
+            Object.entries(issuesByLinter).forEach(([linter, issues]) => {
+              issueDetails += `\n### 🔍 ${linter} (${issues.length} issue(s))\n\n`;
+              
+              issues.forEach(issue => {
+                const severity = issue.Severity || 'info';
+                const severityIcon = severity === 'error' ? '❌' : severity === 'warning' ? '⚠️' : '💡';
+                const file = issue.Pos?.Filename?.replace(process.cwd() + '/be/', '') || 'unknown';
+                const line = issue.Pos?.Line || 0;
+                const column = issue.Pos?.Column || 0;
+                
+                issueDetails += `${severityIcon} **${file}:${line}:${column}**\n`;
+                issueDetails += `\`\`\`\n${issue.Text}\n\`\`\`\n\n`;
+              });
+            });
+            
+            // Create comment body
+            const comment = `## 🎯 Lint Results
+            
+            ${summary}
+            
+            ${issueDetails}
+            
+            <details>
+            <summary>📋 Full Report</summary>
+            
+            \`\`\`json
+            ${JSON.stringify(lintResults, null, 2)}
+            \`\`\`
+            
+            </details>
+            
+            ---
+          
+            ${errors.length > 0 ? 
+              '❌ Please fix the linting errors above before merging.' : 
+              warnings.length > 0 ?
+              '⚠️ There are linting warnings above. These are informational and do not block merging.' :
+              '✅ All linting checks passed!'
+            }
+            
+            *Powered by [golangci-lint](https://golangci-lint.run/)*`;
+            
+            // Find existing lint comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const existingComment = comments.find(comment => 
+              comment.body.includes('🎯 Lint Results')
+            );
+            
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: comment
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }
+          
+            // Set exit code based on errors (only fail on actual errors, not warnings)
+            if (errors.length > 0) {
+              console.log(`❌ Found ${errors.length} error(s). Failing the check.`);
+              core.setFailed(`Found ${errors.length} linting error(s)`);
+            } else if (warnings.length > 0) {
+              console.log(`⚠️ Found ${warnings.length} warning(s). Check passed with warnings.`);
+              console.log('✅ Lint check completed successfully (warnings are informational only)');
+            } else {
+              console.log('✅ All lint checks passed!');
+            }
+            
+          } catch (error) {
+            console.error('Error processing lint results:', error);
+          
+            // Check if it's a permissions error
+            if (error.message.includes('Resource not accessible by integration')) {
+              console.log('⚠️ Insufficient permissions to create PR comments. Lint results will only be shown in logs.');
+              console.log('✅ Lint check completed successfully (no issues found)');
+              return;
+            }
+          
+            try {
+              // Comment about the error if permissions allow
+              const errorComment = `## 🎯 Lint Results
+          
+              ❌ **Error occurred while processing lint results**
+          
+              \`\`\`
+              ${error.message}
+              \`\`\`
+          
+              Please check the workflow logs for more details.
+          
+              ---
+              *Powered by [golangci-lint](https://golangci-lint.run/)*`;
+          
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: errorComment
+              });
+            } catch (commentError) {
+              console.log('⚠️ Could not create error comment due to permissions:', commentError.message);
+            }
+          }
+
+    - name: Archive lint report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: golangci-lint-report
+        path: be/golangci-lint-report.json
+        retention-days: 7

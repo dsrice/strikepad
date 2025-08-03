@@ -1,39 +1,41 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
+import {BrowserRouter} from 'react-router-dom';
 import App from './App';
 
+// Mock the AuthContext since it makes API calls
+jest.mock('./contexts/AuthContext', () => ({
+    AuthProvider: ({children}: { children: React.ReactNode }) => <div>{children}</div>,
+    useAuth: () => ({
+        isAuthenticated: false,
+        isLoading: false,
+        error: null,
+        login: jest.fn(),
+        logout: jest.fn(),
+    }),
+}));
+
+const renderWithRouter = (component: React.ReactElement) => {
+    return render(<BrowserRouter>{component}</BrowserRouter>);
+};
+
 describe('App', () => {
-  it('renders StrikePad Frontend title', () => {
-    render(<App />);
-    const titleElement = screen.getByText(/StrikePad Frontend/i);
+    it('renders StrikePad welcome page', () => {
+        renderWithRouter(<App/>);
+        const titleElement = screen.getByText(/StrikePad/i);
     expect(titleElement).toBeInTheDocument();
   });
 
-  it('renders counter button with initial count', () => {
-    render(<App />);
-    const buttonElement = screen.getByText(/Count is 0/i);
-    expect(buttonElement).toBeInTheDocument();
+    it('renders login and signup buttons', () => {
+        renderWithRouter(<App/>);
+        const loginButton = screen.getByText(/Login/i);
+        const signupButton = screen.getByText(/Sign Up/i);
+        expect(loginButton).toBeInTheDocument();
+        expect(signupButton).toBeInTheDocument();
   });
 
-  it('increments counter when button is clicked', () => {
-    render(<App />);
-    const buttonElement = screen.getByText(/Count is 0/i);
-    
-    fireEvent.click(buttonElement);
-    expect(screen.getByText(/Count is 1/i)).toBeInTheDocument();
-    
-    fireEvent.click(buttonElement);
-    expect(screen.getByText(/Count is 2/i)).toBeInTheDocument();
-  });
-
-  it('renders chart demo section', () => {
-    render(<App />);
-    const chartSection = screen.getByText(/D3.js Chart Demo/i);
-    expect(chartSection).toBeInTheDocument();
-  });
-
-  it('has correct styling classes', () => {
-    render(<App />);
-    const mainElement = screen.getByRole('main');
-    expect(mainElement).toHaveClass('max-w-6xl', 'mx-auto', 'p-6');
+    it('renders welcome message', () => {
+        renderWithRouter(<App/>);
+        const welcomeMessage = screen.getByText(/Welcome to StrikePad Application/i);
+        expect(welcomeMessage).toBeInTheDocument();
   });
 });

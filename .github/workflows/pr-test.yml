@@ -1,0 +1,669 @@
+name: Pull Request CI
+
+on:
+  pull_request:
+    branches: [ develop ]
+    paths:
+      - 'be/**'
+      - '.github/workflows/pr-test.yml'
+      - '.github/workflows/pr-lint.yml'
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Install dependencies
+      working-directory: ./be
+      run: go mod download
+
+    - name: Run golangci-lint
+      uses: golangci/golangci-lint-action@v4
+      with:
+        version: latest
+        working-directory: ./be
+        args: --timeout=10m --out-format=json:golangci-lint-report.json,line-number
+        only-new-issues: true
+        skip-cache: false
+
+    - name: Parse lint results and comment
+      if: always()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+          
+          try {
+            // Read golangci-lint JSON report
+            const reportPath = path.join(process.cwd(), 'be', 'golangci-lint-report.json');
+            
+            if (!fs.existsSync(reportPath)) {
+              console.log('✅ No lint report found - no issues detected!');
+              
+              // Comment success message
+              const successComment = `## 🎯 Lint Results
+              
+              ✅ **No linting issues found!**
+              
+              Great job! Your code follows all the coding standards.
+              
+              ---
+              *Powered by [golangci-lint](https://golangci-lint.run/)*`;
+              
+              // Find existing lint comment
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+              });
+              
+              const existingComment = comments.find(comment => 
+                comment.body.includes('🎯 Lint Results')
+              );
+              
+              if (existingComment) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existingComment.id,
+                  body: successComment
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body: successComment
+                });
+              }
+              return;
+            }
+            
+            const reportContent = fs.readFileSync(reportPath, 'utf8');
+            console.log('Report content:', reportContent);
+            
+            if (!reportContent.trim()) {
+              console.log('✅ Empty lint report - no issues detected!');
+              return;
+            }
+            
+            const lintResults = JSON.parse(reportContent);
+            console.log('Parsed results:', JSON.stringify(lintResults, null, 2));
+            
+            if (!lintResults.Issues || lintResults.Issues.length === 0) {
+              console.log('✅ No issues in lint results!');
+              
+              const successComment = `## 🎯 Lint Results
+              
+              ✅ **No linting issues found!**
+              
+              Great job! Your code follows all the coding standards.
+              
+              ---
+              *Powered by [golangci-lint](https://golangci-lint.run/)*`;
+              
+              // Find existing lint comment
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+              });
+              
+              const existingComment = comments.find(comment => 
+                comment.body.includes('🎯 Lint Results')
+              );
+              
+              if (existingComment) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existingComment.id,
+                  body: successComment
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body: successComment
+                });
+              }
+              return;
+            }
+            
+            // Group issues by severity
+            const errors = lintResults.Issues.filter(issue => issue.Severity === 'error');
+            const warnings = lintResults.Issues.filter(issue => issue.Severity === 'warning');
+            const infos = lintResults.Issues.filter(issue => issue.Severity === 'info');
+            
+            // Create summary
+            const totalIssues = lintResults.Issues.length;
+            const summary = `**${totalIssues} issue(s) found** (${errors.length} error(s), ${warnings.length} warning(s), ${infos.length} info(s))`;
+            
+            // Group issues by linter
+            const issuesByLinter = {};
+            lintResults.Issues.forEach(issue => {
+              const linter = issue.FromLinter || 'unknown';
+              if (!issuesByLinter[linter]) {
+                issuesByLinter[linter] = [];
+              }
+              issuesByLinter[linter].push(issue);
+            });
+            
+            // Format issues for display
+            let issueDetails = '';
+            
+            Object.entries(issuesByLinter).forEach(([linter, issues]) => {
+              issueDetails += `\n### 🔍 ${linter} (${issues.length} issue(s))\n\n`;
+              
+              issues.forEach(issue => {
+                const severity = issue.Severity || 'info';
+                const severityIcon = severity === 'error' ? '❌' : severity === 'warning' ? '⚠️' : '💡';
+                const file = issue.Pos?.Filename?.replace(process.cwd() + '/be/', '') || 'unknown';
+                const line = issue.Pos?.Line || 0;
+                const column = issue.Pos?.Column || 0;
+                
+                issueDetails += `${severityIcon} **${file}:${line}:${column}**\n`;
+                issueDetails += `\`\`\`\n${issue.Text}\n\`\`\`\n\n`;
+              });
+            });
+            
+            // Create comment body
+            const comment = `## 🎯 Lint Results
+            
+            ${summary}
+            
+            ${issueDetails}
+            
+            <details>
+            <summary>📋 Full Report</summary>
+            
+            \`\`\`json
+            ${JSON.stringify(lintResults, null, 2)}
+            \`\`\`
+            
+            </details>
+            
+            ---
+            
+            ${totalIssues > 0 ? 
+              '❌ Please fix the linting issues above before merging.' : 
+              '✅ All linting checks passed!'
+            }
+            
+            *Powered by [golangci-lint](https://golangci-lint.run/)*`;
+            
+            // Find existing lint comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const existingComment = comments.find(comment => 
+              comment.body.includes('🎯 Lint Results')
+            );
+            
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: comment
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }
+            
+            // Set exit code based on errors
+            if (errors.length > 0) {
+              console.log(`❌ Found ${errors.length} error(s). Failing the check.`);
+              process.exit(1);
+            } else if (warnings.length > 0) {
+              console.log(`⚠️ Found ${warnings.length} warning(s). Check passed with warnings.`);
+            } else {
+              console.log('✅ All lint checks passed!');
+            }
+            
+          } catch (error) {
+            console.error('Error processing lint results:', error);
+            
+            // Comment about the error
+            const errorComment = `## 🎯 Lint Results
+            
+            ❌ **Error occurred while processing lint results**
+            
+            \`\`\`
+            ${error.message}
+            \`\`\`
+            
+            Please check the workflow logs for more details.
+            
+            ---
+            *Powered by [golangci-lint](https://golangci-lint.run/)*`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: errorComment
+            });
+          }
+
+    - name: Archive lint report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: golangci-lint-report
+        path: be/golangci-lint-report.json
+        retention-days: 7
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: lint
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: strikepad_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Install dependencies
+      working-directory: ./be
+      run: go mod download
+
+    - name: Wait for PostgreSQL
+      run: |
+        until pg_isready -h localhost -p 5432 -U postgres; do
+          echo "Waiting for postgres..."
+          sleep 2
+        done
+
+    - name: Run tests with coverage (excluding mocks)
+      working-directory: ./be
+      env:
+        DB_HOST: localhost
+        DB_PORT: 5432
+        DB_USER: postgres
+        DB_PASSWORD: postgres
+        DB_NAME: strikepad_test
+        DB_SSLMODE: disable
+        ENV: test
+        CGO_ENABLED: 1
+      run: |
+        # Get list of packages excluding mocks and testutil
+        PACKAGES=$(go list ./... | grep -v -E '/mocks|/testutil' | tr '\n' ' ')
+        echo "Testing packages: $PACKAGES"
+        
+        # Run tests with JSON output for detailed reporting
+        go test -v -race -coverprofile=coverage.out -covermode=atomic -json $PACKAGES > test-results.json
+        
+        # Also run with regular output for GitHub logs
+        echo "=== Test Execution Summary ==="
+        go test -v -race -coverprofile=coverage.out -covermode=atomic $PACKAGES
+
+    - name: Generate coverage report
+      working-directory: ./be
+      run: |
+        go tool cover -html=coverage.out -o coverage.html
+        go tool cover -func=coverage.out > coverage.txt
+
+    - name: Calculate coverage percentage
+      working-directory: ./be
+      id: coverage
+      run: |
+        COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+        echo "COVERAGE=$COVERAGE" >> $GITHUB_OUTPUT
+        echo "Coverage: $COVERAGE%"
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./be/coverage.out
+        flags: backend
+        name: backend-coverage
+        fail_ci_if_error: false
+        working-directory: ./be
+
+    - name: Comment PR with test results
+      uses: actions/github-script@v7
+      if: github.event_name == 'pull_request' && always()
+      with:
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+          
+          try {
+            // Read test results JSON
+            const testResultsPath = path.join(process.cwd(), 'be', 'test-results.json');
+          
+            if (!fs.existsSync(testResultsPath)) {
+              console.log('⚠️ No test results file found');
+              return;
+            }
+          
+            const testResultsContent = fs.readFileSync(testResultsPath, 'utf8');
+            const testLines = testResultsContent.trim().split('\n');
+          
+            let totalTests = 0;
+            let passedTests = 0;
+            let failedTests = 0;
+            let skippedTests = 0;
+            const testPackages = new Map();
+            const failedTestDetails = [];
+          
+            // Parse JSON test output
+            testLines.forEach(line => {
+              if (!line.trim()) return;
+          
+              try {
+                const testEvent = JSON.parse(line);
+          
+                if (testEvent.Action === 'pass' && testEvent.Test) {
+                  totalTests++;
+                  passedTests++;
+          
+                  const pkg = testEvent.Package || 'unknown';
+                  if (!testPackages.has(pkg)) {
+                    testPackages.set(pkg, { passed: 0, failed: 0, skipped: 0 });
+                  }
+                  testPackages.get(pkg).passed++;
+          
+                } else if (testEvent.Action === 'fail' && testEvent.Test) {
+                  totalTests++;
+                  failedTests++;
+          
+                  const pkg = testEvent.Package || 'unknown';
+                  if (!testPackages.has(pkg)) {
+                    testPackages.set(pkg, { passed: 0, failed: 0, skipped: 0 });
+                  }
+                  testPackages.get(pkg).failed++;
+          
+                  failedTestDetails.push({
+                    package: pkg,
+                    test: testEvent.Test,
+                    output: testEvent.Output || 'No output available'
+                  });
+          
+                } else if (testEvent.Action === 'skip' && testEvent.Test) {
+                  totalTests++;
+                  skippedTests++;
+          
+                  const pkg = testEvent.Package || 'unknown';
+                  if (!testPackages.has(pkg)) {
+                    testPackages.set(pkg, { passed: 0, failed: 0, skipped: 0 });
+                  }
+                  testPackages.get(pkg).skipped++;
+                }
+              } catch (e) {
+                // Skip malformed JSON lines
+              }
+            });
+          
+            // Create test status icon
+            const getStatusIcon = () => {
+              if (failedTests > 0) return '❌';
+              if (totalTests === 0) return '⚠️';
+              return '✅';
+            };
+          
+            const statusIcon = getStatusIcon();
+            const statusText = failedTests > 0 ? 'Tests Failed' : 
+                              totalTests === 0 ? 'No Tests Found' : 'All Tests Passed';
+          
+            // Create package summary table
+            let packageSummary = '';
+            if (testPackages.size > 0) {
+              packageSummary = '### 📦 Package Test Results\n\n| Package | Passed | Failed | Skipped |\n|---------|--------|--------|---------|\n';
+          
+              for (const [pkg, stats] of testPackages) {
+                const pkgName = pkg.replace('strikepad-backend/', '');
+                const statusEmoji = stats.failed > 0 ? '❌' : stats.passed > 0 ? '✅' : '⚪';
+                packageSummary += `| ${statusEmoji} ${pkgName} | ${stats.passed} | ${stats.failed} | ${stats.skipped} |\n`;
+              }
+              packageSummary += '\n';
+            }
+          
+            // Create failure details
+            let failureDetails = '';
+            if (failedTestDetails.length > 0) {
+              failureDetails = '### ❌ Failed Test Details\n\n';
+              failedTestDetails.forEach(failure => {
+                const pkgName = failure.package.replace('strikepad-backend/', '');
+                failureDetails += `**${pkgName}** → \`${failure.test}\`\n`;
+                failureDetails += '```\n' + failure.output.trim() + '\n```\n\n';
+              });
+            }
+          
+            const comment = `## 🧪 Test Results Summary
+          
+            ${statusIcon} **${statusText}**
+          
+            **Total: ${totalTests} tests** (${passedTests} passed, ${failedTests} failed, ${skippedTests} skipped)
+          
+            ${packageSummary}
+          
+            ${failureDetails}
+          
+            ---
+          
+            ${failedTests > 0 ? '❌ Please fix the failing tests before merging.' :
+              totalTests === 0 ? '⚠️ No tests were executed. Please verify test configuration.' :
+              '✅ All tests are passing!'}
+            `;
+          
+            // Find existing test results comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+          
+            const existingComment = comments.find(comment => 
+              comment.body.includes('🧪 Test Results Summary')
+            );
+          
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: comment
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }
+          
+          } catch (error) {
+            console.error('Error processing test results:', error);
+          }
+
+    - name: Comment PR with coverage
+      uses: actions/github-script@v7
+      if: github.event_name == 'pull_request'
+      with:
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+          
+          // Read coverage report
+          const coverageFile = path.join(process.cwd(), 'be', 'coverage.txt');
+          const coverage = fs.readFileSync(coverageFile, 'utf8');
+          
+          // Parse coverage percentage
+          const coverageMatch = coverage.match(/total:\s+\(statements\)\s+([\d.]+)%/);
+          const coveragePercent = coverageMatch ? coverageMatch[1] : 'Unknown';
+          
+          // Create coverage badge color
+          const getBadgeColor = (percent) => {
+            const num = parseFloat(percent);
+            if (num >= 80) return 'brightgreen';
+            if (num >= 60) return 'yellow';
+            if (num >= 40) return 'orange';
+            return 'red';
+          };
+          
+          const badgeColor = getBadgeColor(coveragePercent);
+          
+          // Format coverage report for comment
+          const lines = coverage.split('\n').filter(line => line.trim() && !line.includes('total:'));
+          const packageCoverage = lines.map(line => {
+            const parts = line.split('\t');
+            if (parts.length >= 3) {
+              const pkg = parts[0].replace('strikepad-backend/', '');
+              const percent = parts[2];
+              return `| ${pkg} | ${percent} |`;
+            }
+            return null;
+          }).filter(Boolean);
+          
+          const comment = `## 🧪 Test Coverage Report
+          
+          ![Coverage](https://img.shields.io/badge/coverage-${coveragePercent}%25-${badgeColor})
+          
+          **Overall Coverage: ${coveragePercent}%**
+          
+          > 📝 *Note: Mock files and test utilities are excluded from coverage calculation for more accurate metrics.*
+          
+          ### Package Coverage Details
+          
+          | Package | Coverage |
+          |---------|----------|
+          ${packageCoverage.join('\n')}
+          
+          <details>
+          <summary>📊 Full Coverage Report</summary>
+          
+          \`\`\`
+          ${coverage}
+          \`\`\`
+          
+          </details>
+          
+          ---
+          
+          ${parseFloat(coveragePercent) >= 80 ? '✅ Excellent coverage!' : 
+            parseFloat(coveragePercent) >= 60 ? '⚠️ Good coverage, but could be improved.' :
+            '❌ Coverage is below recommended threshold (80%).'}
+          `;
+          
+          // Find existing coverage comment
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+          
+          const existingComment = comments.find(comment => 
+            comment.body.includes('🧪 Test Coverage Report')
+          );
+          
+          if (existingComment) {
+            // Update existing comment
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: existingComment.id,
+              body: comment
+            });
+          } else {
+            // Create new comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
+          }
+
+    - name: Check coverage threshold
+      working-directory: ./be
+      run: |
+        COVERAGE=${{ steps.coverage.outputs.COVERAGE }}
+        THRESHOLD=50
+        
+        echo "Coverage: $COVERAGE%"
+        echo "Threshold: $THRESHOLD%"
+        
+        if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+          echo "❌ Coverage $COVERAGE% is below threshold $THRESHOLD%"
+          echo "Please add more tests to improve coverage."
+          exit 1
+        else
+          echo "✅ Coverage $COVERAGE% meets threshold $THRESHOLD%"
+        fi
+
+    - name: Archive test and coverage reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-coverage-reports
+        path: |
+          be/coverage.out
+          be/coverage.html
+          be/coverage.txt
+          be/test-results.json
+        retention-days: 30
