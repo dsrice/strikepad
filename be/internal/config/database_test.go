@@ -71,10 +71,10 @@ func (suite *DatabaseConfigTestSuite) TestGetEnvDefaults() {
 func (suite *DatabaseConfigTestSuite) TestGetEnvCustomValues() {
 	// Test that getEnv returns custom values when set
 	testCases := []struct {
-		key      string
-		setValue string
-		default_ string
-		expected string
+		key          string
+		setValue     string
+		defaultValue string
+		expected     string
 	}{
 		{"DB_HOST", "custom-host", "localhost", "custom-host"},
 		{"DB_PORT", "3306", "5432", "3306"},
@@ -87,7 +87,7 @@ func (suite *DatabaseConfigTestSuite) TestGetEnvCustomValues() {
 		suite.T().Run(tc.key, func(t *testing.T) {
 			os.Setenv(tc.key, tc.setValue)
 
-			result := getEnv(tc.key, tc.default_)
+			result := getEnv(tc.key, tc.defaultValue)
 			assert.Equal(t, tc.expected, result)
 
 			os.Unsetenv(tc.key)
