@@ -21,7 +21,8 @@
       "Bash(goimports:*)",
       "Bash(npm run dev:*)",
       "Bash(taskkill:*)",
-      "Bash(npm test:*)"
+      "Bash(npm test:*)",
+      "Bash(mv:*)"
     ],
     "deny": []
   }

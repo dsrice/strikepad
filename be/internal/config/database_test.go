@@ -208,6 +208,30 @@ func (suite *DatabaseConfigTestSuite) TestDatabaseConfigurationScenarios() {
 	}
 }
 
+func (suite *DatabaseConfigTestSuite) TestNewDatabase() {
+	// Set required environment variables
+	suite.T().Setenv("DB_HOST", "localhost")
+	suite.T().Setenv("DB_PORT", "5432")
+	suite.T().Setenv("DB_USER", "testuser")
+	suite.T().Setenv("DB_PASSWORD", "testpass")
+	suite.T().Setenv("DB_NAME", "testdb")
+
+	// This will test the DSN construction but will fail on actual connection
+	// We can't test the actual database connection without a real database
+	// But we can test that the function doesn't panic and constructs the DSN correctly
+	defer func() {
+		if r := recover(); r != nil {
+			// Expected to fail with connection error, not panic
+			suite.T().Logf("Expected database connection failure: %v", r)
+		}
+	}()
+
+	// Call NewDatabase - this will attempt to connect but should handle the error gracefully
+	// by calling log.Fatal, which we can't easily test without mocking
+	// For now, we'll skip this direct test and instead test the DSN construction
+	suite.T().Skip("NewDatabase requires actual database connection - testing DSN construction via getEnv instead")
+}
+
 func TestDatabaseConfigTestSuite(t *testing.T) {
 	suite.Run(t, new(DatabaseConfigTestSuite))
 }

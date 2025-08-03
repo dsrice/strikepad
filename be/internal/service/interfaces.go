@@ -12,3 +12,8 @@ type AuthServiceInterface interface {
 type HealthServiceInterface interface {
 	GetHealth() *dto.HealthResponse
 }
+
+// APIServiceInterface defines the interface for API service
+type APIServiceInterface interface {
+	GetTestMessage() map[string]string
+}

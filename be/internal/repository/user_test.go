@@ -118,6 +118,51 @@ func (suite *UserRepositoryTestSuite) TestDelete() {
 	assert.NoError(suite.T(), err)
 }
 
+func (suite *UserRepositoryTestSuite) TestFindByEmail() {
+	email := testEmail
+	now := time.Now()
+
+	suite.mock.ExpectQuery("SELECT \\* FROM `users` WHERE email = \\? AND is_deleted = \\? ORDER BY `users`.`id` LIMIT \\?").
+		WithArgs(email, false, 1).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "provider_type", "provider_user_id", "email", "display_name", "password_hash", "email_verified", "created_at", "updated_at", "is_deleted", "deleted_at"}).
+			AddRow(1, "email", nil, email, "Test User", nil, false, now, now, false, nil))
+
+	found, err := suite.repo.FindByEmail(email)
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), "Test User", found.DisplayName)
+	assert.Equal(suite.T(), uint(1), found.ID)
+	assert.Equal(suite.T(), false, found.IsDeleted)
+}
+
+func (suite *UserRepositoryTestSuite) TestUpdate() {
+	email := testEmail
+	user := &model.User{
+		ID:           1,
+		ProviderType: "email",
+		DisplayName:  "Updated User",
+		Email:        &email,
+	}
+
+	suite.mock.ExpectBegin()
+	suite.mock.ExpectExec("UPDATE `users` SET").
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	suite.mock.ExpectCommit()
+
+	err := suite.repo.Update(user)
+	assert.NoError(suite.T(), err)
+}
+
+func (suite *UserRepositoryTestSuite) TestNewUserRepository() {
+	// Test that NewUserRepository creates a repository with the provided DB
+	repo := NewUserRepository(suite.db)
+	assert.NotNil(suite.T(), repo)
+
+	// Verify it's the correct type
+	userRepo, ok := repo.(*userRepository)
+	assert.True(suite.T(), ok)
+	assert.Equal(suite.T(), suite.db, userRepo.db)
+}
+
 func TestUserRepositoryTestSuite(t *testing.T) {
 	suite.Run(t, new(UserRepositoryTestSuite))
 }
