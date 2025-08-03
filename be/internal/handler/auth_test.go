@@ -1,4 +1,4 @@
-package handler
+package handler_test
 
 import (
 	"bytes"
@@ -12,6 +12,7 @@ import (
 
 	"strikepad-backend/internal/auth"
 	"strikepad-backend/internal/dto"
+	"strikepad-backend/internal/handler"
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
@@ -21,14 +22,14 @@ import (
 
 type AuthHandlerTestSuite struct {
 	suite.Suite
-	authHandler AuthHandlerInterface
+	authHandler handler.AuthHandlerInterface
 	mockService *mocks.MockAuthServiceInterface
 	echo        *echo.Echo
 }
 
 func (suite *AuthHandlerTestSuite) SetupTest() {
 	suite.mockService = new(mocks.MockAuthServiceInterface)
-	suite.authHandler = NewAuthHandler(suite.mockService)
+	suite.authHandler = handler.NewAuthHandler(suite.mockService)
 	suite.echo = echo.New()
 }
 
@@ -380,8 +381,8 @@ func (suite *AuthHandlerTestSuite) TestLogin() {
 
 func (suite *AuthHandlerTestSuite) TestNewAuthHandler() {
 	// Test that NewAuthHandler creates a valid handler
-	handler := NewAuthHandler(suite.mockService)
-	assert.NotNil(suite.T(), handler)
+	h := handler.NewAuthHandler(suite.mockService)
+	assert.NotNil(suite.T(), h)
 }
 
 func TestAuthHandlerTestSuite(t *testing.T) {

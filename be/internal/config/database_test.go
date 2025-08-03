@@ -1,8 +1,10 @@
-package config
+package config_test
 
 import (
 	"os"
 	"testing"
+
+	"strikepad-backend/internal/config"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -99,7 +101,7 @@ func (suite *DatabaseConfigTestSuite) TestDatabaseConfigVariables() {
 				os.Setenv(tc.key, *tc.envValue)
 			}
 
-			result := getEnv(tc.key, tc.defaultValue)
+			result := config.GetEnv(tc.key, tc.defaultValue)
 			assert.Equal(t, tc.expected, result, tc.description)
 
 			// Clean up
@@ -231,9 +233,9 @@ func (suite *DatabaseConfigTestSuite) TestDatabaseConfigurationScenarios() {
 				os.Setenv(key, value)
 			}
 
-			// Test that getEnv returns the correct values for each configuration
+			// Test that GetEnv returns the correct values for each configuration
 			for envKey, expectedValue := range scenario.envVars {
-				result := getEnv(envKey, "default")
+				result := config.GetEnv(envKey, "default")
 				assert.Equal(t, expectedValue, result,
 					"getEnv should return correct value for %s in %s (%s)",
 					envKey, scenario.description, scenario.environment)
@@ -242,7 +244,7 @@ func (suite *DatabaseConfigTestSuite) TestDatabaseConfigurationScenarios() {
 			// Additional validation: ensure all required DSN components are set
 			requiredKeys := []string{"DB_HOST", "DB_PORT", "DB_USER", "DB_PASSWORD", "DB_NAME", "DB_SSLMODE"}
 			for _, key := range requiredKeys {
-				value := getEnv(key, "")
+				value := config.GetEnv(key, "")
 				assert.NotEmpty(t, value, "Required database config %s should not be empty in %s", key, scenario.name)
 			}
 

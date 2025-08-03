@@ -346,35 +346,35 @@ func (suite *ErrorCodesTestSuite) TestGetErrorInfo_AllDefinedErrorsValidation() 
 		maxStatus   int
 	}{
 		// General errors (4xx/5xx)
-		{ErrCodeInternalError, "general", 500, 599, []string{"internal", "server"}},
-		{ErrCodeInvalidRequest, "general", 400, 499, []string{"invalid", "request"}},
-		{ErrCodeValidationFailed, "general", 400, 499, []string{"validation"}},
-		{ErrCodeNotFound, "general", 404, 404, []string{"not found", "resource"}},
-		{ErrCodeUnauthorized, "general", 401, 401, []string{"unauthorized"}},
-		{ErrCodeForbidden, "general", 403, 403, []string{"forbidden"}},
-		{ErrCodeConflict, "general", 409, 409, []string{"conflict"}},
+		{ErrCodeInternalError, "general", []string{"internal", "server"}, 500, 599},
+		{ErrCodeInvalidRequest, "general", []string{"invalid", "request"}, 400, 499},
+		{ErrCodeValidationFailed, "general", []string{"validation"}, 400, 499},
+		{ErrCodeNotFound, "general", []string{"not found", "resource"}, 404, 404},
+		{ErrCodeUnauthorized, "general", []string{"unauthorized"}, 401, 401},
+		{ErrCodeForbidden, "general", []string{"forbidden"}, 403, 403},
+		{ErrCodeConflict, "general", []string{"conflict"}, 409, 409},
 
 		// Authentication errors (typically 401/404/409)
-		{ErrCodeInvalidCredentials, "authentication", 401, 401, []string{"credentials"}},
-		{ErrCodeUserNotFound, "authentication", 404, 404, []string{"user", "not found"}},
-		{ErrCodeUserExists, "authentication", 409, 409, []string{"user", "exists"}},
-		{ErrCodeTokenExpired, "authentication", 401, 401, []string{"token", "expired"}},
-		{ErrCodeTokenInvalid, "authentication", 401, 401, []string{"token", "invalid"}},
+		{ErrCodeInvalidCredentials, "authentication", []string{"credentials"}, 401, 401},
+		{ErrCodeUserNotFound, "authentication", []string{"user", "not found"}, 404, 404},
+		{ErrCodeUserExists, "authentication", []string{"user", "exists"}, 409, 409},
+		{ErrCodeTokenExpired, "authentication", []string{"token", "expired"}, 401, 401},
+		{ErrCodeTokenInvalid, "authentication", []string{"token", "invalid"}, 401, 401},
 
 		// Validation errors (typically 400)
-		{ErrCodeEmailRequired, "validation", 400, 400, []string{"email", "required"}},
-		{ErrCodeEmailInvalid, "validation", 400, 400, []string{"email", "format"}},
-		{ErrCodePasswordRequired, "validation", 400, 400, []string{"password", "required"}},
-		{ErrCodePasswordTooShort, "validation", 400, 400, []string{"password", "short"}},
-		{ErrCodePasswordTooLong, "validation", 400, 400, []string{"password", "long"}},
-		{ErrCodePasswordComplexity, "validation", 400, 400, []string{"password", "complexity"}},
-		{ErrCodeDisplayNameRequired, "validation", 400, 400, []string{"display", "name", "required"}},
-		{ErrCodeDisplayNameTooLong, "validation", 400, 400, []string{"display", "name", "long"}},
+		{ErrCodeEmailRequired, "validation", []string{"email", "required"}, 400, 400},
+		{ErrCodeEmailInvalid, "validation", []string{"email", "format"}, 400, 400},
+		{ErrCodePasswordRequired, "validation", []string{"password", "required"}, 400, 400},
+		{ErrCodePasswordTooShort, "validation", []string{"password", "short"}, 400, 400},
+		{ErrCodePasswordTooLong, "validation", []string{"password", "long"}, 400, 400},
+		{ErrCodePasswordComplexity, "validation", []string{"password", "complexity"}, 400, 400},
+		{ErrCodeDisplayNameRequired, "validation", []string{"display", "name", "required"}, 400, 400},
+		{ErrCodeDisplayNameTooLong, "validation", []string{"display", "name", "long"}, 400, 400},
 
 		// Business logic errors (typically 403)
-		{ErrCodeEmailNotVerified, "business", 403, 403, []string{"email", "verified"}},
-		{ErrCodeAccountDisabled, "business", 403, 403, []string{"account", "disabled"}},
-		{ErrCodeAccountDeleted, "business", 403, 403, []string{"account", "deleted"}},
+		{ErrCodeEmailNotVerified, "business", []string{"email", "verified"}, 403, 403},
+		{ErrCodeAccountDisabled, "business", []string{"account", "disabled"}, 403, 403},
+		{ErrCodeAccountDeleted, "business", []string{"account", "deleted"}, 403, 403},
 	}
 
 	for _, tt := range errorCodeTests {

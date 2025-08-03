@@ -49,14 +49,25 @@ func (suite *APIHandlerTestSuite) TestNewAPIHandler() {
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
-			handler := NewAPIHandler(tt.service)
+			hd := NewAPIHandler(tt.service)
 
 			if tt.expectNil {
-				assert.Nil(suite.T(), handler, tt.description)
+				assert.Nil(suite.T(), hd, tt.description)
 			} else {
-				assert.NotNil(suite.T(), handler, tt.description)
-				assert.NotNil(suite.T(), handler.apiService, "API service should be set")
-				assert.Equal(suite.T(), tt.service, handler.apiService, "Service should match provided service")
+				assert.NotNil(suite.T(), hd, tt.description)
+				// Since we're in the handler package, we can't directly access unexported fields
+				// Instead, we'll verify the handler works by calling a method
+				result := make(map[string]string)
+				tt.service.On("GetTestMessage").Return(result)
+
+				// Create a proper echo.Context for testing
+				req := httptest.NewRequest(http.MethodGet, "/test", http.NoBody)
+				rec := httptest.NewRecorder()
+				c := echo.New().NewContext(req, rec)
+
+				// Test that the handler works without panicking
+				assert.NotPanics(suite.T(), func() { hd.Test(c) }, "Handler should not panic when used")
+				tt.service.AssertExpectations(suite.T())
 			}
 		})
 	}
@@ -126,7 +137,7 @@ func (suite *APIHandlerTestSuite) TestTest() {
 		suite.Run(tt.name, func() {
 			// Setup fresh mock for each test
 			apiService := &mocks.MockAPIServiceInterface{}
-			handler := NewAPIHandler(apiService)
+			hd := NewAPIHandler(apiService)
 			apiService.On("GetTestMessage").Return(tt.mockResponse)
 
 			// Create request
@@ -135,7 +146,7 @@ func (suite *APIHandlerTestSuite) TestTest() {
 			c := suite.echo.NewContext(req, rec)
 
 			// Execute
-			err := handler.Test(c)
+			err := hd.Test(c)
 
 			// Assert
 			assert.NoError(suite.T(), err, tt.description)

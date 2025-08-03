@@ -1,8 +1,10 @@
-package config
+package config_test
 
 import (
 	"os"
 	"testing"
+
+	"strikepad-backend/internal/config"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -138,7 +140,7 @@ func (suite *EnvConfigTestSuite) TestGetEnv() {
 				os.Setenv(tc.key, *tc.envValue)
 			}
 
-			result := getEnv(tc.key, tc.defaultValue)
+			result := config.GetEnv(tc.key, tc.defaultValue)
 			assert.Equal(t, tc.expected, result, tc.description)
 
 			// Clean up
@@ -186,7 +188,7 @@ func (suite *EnvConfigTestSuite) TestGetEnvCommonDefaults() {
 			// Ensure env var is not set
 			os.Unsetenv(tc.key)
 
-			result := getEnv(tc.key, tc.defaultValue)
+			result := config.GetEnv(tc.key, tc.defaultValue)
 			assert.Equal(t, tc.defaultValue, result,
 				"getEnv should return default value for %s configuration", tc.category)
 		})

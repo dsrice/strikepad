@@ -1,8 +1,10 @@
-package auth
+package auth_test
 
 import (
 	"strings"
 	"testing"
+
+	"strikepad-backend/internal/auth"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -47,7 +49,7 @@ func (suite *PasswordTestSuite) TestHashPassword() {
 
 	for _, tc := range testCases {
 		suite.T().Run(tc.name, func(t *testing.T) {
-			hash, err := HashPassword(tc.password)
+			hash, err := auth.HashPassword(tc.password)
 
 			if tc.expectError {
 				assert.Error(t, err)
@@ -65,7 +67,7 @@ func (suite *PasswordTestSuite) TestHashPassword() {
 
 			if tc.validateUnique {
 				// Generate another hash and ensure they're different
-				hash2, err2 := HashPassword(tc.password)
+				hash2, err2 := auth.HashPassword(tc.password)
 				assert.NoError(t, err2)
 				assert.NotEqual(t, hash, hash2, "Two hashes of the same password should be different due to salt")
 			}
@@ -76,7 +78,7 @@ func (suite *PasswordTestSuite) TestHashPassword() {
 func (suite *PasswordTestSuite) TestCheckPasswordHash() {
 	// Generate a valid hash for testing
 	validPassword := testPasswordConst
-	validHash, err := HashPassword(validPassword)
+	validHash, err := auth.HashPassword(validPassword)
 	assert.NoError(suite.T(), err)
 
 	testCases := []struct {
@@ -125,7 +127,7 @@ func (suite *PasswordTestSuite) TestCheckPasswordHash() {
 
 	for _, tc := range testCases {
 		suite.T().Run(tc.name, func(t *testing.T) {
-			isValid := CheckPasswordHash(tc.password, tc.hash)
+			isValid := auth.CheckPasswordHash(tc.password, tc.hash)
 			assert.Equal(t, tc.expected, isValid)
 		})
 	}
@@ -145,7 +147,7 @@ func (suite *PasswordTestSuite) TestValidatePasswordValid() {
 
 	for _, tc := range testCases {
 		suite.T().Run(tc.name, func(t *testing.T) {
-			err := ValidatePassword(tc.password)
+			err := auth.ValidatePassword(tc.password)
 			assert.NoError(t, err, "Password should be valid: %s", tc.password)
 		})
 	}
@@ -159,10 +161,10 @@ func (suite *PasswordTestSuite) TestValidatePasswordLength() {
 		description string
 	}{
 		// Too short passwords
-		{"empty password", "", ErrPasswordTooShort, "0 chars"},
-		{"single character", "a", ErrPasswordTooShort, "1 char"},
-		{"six characters", "Pass1!", ErrPasswordTooShort, "6 chars"},
-		{"seven characters", "Test12!", ErrPasswordTooShort, "7 chars"},
+		{"empty password", "", auth.ErrPasswordTooShort, "0 chars"},
+		{"single character", "a", auth.ErrPasswordTooShort, "1 char"},
+		{"six characters", "Pass1!", auth.ErrPasswordTooShort, "6 chars"},
+		{"seven characters", "Test12!", auth.ErrPasswordTooShort, "7 chars"},
 
 		// Valid length passwords
 		{"minimum valid", "Pass123!", nil, "8 chars (minimum)"},
@@ -170,13 +172,13 @@ func (suite *PasswordTestSuite) TestValidatePasswordLength() {
 		{"medium length", "MySecurePassword123!", nil, "20 chars"},
 
 		// Too long passwords
-		{"too long", "Password123!" + strings.Repeat("a", 120), ErrPasswordTooLong, "132 chars"},
-		{"way too long", strings.Repeat("a", 200), ErrPasswordTooLong, "200 chars"},
+		{"too long", "Password123!" + strings.Repeat("a", 120), auth.ErrPasswordTooLong, "132 chars"},
+		{"way too long", strings.Repeat("a", 200), auth.ErrPasswordTooLong, "200 chars"},
 	}
 
 	for _, tc := range testCases {
 		suite.T().Run(tc.name, func(t *testing.T) {
-			err := ValidatePassword(tc.password)
+			err := auth.ValidatePassword(tc.password)
 
 			if tc.expectedErr != nil {
 				assert.Equal(t, tc.expectedErr, err, "Password validation failed for %s", tc.description)
@@ -202,8 +204,8 @@ func (suite *PasswordTestSuite) TestHashPasswordConsistency() {
 	for _, tc := range testCases {
 		suite.T().Run(tc.name, func(t *testing.T) {
 			// Hash the same password multiple times
-			hash1, err1 := HashPassword(tc.password)
-			hash2, err2 := HashPassword(tc.password)
+			hash1, err1 := auth.HashPassword(tc.password)
+			hash2, err2 := auth.HashPassword(tc.password)
 
 			assert.NoError(t, err1)
 			assert.NoError(t, err2)
@@ -212,12 +214,12 @@ func (suite *PasswordTestSuite) TestHashPasswordConsistency() {
 			assert.NotEqual(t, hash1, hash2, "Two hashes of the same password should be different due to salt")
 
 			// But both should verify correctly
-			assert.True(t, CheckPasswordHash(tc.password, hash1), "First hash should verify correctly")
-			assert.True(t, CheckPasswordHash(tc.password, hash2), "Second hash should verify correctly")
+			assert.True(t, auth.CheckPasswordHash(tc.password, hash1), "First hash should verify correctly")
+			assert.True(t, auth.CheckPasswordHash(tc.password, hash2), "Second hash should verify correctly")
 
 			// Cross-verification should also work
-			assert.True(t, CheckPasswordHash(tc.password, hash1), "Password should verify against first hash")
-			assert.True(t, CheckPasswordHash(tc.password, hash2), "Password should verify against second hash")
+			assert.True(t, auth.CheckPasswordHash(tc.password, hash1), "Password should verify against first hash")
+			assert.True(t, auth.CheckPasswordHash(tc.password, hash2), "Password should verify against second hash")
 		})
 	}
 }
@@ -227,21 +229,21 @@ func (suite *PasswordTestSuite) TestPasswordWorkflow() {
 	originalPassword := "MySecurePassword123!"
 
 	// 1. Validate password
-	err := ValidatePassword(originalPassword)
+	err := auth.ValidatePassword(originalPassword)
 	assert.NoError(suite.T(), err)
 
 	// 2. Hash password
-	hash, err := HashPassword(originalPassword)
+	hash, err := auth.HashPassword(originalPassword)
 	assert.NoError(suite.T(), err)
 	assert.NotEmpty(suite.T(), hash)
 
 	// 3. Verify correct password
-	isValid := CheckPasswordHash(originalPassword, hash)
+	isValid := auth.CheckPasswordHash(originalPassword, hash)
 	assert.True(suite.T(), isValid)
 
 	// 4. Verify wrong password fails
 	wrongPassword := "WrongPassword456!"
-	isValid = CheckPasswordHash(wrongPassword, hash)
+	isValid = auth.CheckPasswordHash(wrongPassword, hash)
 	assert.False(suite.T(), isValid)
 }
 

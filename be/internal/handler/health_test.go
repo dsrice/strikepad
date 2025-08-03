@@ -1,8 +1,9 @@
-package handler
+package handler_test
 
 import (
 	"net/http"
 	"net/http/httptest"
+	"strikepad-backend/internal/handler"
 	"testing"
 
 	"strikepad-backend/internal/service/mocks"
@@ -78,7 +79,7 @@ func TestHealthHandler_Check(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Setup
 			mockService := &mocks.MockHealthServiceInterface{}
-			handler := NewHealthHandler(mockService)
+			hd := handler.NewHealthHandler(mockService)
 			mockService.On("GetHealth").Return(tt.mockResponse)
 
 			// Create request
@@ -88,7 +89,7 @@ func TestHealthHandler_Check(t *testing.T) {
 			c := e.NewContext(req, rec)
 
 			// Execute
-			err := handler.Check(c)
+			err := hd.Check(c)
 
 			// Assert
 			assert.NoError(t, err, tt.description)
@@ -115,8 +116,8 @@ func TestHealthHandler_Check(t *testing.T) {
 func TestHealthHandler_NewHealthHandler(t *testing.T) {
 	// Test handler creation
 	mockService := &mocks.MockHealthServiceInterface{}
-	handler := NewHealthHandler(mockService)
+	hd := handler.NewHealthHandler(mockService)
 
-	assert.NotNil(t, handler, "Handler should not be nil")
-	assert.NotNil(t, handler, "Handler should be properly initialized")
+	assert.NotNil(t, hd, "Handler should not be nil")
+	assert.NotNil(t, hd, "Handler should be properly initialized")
 }

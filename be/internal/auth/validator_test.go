@@ -1,6 +1,7 @@
-package auth
+package auth_test
 
 import (
+	"strikepad-backend/internal/auth"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,9 +14,9 @@ type AuthValidatorTestSuite struct {
 
 func (suite *AuthValidatorTestSuite) TestValidateEmail() {
 	testCases := []struct {
-		expectErr error
 		name      string
 		email     string
+		expectErr error
 	}{
 		// Valid emails
 		{"valid basic email", "test@example.com", nil},
@@ -27,20 +28,20 @@ func (suite *AuthValidatorTestSuite) TestValidateEmail() {
 		{"valid long email", "very.long.email.address@very.long.domain.name.example.com", nil},
 
 		// Invalid emails
-		{"empty email", "", ErrEmailRequired},
-		{"no @ symbol", "invalid", ErrInvalidEmail},
-		{"no local part", "@example.com", ErrInvalidEmail},
-		{"no domain", "test@", ErrInvalidEmail},
-		{"no TLD", "test@example", ErrInvalidEmail},
-		{"space in local", "te st@example.com", ErrInvalidEmail},
-		{"space in domain", "test@exam ple.com", ErrInvalidEmail},
-		{"tab in domain", "test@exam\tple.com", ErrInvalidEmail},
-		{"newline in domain", "test@exam\nple.com", ErrInvalidEmail},
+		{"empty email", "", auth.ErrEmailRequired},
+		{"no @ symbol", "invalid", auth.ErrInvalidEmail},
+		{"no local part", "@example.com", auth.ErrInvalidEmail},
+		{"no domain", "test@", auth.ErrInvalidEmail},
+		{"no TLD", "test@example", auth.ErrInvalidEmail},
+		{"space in local", "te st@example.com", auth.ErrInvalidEmail},
+		{"space in domain", "test@exam ple.com", auth.ErrInvalidEmail},
+		{"tab in domain", "test@exam\tple.com", auth.ErrInvalidEmail},
+		{"newline in domain", "test@exam\nple.com", auth.ErrInvalidEmail},
 	}
 
 	for _, tc := range testCases {
 		suite.T().Run(tc.name, func(t *testing.T) {
-			err := ValidateEmail(tc.email)
+			err := auth.ValidateEmail(tc.email)
 			if tc.expectErr != nil {
 				assert.Equal(t, tc.expectErr, err)
 			} else {
@@ -67,7 +68,7 @@ func (suite *AuthValidatorTestSuite) TestValidateEmailSpecialCases() {
 
 	for _, tc := range testCases {
 		suite.T().Run(tc.name, func(t *testing.T) {
-			err := ValidateEmail(tc.email)
+			err := auth.ValidateEmail(tc.email)
 			if tc.valid {
 				assert.NoError(t, err)
 			} else {
@@ -115,7 +116,7 @@ func (suite *AuthValidatorTestSuite) TestNormalizeEmail() {
 
 	for _, tc := range testCases {
 		suite.T().Run(tc.name, func(t *testing.T) {
-			result := NormalizeEmail(tc.input)
+			result := auth.NormalizeEmail(tc.input)
 			assert.Equal(t, tc.expected, result)
 		})
 	}
@@ -157,11 +158,11 @@ func (suite *AuthValidatorTestSuite) TestEmailValidationWorkflow() {
 	for _, tc := range testCases {
 		suite.T().Run(tc.name, func(t *testing.T) {
 			// Test normalization
-			normalized := NormalizeEmail(tc.inputEmail)
+			normalized := auth.NormalizeEmail(tc.inputEmail)
 			assert.Equal(t, tc.expectedNorm, normalized)
 
 			// Test validation of original
-			err := ValidateEmail(tc.inputEmail)
+			err := auth.ValidateEmail(tc.inputEmail)
 			if tc.shouldValidate {
 				assert.NoError(t, err)
 			} else {
@@ -170,7 +171,7 @@ func (suite *AuthValidatorTestSuite) TestEmailValidationWorkflow() {
 
 			// Test validation of normalized (if not empty)
 			if normalized != "" {
-				err = ValidateEmail(normalized)
+				err = auth.ValidateEmail(normalized)
 				if tc.shouldValidate {
 					assert.NoError(t, err)
 				} else {
