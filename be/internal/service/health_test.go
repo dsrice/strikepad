@@ -17,11 +17,27 @@ func (suite *HealthServiceTestSuite) SetupTest() {
 }
 
 func (suite *HealthServiceTestSuite) TestGetHealth() {
-	result := suite.healthService.GetHealth()
+	testCases := []struct {
+		name            string
+		expectedStatus  string
+		expectedMessage string
+	}{
+		{
+			name:            "Health check returns ok status",
+			expectedStatus:  "ok",
+			expectedMessage: "Server is healthy",
+		},
+	}
 
-	assert.NotNil(suite.T(), result)
-	assert.Equal(suite.T(), "ok", result.Status)
-	assert.Equal(suite.T(), "Server is healthy", result.Message)
+	for _, tc := range testCases {
+		suite.T().Run(tc.name, func(t *testing.T) {
+			result := suite.healthService.GetHealth()
+
+			assert.NotNil(t, result)
+			assert.Equal(t, tc.expectedStatus, result.Status)
+			assert.Equal(t, tc.expectedMessage, result.Message)
+		})
+	}
 }
 
 func TestHealthServiceTestSuite(t *testing.T) {
@@ -29,9 +45,25 @@ func TestHealthServiceTestSuite(t *testing.T) {
 }
 
 func TestHealthService_GetHealth_Simple(t *testing.T) {
-	service := NewHealthService()
-	result := service.GetHealth()
+	testCases := []struct {
+		name            string
+		expectedStatus  string
+		expectedMessage string
+	}{
+		{
+			name:            "Simple health check test",
+			expectedStatus:  "ok",
+			expectedMessage: "Server is healthy",
+		},
+	}
 
-	assert.Equal(t, "ok", result.Status)
-	assert.Equal(t, "Server is healthy", result.Message)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			service := NewHealthService()
+			result := service.GetHealth()
+
+			assert.Equal(t, tc.expectedStatus, result.Status)
+			assert.Equal(t, tc.expectedMessage, result.Message)
+		})
+	}
 }

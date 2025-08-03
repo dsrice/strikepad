@@ -17,17 +17,39 @@ func (suite *APIServiceTestSuite) SetupTest() {
 }
 
 func (suite *APIServiceTestSuite) TestGetTestMessage() {
-	result := suite.apiService.GetTestMessage()
+	testCases := []struct {
+		name           string
+		expectedMsg    string
+		expectedLength int
+		checkStructure bool
+	}{
+		{
+			name:           "Check message content",
+			expectedMsg:    "API endpoint working",
+			expectedLength: 1,
+			checkStructure: false,
+		},
+		{
+			name:           "Check message structure",
+			expectedMsg:    "API endpoint working",
+			expectedLength: 1,
+			checkStructure: true,
+		},
+	}
 
-	assert.NotNil(suite.T(), result)
-	assert.Equal(suite.T(), "API endpoint working", result["message"])
-}
+	for _, tc := range testCases {
+		suite.T().Run(tc.name, func(t *testing.T) {
+			result := suite.apiService.GetTestMessage()
 
-func (suite *APIServiceTestSuite) TestGetTestMessageStructure() {
-	result := suite.apiService.GetTestMessage()
+			assert.NotNil(t, result)
+			assert.Equal(t, tc.expectedMsg, result["message"])
 
-	assert.Contains(suite.T(), result, "message")
-	assert.Len(suite.T(), result, 1)
+			if tc.checkStructure {
+				assert.Contains(t, result, "message")
+				assert.Len(t, result, tc.expectedLength)
+			}
+		})
+	}
 }
 
 func TestAPIServiceTestSuite(t *testing.T) {
@@ -35,8 +57,22 @@ func TestAPIServiceTestSuite(t *testing.T) {
 }
 
 func TestAPIService_GetTestMessage_Simple(t *testing.T) {
-	service := NewAPIService()
-	result := service.GetTestMessage()
+	testCases := []struct {
+		name        string
+		expectedMsg string
+	}{
+		{
+			name:        "Simple test for message content",
+			expectedMsg: "API endpoint working",
+		},
+	}
 
-	assert.Equal(t, "API endpoint working", result["message"])
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			service := NewAPIService()
+			result := service.GetTestMessage()
+
+			assert.Equal(t, tc.expectedMsg, result["message"])
+		})
+	}
 }
