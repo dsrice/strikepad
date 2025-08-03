@@ -201,7 +201,6 @@ func (suite *AuthServiceTestSuite) TestSignup() {
 					email := tc.request.Email
 					expectedUser := &model.User{
 						ID:            1,
-						ProviderType:  "email",
 						Email:         &email,
 						DisplayName:   "Test User",
 						EmailVerified: false,
@@ -386,10 +385,9 @@ func (suite *AuthServiceTestSuite) TestLogin() {
 					// For successful login, check the result fields
 					email := tc.request.Email
 					existingUser := &model.User{
-						ID:           1,
-						ProviderType: "email",
-						Email:        &email,
-						DisplayName:  "Test User",
+						ID:          1,
+						Email:       &email,
+						DisplayName: "Test User",
 					}
 					assert.Equal(t, existingUser.ID, result.ID)
 					assert.Equal(t, *existingUser.Email, result.Email)
