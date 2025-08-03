@@ -134,25 +134,45 @@ func (suite *AuthServiceTestSuite) TestSignup() {
 			expectedErrMsg: "",
 			checkResult:    false,
 		},
-		// Removing the failing test case for now
-		// {
-		// 	name: "Repository create error",
-		// 	request: &dto.SignupRequest{
-		// 		Email:       testServiceEmailConst,
-		// 		Password:    testServicePasswordConst,
-		// 		DisplayName: "Test User",
-		// 	},
-		// 	mockSetup: func() {
-		// 		// Mock: FindByEmail returns not found (user doesn't exist)
-		// 		suite.mockUserRepo.On("FindByEmail", testServiceEmailConst).Return(nil, gorm.ErrRecordNotFound)
+		{
+			name: "Database error when checking existing user",
+			request: &dto.SignupRequest{
+				Email:       "dberror-signup@example.com",
+				Password:    testServicePasswordConst,
+				DisplayName: "Test User",
+			},
+			mockSetup: func() {
+				// Mock: FindByEmail returns a database error
+				suite.mockUserRepo.On("FindByEmail", "dberror-signup@example.com").Return(nil, assert.AnError)
+			},
+			expectedError:  nil,
+			expectedErrMsg: "internal server error",
+			checkResult:    false,
+		},
+		{
+			name: "Repository create error",
+			request: &dto.SignupRequest{
+				Email:       "create-error@example.com",
+				Password:    testServicePasswordConst,
+				DisplayName: "Test User",
+			},
+			mockSetup: func() {
+				// Mock: FindByEmail returns not found (user doesn't exist)
+				suite.mockUserRepo.On("FindByEmail", "create-error@example.com").Return(nil, gorm.ErrRecordNotFound)
 
-		// 		// Mock: Create returns an error
-		// 		suite.mockUserRepo.On("Create", mock.AnythingOfType("*model.User")).Return(nil, assert.AnError)
-		// 	},
-		// 	expectedError:  nil,
-		// 	expectedErrMsg: "internal server error", // Service converts to generic error
-		// 	checkResult:    false,
-		// },
+				// Mock: Create returns an error
+				suite.mockUserRepo.On("Create", mock.MatchedBy(func(user *model.User) bool {
+					return user.ProviderType == "email" &&
+						*user.Email == "create-error@example.com" &&
+						user.DisplayName == "Test User" &&
+						user.PasswordHash != nil &&
+						!user.EmailVerified
+				})).Return(nil, assert.AnError)
+			},
+			expectedError:  nil,
+			expectedErrMsg: "internal server error", // Service converts to generic error
+			checkResult:    false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -279,7 +299,65 @@ func (suite *AuthServiceTestSuite) TestLogin() {
 			expectedErrMsg: "",
 			checkResult:    false,
 		},
-		// Removing the failing test cases for now
+		{
+			name: "User is deleted",
+			request: &dto.LoginRequest{
+				Email:    "deleted@example.com",
+				Password: correctPassword,
+			},
+			mockSetup: func() {
+				email := "deleted@example.com"
+				existingUser := &model.User{
+					ID:           1,
+					ProviderType: "email",
+					Email:        &email,
+					DisplayName:  "Test User",
+					PasswordHash: &hashedPassword,
+					IsDeleted:    true,
+				}
+				// Mock: FindByEmail returns a deleted user
+				suite.mockUserRepo.On("FindByEmail", "deleted@example.com").Return(existingUser, nil)
+			},
+			expectedError:  auth.ErrInvalidCredentials,
+			expectedErrMsg: "",
+			checkResult:    false,
+		},
+		{
+			name: "User without password hash",
+			request: &dto.LoginRequest{
+				Email:    "oauth@example.com",
+				Password: correctPassword,
+			},
+			mockSetup: func() {
+				email := "oauth@example.com"
+				existingUser := &model.User{
+					ID:           1,
+					ProviderType: "oauth",
+					Email:        &email,
+					DisplayName:  "Test User",
+					PasswordHash: nil, // No password hash
+				}
+				// Mock: FindByEmail returns a user without password hash
+				suite.mockUserRepo.On("FindByEmail", "oauth@example.com").Return(existingUser, nil)
+			},
+			expectedError:  auth.ErrInvalidCredentials,
+			expectedErrMsg: "",
+			checkResult:    false,
+		},
+		{
+			name: "Database error when finding user",
+			request: &dto.LoginRequest{
+				Email:    "dberror@example.com",
+				Password: correctPassword,
+			},
+			mockSetup: func() {
+				// Mock: FindByEmail returns a database error
+				suite.mockUserRepo.On("FindByEmail", "dberror@example.com").Return(nil, assert.AnError)
+			},
+			expectedError:  nil,
+			expectedErrMsg: "internal server error",
+			checkResult:    false,
+		},
 	}
 
 	for _, tc := range testCases {

@@ -20,9 +20,9 @@ func (suite *ErrorCodesTestSuite) TestGetErrorInfo_AllErrorCodes() {
 		code             ErrorCode
 		expectedCode     ErrorCode
 		expectedMsg      string
-		expectedStatus   int
 		category         string
-		descriptionCheck []string // Strings that should be present in description
+		descriptionCheck []string
+		expectedStatus   int
 	}{
 		// General errors
 		{
@@ -273,9 +273,9 @@ func (suite *ErrorCodesTestSuite) TestGetErrorInfo_EdgeCases() {
 		code           ErrorCode
 		expectedCode   ErrorCode
 		expectedMsg    string
-		expectedStatus int
 		expectedDesc   string
 		description    string
+		expectedStatus int
 	}{
 		{
 			name:           "Unknown error code",
@@ -341,9 +341,9 @@ func (suite *ErrorCodesTestSuite) TestGetErrorInfo_AllDefinedErrorsValidation() 
 	errorCodeTests := []struct {
 		code        ErrorCode
 		category    string
+		mustContain []string
 		minStatus   int
 		maxStatus   int
-		mustContain []string // Keywords that must be in message or description
 	}{
 		// General errors (4xx/5xx)
 		{ErrCodeInternalError, "general", 500, 599, []string{"internal", "server"}},

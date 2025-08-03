@@ -28,10 +28,10 @@ func (suite *APIHandlerTestSuite) SetupTest() {
 func (suite *APIHandlerTestSuite) TestNewAPIHandler() {
 	// Test handler creation with various scenarios
 	tests := []struct {
-		name        string
 		service     *mocks.MockAPIServiceInterface
-		expectNil   bool
+		name        string
 		description string
+		expectNil   bool
 	}{
 		{
 			name:        "valid service",
@@ -65,13 +65,13 @@ func (suite *APIHandlerTestSuite) TestNewAPIHandler() {
 func (suite *APIHandlerTestSuite) TestTest() {
 	// Table-driven test for API test endpoint
 	tests := []struct {
-		name              string
 		mockResponse      map[string]string
-		expectedStatus    int
-		expectedInBody    []string
-		checkMockCalls    bool
-		expectedCallCount int
+		name              string
 		description       string
+		expectedInBody    []string
+		expectedStatus    int
+		expectedCallCount int
+		checkMockCalls    bool
 	}{
 		{
 			name: "standard API test",

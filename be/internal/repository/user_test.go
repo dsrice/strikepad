@@ -45,12 +45,12 @@ func (suite *UserRepositoryTestSuite) TearDownTest() {
 func (suite *UserRepositoryTestSuite) TestCreate() {
 	// Table-driven test for user creation
 	tests := []struct {
-		name         string
 		user         *model.User
 		mockSetup    func()
-		expectError  bool
 		validateUser func(*model.User)
+		name         string
 		description  string
+		expectError  bool
 	}{
 		{
 			name: "successful email user creation",
@@ -144,12 +144,12 @@ func (suite *UserRepositoryTestSuite) TestCreate() {
 func (suite *UserRepositoryTestSuite) TestGetByID() {
 	// Table-driven test for getting user by ID
 	tests := []struct {
-		name         string
-		userID       uint
 		mockSetup    func()
-		expectError  bool
 		validateUser func(*model.User)
+		name         string
 		description  string
+		userID       uint
+		expectError  bool
 	}{
 		{
 			name:   "successful get by ID",
@@ -238,12 +238,12 @@ func (suite *UserRepositoryTestSuite) TestGetByID() {
 func (suite *UserRepositoryTestSuite) TestGetByEmail() {
 	// Table-driven test for getting user by email
 	tests := []struct {
+		mockSetup    func()
+		validateUser func(*model.User)
 		name         string
 		email        string
-		mockSetup    func()
-		expectError  bool
-		validateUser func(*model.User)
 		description  string
+		expectError  bool
 	}{
 		{
 			name:  "successful get by email",
@@ -327,12 +327,12 @@ func (suite *UserRepositoryTestSuite) TestGetByEmail() {
 func (suite *UserRepositoryTestSuite) TestList() {
 	// Table-driven test for listing users
 	tests := []struct {
-		name           string
 		mockSetup      func()
-		expectError    bool
-		expectedCount  int
 		validateResult func([]model.User)
+		name           string
 		description    string
+		expectedCount  int
+		expectError    bool
 	}{
 		{
 			name: "list multiple users",
@@ -414,11 +414,11 @@ func (suite *UserRepositoryTestSuite) TestList() {
 func (suite *UserRepositoryTestSuite) TestDelete() {
 	// Table-driven test for user deletion
 	tests := []struct {
-		name        string
-		userID      uint
 		mockSetup   func()
-		expectError bool
+		name        string
 		description string
+		userID      uint
+		expectError bool
 	}{
 		{
 			name:   "successful deletion",
@@ -479,12 +479,12 @@ func (suite *UserRepositoryTestSuite) TestDelete() {
 func (suite *UserRepositoryTestSuite) TestFindByEmail() {
 	// Table-driven test for finding user by email (non-deleted)
 	tests := []struct {
+		mockSetup    func()
+		validateUser func(*model.User)
 		name         string
 		email        string
-		mockSetup    func()
-		expectError  bool
-		validateUser func(*model.User)
 		description  string
+		expectError  bool
 	}{
 		{
 			name:  "find active user by email",
@@ -573,11 +573,11 @@ func (suite *UserRepositoryTestSuite) TestFindByEmail() {
 func (suite *UserRepositoryTestSuite) TestUpdate() {
 	// Table-driven test for user updates
 	tests := []struct {
-		name        string
 		user        *model.User
 		mockSetup   func()
-		expectError bool
+		name        string
 		description string
+		expectError bool
 	}{
 		{
 			name: "update display name",

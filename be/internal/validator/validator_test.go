@@ -146,8 +146,8 @@ func (suite *ValidatorTestSuite) TestValidateUser() {
 	testCases := []struct {
 		name        string
 		user        TestUser
-		expectError bool
 		errorFields []string
+		expectError bool
 	}{
 		{
 			name: "valid user",
@@ -253,8 +253,8 @@ func (suite *ValidatorTestSuite) TestValidateProduct() {
 	testCases := []struct {
 		name        string
 		product     TestProduct
-		expectError bool
 		errorFields []string
+		expectError bool
 	}{
 		{
 			name: "valid product",

@@ -39,13 +39,13 @@ func (suite *AuthHandlerTestSuite) TearDownTest() {
 func (suite *AuthHandlerTestSuite) TestSignup() {
 	// Comprehensive table-driven test for signup endpoint
 	tests := []struct {
-		name           string
 		requestBody    interface{}
 		mockSetup      func()
-		expectedStatus int
 		expectedError  *dto.ErrorResponse
 		expectedData   *dto.SignupResponse
+		name           string
 		description    string
+		expectedStatus int
 	}{
 		{
 			name: "successful signup",
@@ -236,13 +236,13 @@ func (suite *AuthHandlerTestSuite) TestSignup() {
 func (suite *AuthHandlerTestSuite) TestLogin() {
 	// Comprehensive table-driven test for login endpoint
 	tests := []struct {
-		name           string
 		requestBody    interface{}
 		mockSetup      func()
-		expectedStatus int
 		expectedError  *dto.ErrorResponse
 		expectedData   *dto.UserInfo
+		name           string
 		description    string
+		expectedStatus int
 	}{
 		{
 			name: "successful login",

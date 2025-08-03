@@ -16,13 +16,13 @@ import (
 func TestHealthHandler_Check(t *testing.T) {
 	// Table-driven test for health check endpoint
 	tests := []struct {
-		name              string
 		mockResponse      *dto.HealthResponse
-		expectedStatus    int
-		expectedInBody    []string
-		checkMockCalls    bool
-		expectedCallCount int
+		name              string
 		description       string
+		expectedInBody    []string
+		expectedStatus    int
+		expectedCallCount int
+		checkMockCalls    bool
 	}{
 		{
 			name: "standard health check",

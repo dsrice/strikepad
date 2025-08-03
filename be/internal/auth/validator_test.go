@@ -13,9 +13,9 @@ type AuthValidatorTestSuite struct {
 
 func (suite *AuthValidatorTestSuite) TestValidateEmail() {
 	testCases := []struct {
+		expectErr error
 		name      string
 		email     string
-		expectErr error
 	}{
 		// Valid emails
 		{"valid basic email", "test@example.com", nil},
@@ -25,7 +25,7 @@ func (suite *AuthValidatorTestSuite) TestValidateEmail() {
 		{"valid with numbers", "123@numbers.com", nil},
 		{"valid subdomain", "test@sub.domain.example.com", nil},
 		{"valid long email", "very.long.email.address@very.long.domain.name.example.com", nil},
-		
+
 		// Invalid emails
 		{"empty email", "", ErrEmailRequired},
 		{"no @ symbol", "invalid", ErrInvalidEmail},
@@ -88,27 +88,27 @@ func (suite *AuthValidatorTestSuite) TestNormalizeEmail() {
 		{"mixed case", "USER@DOMAIN.ORG", "user@domain.org"},
 		{"already lowercase", "already@lowercase.com", "already@lowercase.com"},
 		{"numbers", "123@Numbers.Com", "123@numbers.com"},
-		
+
 		// Trimming whitespace
 		{"leading and trailing spaces", "  test@example.com  ", "test@example.com"},
 		{"tabs", "\tuser@domain.org\t", "user@domain.org"},
 		{"newlines", "\nuser@domain.org\n", "user@domain.org"},
 		{"mixed whitespace", " Test@Example.COM ", "test@example.com"},
 		{"multiple spaces", "   UPPER@CASE.COM   ", "upper@case.com"},
-		
+
 		// Preserving structure
 		{"plus tag", "User+Tag@Example.Com", "user+tag@example.com"},
 		{"dots", "User.Name@Sub.Domain.Com", "user.name@sub.domain.com"},
 		{"underscores", "User_Name@Example-Domain.Org", "user_name@example-domain.org"},
 		{"numbers with dots", "123.456@Numbers.Co.UK", "123.456@numbers.co.uk"},
-		
+
 		// Edge cases
 		{"empty string", "", ""},
 		{"whitespace only", "   ", ""},
 		{"tabs only", "\t\t", ""},
 		{"newlines only", "\n\n", ""},
 		{"mixed whitespace only", " \t\n ", ""},
-		
+
 		// Unicode
 		{"unicode characters", "TëSt@Example.com", "tëst@example.com"},
 	}
@@ -180,7 +180,6 @@ func (suite *AuthValidatorTestSuite) TestEmailValidationWorkflow() {
 		})
 	}
 }
-
 
 func TestAuthValidatorTestSuite(t *testing.T) {
 	suite.Run(t, new(AuthValidatorTestSuite))
