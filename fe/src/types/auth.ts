@@ -11,6 +11,14 @@ export interface SignupRequest {
   displayName: string;
 }
 
+export interface GoogleSignupRequest {
+  access_token: string;
+}
+
+export interface GoogleLoginRequest {
+  access_token: string;
+}
+
 export interface UserInfo {
   id: number;
   email: string;
@@ -46,6 +54,8 @@ export interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, displayName: string) => Promise<void>;
+  googleSignup: (accessToken: string) => Promise<void>;
+  googleLogin: (accessToken: string) => Promise<void>;
   logout: () => void;
   error: string | null;
 }

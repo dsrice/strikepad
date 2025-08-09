@@ -9,6 +9,11 @@ type SignupRequest struct {
 	DisplayName string `json:"display_name" validate:"required,min=1,max=100" example:"John Doe"`
 }
 
+// GoogleSignupRequest represents the request payload for Google OAuth signup
+type GoogleSignupRequest struct {
+	AccessToken string `json:"access_token" validate:"required" example:"ya29.a0ARrdaM..."`
+}
+
 // SignupResponse represents the response payload for user signup
 type SignupResponse struct {
 	CreatedAt     time.Time `json:"created_at" example:"2025-01-27T10:15:30Z"`
@@ -22,6 +27,11 @@ type SignupResponse struct {
 type LoginRequest struct {
 	Email    string `json:"email" validate:"required,email,max=255" example:"user@example.com"`
 	Password string `json:"password" validate:"required,min=1,max=128" example:"password123"`
+}
+
+// GoogleLoginRequest represents the request payload for Google OAuth login
+type GoogleLoginRequest struct {
+	AccessToken string `json:"access_token" validate:"required" example:"ya29.a0ARrdaM..."`
 }
 
 // LoginResponse represents the response payload for user login

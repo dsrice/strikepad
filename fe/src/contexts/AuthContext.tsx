@@ -76,6 +76,48 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const googleSignup = async (accessToken: string): Promise<void> => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const response = await authAPI.googleSignup({access_token: accessToken});
+
+      // Convert signup response to UserInfo format
+      const userInfo: UserInfo = {
+        id: response.id,
+        email: response.email,
+        displayName: response.displayName,
+        emailVerified: response.emailVerified,
+      };
+
+      setUser(userInfo);
+      localStorage.setItem('user', JSON.stringify(userInfo));
+    } catch (error: any) {
+      setError(error.message || 'Google signup failed');
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const googleLogin = async (accessToken: string): Promise<void> => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const userInfo = await authAPI.googleLogin({access_token: accessToken});
+
+      setUser(userInfo);
+      localStorage.setItem('user', JSON.stringify(userInfo));
+    } catch (error: any) {
+      setError(error.message || 'Google login failed');
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = (): void => {
     setUser(null);
     setError(null);
@@ -88,6 +130,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isLoading,
     login,
     signup,
+    googleSignup,
+    googleLogin,
     logout,
     error,
   };

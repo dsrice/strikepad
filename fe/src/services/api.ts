@@ -1,9 +1,17 @@
 import axios, { AxiosResponse } from 'axios';
-import { LoginRequest, SignupRequest, UserInfo, SignupResponse, ErrorResponse } from '../types/auth';
+import {
+  LoginRequest,
+  SignupRequest,
+  GoogleSignupRequest,
+  GoogleLoginRequest,
+  UserInfo,
+  SignupResponse,
+  ErrorResponse
+} from '../types/auth';
 
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
+  baseURL: (import.meta as any).env?.VITE_API_URL || 'http://localhost:8080/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -63,6 +71,33 @@ export const authAPI = {
           throw new Error(validationMessages);
         }
         throw new Error(errorData.message || 'Signup failed');
+      }
+      throw new Error('Network error occurred');
+    }
+  },
+
+  // Google OAuth signup
+  googleSignup: async (googleData: GoogleSignupRequest): Promise<SignupResponse> => {
+    try {
+      const response: AxiosResponse<SignupResponse> = await api.post('/auth/google/signup', googleData);
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.data) {
+        const errorData: ErrorResponse = error.response.data;
+        throw new Error(errorData.message || 'Google signup failed');
+      }
+      throw new Error('Network error occurred');
+    }
+  },
+
+  // Google OAuth login
+  googleLogin: async (googleData: GoogleLoginRequest): Promise<UserInfo> => {
+    try {
+      const response: AxiosResponse<UserInfo> = await api.post('/auth/google/login', googleData);
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.data) {
+        throw new Error(error.response.data.message || 'Google login failed');
       }
       throw new Error('Network error occurred');
     }
