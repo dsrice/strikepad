@@ -14,10 +14,6 @@ const mockGoogleAPI = {
 };
 
 // Mock import.meta.env is already handled in setupTests.ts
-// We'll just modify the mock as needed for specific tests
-const mockEnv = {
-    VITE_GOOGLE_CLIENT_ID: 'test-client-id'
-};
 
 describe('GoogleSignButton', () => {
     const mockOnSuccess = jest.fn();

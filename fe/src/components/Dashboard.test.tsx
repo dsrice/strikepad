@@ -130,17 +130,17 @@ describe('Dashboard', () => {
         render(<Dashboard/>);
 
         // Check that ID is displayed as text content
-        expect(screen.getByText((content, element) => {
+        expect(screen.getByText((_, element) => {
             return element?.textContent === 'ID: 1';
         })).toBeInTheDocument();
 
         // Check email format
-        expect(screen.getByText((content, element) => {
+        expect(screen.getByText((_, element) => {
             return element?.textContent === 'メール: test@example.com';
         })).toBeInTheDocument();
 
         // Check display name format
-        expect(screen.getByText((content, element) => {
+        expect(screen.getByText((_, element) => {
             return element?.textContent === '表示名: Test User';
         })).toBeInTheDocument();
     });
