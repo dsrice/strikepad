@@ -7,6 +7,11 @@ on:
       - 'fe/**'
       - '.github/workflows/fe-test.yml'
 
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -44,7 +49,7 @@ jobs:
 
     - name: Comment PR with test results
       uses: actions/github-script@v7
-      if: always()
+      if: always() && github.event.pull_request.head.repo.fork == false
       with:
         script: |
           const fs = require('fs');
