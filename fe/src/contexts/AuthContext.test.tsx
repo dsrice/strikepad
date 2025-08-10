@@ -30,9 +30,15 @@ const TestComponent = () => {
                 {error || 'no-error'}
             </div>
             <div data-testid="user-info">
-                {user ? `${user.email}-${user.username}` : 'no-user'}
+                {user ? `${user.email}-${user.displayName}` : 'no-user'}
             </div>
-            <button onClick={() => login('test@example.com', 'password')}>
+            <button onClick={async () => {
+                try {
+                    await login('test@example.com', 'password');
+                } catch (error) {
+                    // Error is already handled in context
+                }
+            }}>
                 Login
             </button>
             <button onClick={logout}>
@@ -52,17 +58,43 @@ const renderWithAuthProvider = () => {
     );
 };
 
+// Mock localStorage
+const localStorageMock = (() => {
+    let store: Record<string, string> = {};
+
+    return {
+        getItem: jest.fn((key: string) => store[key] || null),
+        setItem: jest.fn((key: string, value: string) => {
+            store[key] = value;
+        }),
+        removeItem: jest.fn((key: string) => {
+            delete store[key];
+        }),
+        clear: jest.fn(() => {
+            store = {};
+        }),
+    };
+})();
+
+Object.defineProperty(global, 'localStorage', {
+    value: localStorageMock,
+});
+
 describe('AuthContext', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        localStorage.clear();
+        localStorageMock.clear();
     });
 
-    it('provides initial auth state', () => {
+    it('provides initial auth state', async () => {
         renderWithAuthProvider();
 
+        // Wait for initialization to complete
+        await waitFor(() => {
+            expect(screen.getByTestId('loading-status')).toHaveTextContent('not-loading');
+        });
+
         expect(screen.getByTestId('auth-status')).toHaveTextContent('not-authenticated');
-        expect(screen.getByTestId('loading-status')).toHaveTextContent('not-loading');
         expect(screen.getByTestId('error-status')).toHaveTextContent('no-error');
         expect(screen.getByTestId('user-info')).toHaveTextContent('no-user');
     });
@@ -71,9 +103,8 @@ describe('AuthContext', () => {
         const mockUser = {
             id: 1,
             email: 'test@example.com',
-            username: 'testuser',
-            createdAt: '2023-01-01T00:00:00Z',
-            updatedAt: '2023-01-01T00:00:00Z',
+            displayName: 'testuser',
+            emailVerified: false,
         };
 
         mockedAuthAPI.login.mockResolvedValue(mockUser);
@@ -107,6 +138,11 @@ describe('AuthContext', () => {
 
         renderWithAuthProvider();
 
+        // Wait for initialization to complete first
+        await waitFor(() => {
+            expect(screen.getByTestId('loading-status')).toHaveTextContent('not-loading');
+        });
+
         const loginButton = screen.getByText('Login');
         fireEvent.click(loginButton);
 
@@ -122,9 +158,8 @@ describe('AuthContext', () => {
         const mockUser = {
             id: 1,
             email: 'test@example.com',
-            username: 'testuser',
-            createdAt: '2023-01-01T00:00:00Z',
-            updatedAt: '2023-01-01T00:00:00Z',
+            displayName: 'testuser',
+            emailVerified: false,
         };
 
         mockedAuthAPI.login.mockResolvedValue(mockUser);
@@ -154,9 +189,8 @@ describe('AuthContext', () => {
         const mockUser = {
             id: 1,
             email: 'test@example.com',
-            username: 'testuser',
-            createdAt: '2023-01-01T00:00:00Z',
-            updatedAt: '2023-01-01T00:00:00Z',
+            displayName: 'testuser',
+            emailVerified: false,
         };
 
         mockedAuthAPI.login.mockResolvedValue(mockUser);
@@ -179,9 +213,8 @@ describe('AuthContext', () => {
         const mockUser = {
             id: 1,
             email: 'test@example.com',
-            username: 'testuser',
-            createdAt: '2023-01-01T00:00:00Z',
-            updatedAt: '2023-01-01T00:00:00Z',
+            displayName: 'testuser',
+            emailVerified: false,
         };
 
         // Pre-populate localStorage
@@ -197,9 +230,8 @@ describe('AuthContext', () => {
         const mockUser = {
             id: 1,
             email: 'test@example.com',
-            username: 'testuser',
-            createdAt: '2023-01-01T00:00:00Z',
-            updatedAt: '2023-01-01T00:00:00Z',
+            displayName: 'testuser',
+            emailVerified: false,
         };
 
         localStorage.setItem('user', JSON.stringify(mockUser));

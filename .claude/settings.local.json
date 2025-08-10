@@ -28,7 +28,8 @@
       "Bash(npx vite build:*)",
       "Bash(timeout 5 npm run dev)",
       "Bash(npm uninstall:*)",
-      "WebFetch(domain:tailwindcss.com)"
+      "WebFetch(domain:tailwindcss.com)",
+      "Bash(npm run test:coverage:*)"
     ],
     "deny": []
   }

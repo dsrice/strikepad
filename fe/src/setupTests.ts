@@ -13,6 +13,7 @@ Object.defineProperty(globalThis, 'import', {
         meta: {
             env: {
                 VITE_API_URL: 'http://localhost:8080/api',
+                VITE_GOOGLE_CLIENT_ID: 'test-client-id',
             },
         },
     },

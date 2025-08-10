@@ -122,6 +122,7 @@ const SignupForm: React.FC = () => {
                   className="mt-1 flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-indigo-600">
                 <input
                     {...register('email')}
+                    id="email"
                     type="email"
                     autoComplete="email"
                     className="block min-w-0 grow bg-white py-1.5 pr-3 pl-1 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm/6"
@@ -142,6 +143,7 @@ const SignupForm: React.FC = () => {
                   className="mt-1 flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-indigo-600">
                 <input
                     {...register('displayName')}
+                    id="displayName"
                     type="text"
                     autoComplete="name"
                     className="block min-w-0 grow bg-white py-1.5 pr-3 pl-1 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm/6"
@@ -162,6 +164,7 @@ const SignupForm: React.FC = () => {
                   className="mt-1 flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-indigo-600">
                 <input
                     {...register('password')}
+                    id="password"
                     type="password"
                     autoComplete="new-password"
                     className="block min-w-0 grow bg-white py-1.5 pr-3 pl-1 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm/6"
@@ -182,6 +185,7 @@ const SignupForm: React.FC = () => {
                   className="mt-1 flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-indigo-600">
                 <input
                     {...register('confirmPassword')}
+                    id="confirmPassword"
                     type="password"
                     autoComplete="new-password"
                     className="block min-w-0 grow bg-white py-1.5 pr-3 pl-1 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm/6"
