@@ -18,9 +18,9 @@ import (
 
 func TestAuthHandler_GoogleSignup(t *testing.T) {
 	tests := []struct {
-		name           string
 		requestBody    map[string]interface{}
 		setupMocks     func(*mocks.MockAuthServiceInterface)
+		name           string
 		expectedStatus int
 		expectError    bool
 	}{
@@ -102,9 +102,9 @@ func TestAuthHandler_GoogleSignup(t *testing.T) {
 
 func TestAuthHandler_GoogleLogin(t *testing.T) {
 	tests := []struct {
-		name           string
 		requestBody    map[string]interface{}
 		setupMocks     func(*mocks.MockAuthServiceInterface)
+		name           string
 		expectedStatus int
 		expectError    bool
 	}{

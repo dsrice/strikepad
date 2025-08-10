@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"testing"
 
 	"strikepad-backend/internal/auth"
@@ -40,11 +39,11 @@ func TestAuthService_GoogleSignup(t *testing.T) {
 	}
 
 	tests := []struct {
-		name           string
 		request        *dto.GoogleSignupRequest
 		setupMocks     func()
-		expectedError  bool
 		expectedResult *dto.SignupResponse
+		name           string
+		expectedError  bool
 	}{
 		{
 			name: "successful Google signup",
@@ -52,14 +51,6 @@ func TestAuthService_GoogleSignup(t *testing.T) {
 				AccessToken: "valid_token",
 			},
 			setupMocks: func() {
-				// Mock Google OAuth service response
-				googleUserInfo := &oauth.GoogleUserInfo{
-					ID:            "google_id_123",
-					Email:         "test@example.com",
-					VerifiedEmail: true,
-					Name:          "Test User",
-				}
-
 				// Mock user repository calls
 				mockUserRepo.On("FindByEmail", "test@example.com").Return(nil, gorm.ErrRecordNotFound)
 				mockUserRepo.On("Create", mock.AnythingOfType("*model.User")).Return(&model.User{
@@ -122,10 +113,10 @@ func TestAuthService_GoogleLogin(t *testing.T) {
 	}
 
 	tests := []struct {
-		name          string
+		expectedError error
 		request       *dto.GoogleLoginRequest
 		setupMocks    func()
-		expectedError error
+		name          string
 	}{
 		{
 			name: "successful Google login",
