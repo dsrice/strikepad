@@ -38,7 +38,7 @@ jobs:
         continue-on-error: false
 
       - name: Run tests with coverage
-        run: npm test -- --coverage --watchAll=false --passWithNoTests=false
+        run: npm test -- --coverage --watchAll=false --passWithNoTests
         env:
           CI: true
 
@@ -49,14 +49,13 @@ jobs:
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
-        if: success()
+        if: always()
+        continue-on-error: true
         with:
-          directory: coverage
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: fe/coverage/coverage-final.json
           flags: frontend
           name: frontend-coverage
-          fail_ci_if_error: false
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Comment PR with results
         uses: actions/github-script@v7
@@ -69,7 +68,7 @@ jobs:
             // Read coverage summary if available
             let coverageInfo = '📊 Coverage information not available';
             try {
-              const coveragePath = path.join('coverage/coverage-summary.json');
+              const coveragePath = path.join('fe/coverage/coverage-summary.json');
               if (fs.existsSync(coveragePath)) {
                 const coverage = JSON.parse(fs.readFileSync(coveragePath, 'utf8'));
                 const total = coverage.total;

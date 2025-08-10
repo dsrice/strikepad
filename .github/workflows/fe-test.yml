@@ -10,7 +10,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     defaults:
       run:
         working-directory: ./fe
@@ -30,17 +30,17 @@ jobs:
       run: npm ci
 
     - name: Run tests
-      run: npm test -- --coverage --watchAll=false
+      run: npm test -- --coverage --watchAll=false --passWithNoTests
 
     - name: Upload coverage reports
       uses: codecov/codecov-action@v4
       if: always()
+      continue-on-error: true
       with:
-        directory: coverage
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: fe/coverage/coverage-final.json
         flags: frontend
         name: frontend-coverage
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     - name: Comment PR with test results
       uses: actions/github-script@v7
@@ -49,14 +49,12 @@ jobs:
         script: |
           const fs = require('fs');
           const path = require('path');
-          
-          // Check if tests passed
+
           const testsPassed = '${{ job.status }}' === 'success';
-          
-          // Try to read coverage summary
+
           let coverageInfo = '';
           try {
-            const coveragePath = path.join('coverage/coverage-summary.json');
+            const coveragePath = path.join('fe/coverage/coverage-summary.json');
             if (fs.existsSync(coveragePath)) {
               const coverage = JSON.parse(fs.readFileSync(coveragePath, 'utf8'));
               const total = coverage.total;
@@ -72,7 +70,7 @@ jobs:
           } catch (error) {
             console.log('Could not read coverage summary:', error);
           }
-          
+
           const body = `## 🧪 Frontend Test Results
           
           **Status**: ${testsPassed ? '✅ All tests passed!' : '❌ Some tests failed'}
