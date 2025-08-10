@@ -73,79 +73,75 @@ jobs:
               if (fs.existsSync(coveragePath)) {
                 const coverage = JSON.parse(fs.readFileSync(coveragePath, 'utf8'));
                 const total = coverage.total;
-            
+                
                 const formatCoverage = (metric) => {
                   const pct = metric.pct;
                   const emoji = pct >= 80 ? '✅' : pct >= 60 ? '⚠️' : '❌';
                   return `${emoji} ${pct}% (${metric.covered}/${metric.total})`;
                 };
-            
+                
                 coverageInfo = `## 📊 Test Coverage
-  | Metric | Coverage |
-  |--------|----------|
-  | Lines | ${formatCoverage(total.lines)} |
-  | Functions | ${formatCoverage(total.functions)} |
-  | Branches | ${formatCoverage(total.branches)} |
-  | Statements | ${formatCoverage(total.statements)} |`;
-  }
-  } catch (error) {
-    console.log('Could not read coverage summary:', error);
-  }
-
-  // Determine overall status
-  const success = '${{ job.status }}' === 'success';
-  const statusIcon = success ? '✅' : '❌';
-  const statusText = success ? 'All checks passed!' : 'Some checks failed';
-
-  const body = `## ${statusIcon} Frontend CI Results
-
-**Status** : ${statusText}
-  
-  ${coverageInfo}
-
-### 🔍 Checks Run:
-- **Linting** :
-    ${success ? '✅': '❌' } ESLint
-- **Type Check**:
-           ${success ? '✅': '❌' } TypeScript
-- **Tests** :
-    ${success ? '✅': '❌' } Jest Unit Tests
-- **Coverage** :
-    ${success ? '✅': '❌' } Coverage Report Generated
-
-${success ? '': '⚠️ **Please fix the failing checks before merging.**' }
-
-  <details>
-  <summary>📋 View detailed logs</summary>
-  
-  Check the [Actions tab](${context.payload.repository.html_url}/actions/runs/${context.runId}) for detailed output.
-  
-  </details>`;
-  
-  // Find existing comment to update or create new one
-const { data: comments } = await github.rest.issues.listComments({
-  owner: context.repo.owner,
-  repo: context.repo.repo,
-  issue_number: context.issue.number,
-});
-  
-  const botComment = comments.find(comment =>
-  comment.user.login === 'github-actions[bot]' &&
-  comment.body.includes('Frontend CI Results')
-  );
-  
-  if (botComment) {
-  await github.rest.issues.updateComment({
-owner: context.repo.owner,
-repo: context.repo.repo,
-comment_id: botComment.id,
-body: body
-});
-} else {
-  await github.rest.issues.createComment({
-owner: context.repo.owner,
-repo: context.repo.repo,
-issue_number: context.issue.number,
-body: body
-});
-}
+            | Metric | Coverage |
+            |--------|----------|
+            | Lines | ${formatCoverage(total.lines)} |
+            | Functions | ${formatCoverage(total.functions)} |
+            | Branches | ${formatCoverage(total.branches)} |
+            | Statements | ${formatCoverage(total.statements)} |`;
+              }
+            } catch (error) {
+              console.log('Could not read coverage summary:', error);
+            }
+            
+            // Determine overall status
+            const success = '${{ job.status }}' === 'success';
+            const statusIcon = success ? '✅' : '❌';
+            const statusText = success ? 'All checks passed!' : 'Some checks failed';
+            
+            const body = `## ${statusIcon} Frontend CI Results
+            
+            **Status**: ${statusText}
+            
+            ${coverageInfo}
+            
+            ### 🔍 Checks Run:
+            - **Linting**: ${success ? '✅' : '❌'} ESLint
+            - **Type Check**: ${success ? '✅' : '❌'} TypeScript
+            - **Tests**: ${success ? '✅' : '❌'} Jest Unit Tests
+            - **Coverage**: ${success ? '✅' : '❌'} Coverage Report Generated
+            
+            ${success ? '' : '⚠️ **Please fix the failing checks before merging.**'}
+            
+            <details>
+            <summary>📋 View detailed logs</summary>
+            
+            Check the [Actions tab](${context.payload.repository.html_url}/actions/runs/${context.runId}) for detailed output.
+            
+            </details>`;
+            
+            // Find existing comment to update or create new one
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.login === 'github-actions[bot]' && 
+              comment.body.includes('Frontend CI Results')
+            );
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
