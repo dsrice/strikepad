@@ -46,7 +46,7 @@ func TestAuthHandler_GoogleSignup(t *testing.T) {
 			requestBody: map[string]interface{}{
 				"invalid_field": "value",
 			},
-			setupMocks: func(mockService *mocks.MockAuthServiceInterface) {
+			setupMocks: func(_ *mocks.MockAuthServiceInterface) {
 				// No service call expected
 			},
 			expectedStatus: http.StatusBadRequest,
@@ -87,13 +87,8 @@ func TestAuthHandler_GoogleSignup(t *testing.T) {
 			err := handler.GoogleSignup(c)
 
 			// Assert
-			if tt.expectError {
-				assert.NoError(t, err) // Echo handlers don't return errors for HTTP errors
-				assert.Equal(t, tt.expectedStatus, rec.Code)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tt.expectedStatus, rec.Code)
-			}
+			assert.NoError(t, err) // Echo handlers don't return errors for HTTP errors
+			assert.Equal(t, tt.expectedStatus, rec.Code)
 
 			mockService.AssertExpectations(t)
 		})
@@ -142,7 +137,7 @@ func TestAuthHandler_GoogleLogin(t *testing.T) {
 			requestBody: map[string]interface{}{
 				"access_token": "",
 			},
-			setupMocks: func(mockService *mocks.MockAuthServiceInterface) {
+			setupMocks: func(_ *mocks.MockAuthServiceInterface) {
 				// Validation should fail before service call
 			},
 			expectedStatus: http.StatusBadRequest,
@@ -171,13 +166,8 @@ func TestAuthHandler_GoogleLogin(t *testing.T) {
 			err := handler.GoogleLogin(c)
 
 			// Assert
-			if tt.expectError {
-				assert.NoError(t, err) // Echo handlers don't return errors for HTTP errors
-				assert.Equal(t, tt.expectedStatus, rec.Code)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tt.expectedStatus, rec.Code)
-			}
+			assert.NoError(t, err) // Echo handlers don't return errors for HTTP errors
+			assert.Equal(t, tt.expectedStatus, rec.Code)
 
 			mockService.AssertExpectations(t)
 		})

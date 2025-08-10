@@ -259,7 +259,12 @@ func (s *AuthService) GoogleLogin(req *dto.GoogleLoginRequest) (*dto.UserInfo, e
 
 	// Verify this is a Google user
 	if user.ProviderType != "google" || user.ProviderUserID == nil || *user.ProviderUserID != googleUserInfo.ID {
-		slog.Warn("Login attempt with wrong provider", "user_id", user.ID, "email", normalizedEmail, "provider", user.ProviderType)
+		slog.Warn(
+			"Login attempt with wrong provider",
+			"user_id", user.ID,
+			"email", normalizedEmail,
+			"provider", user.ProviderType,
+		)
 		return nil, auth.ErrInvalidCredentials
 	}
 
