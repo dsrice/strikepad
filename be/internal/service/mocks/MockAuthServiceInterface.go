@@ -137,6 +137,122 @@ func (_c *MockAuthServiceInterface_Signup_Call) RunAndReturn(run func(*dto.Signu
 	return _c
 }
 
+// GoogleSignup provides a mock function with given fields: req
+func (_m *MockAuthServiceInterface) GoogleSignup(req *dto.GoogleSignupRequest) (*dto.SignupResponse, error) {
+	ret := _m.Called(req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GoogleSignup")
+	}
+
+	var r0 *dto.SignupResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*dto.GoogleSignupRequest) (*dto.SignupResponse, error)); ok {
+		return rf(req)
+	}
+	if rf, ok := ret.Get(0).(func(*dto.GoogleSignupRequest) *dto.SignupResponse); ok {
+		r0 = rf(req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*dto.SignupResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*dto.GoogleSignupRequest) error); ok {
+		r1 = rf(req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockAuthServiceInterface_GoogleSignup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GoogleSignup'
+type MockAuthServiceInterface_GoogleSignup_Call struct {
+	*mock.Call
+}
+
+// GoogleSignup is a helper method to define mock.On call
+//   - req *dto.GoogleSignupRequest
+func (_e *MockAuthServiceInterface_Expecter) GoogleSignup(req interface{}) *MockAuthServiceInterface_GoogleSignup_Call {
+	return &MockAuthServiceInterface_GoogleSignup_Call{Call: _e.mock.On("GoogleSignup", req)}
+}
+
+func (_c *MockAuthServiceInterface_GoogleSignup_Call) Run(run func(req *dto.GoogleSignupRequest)) *MockAuthServiceInterface_GoogleSignup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(*dto.GoogleSignupRequest))
+	})
+	return _c
+}
+
+func (_c *MockAuthServiceInterface_GoogleSignup_Call) Return(_a0 *dto.SignupResponse, _a1 error) *MockAuthServiceInterface_GoogleSignup_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockAuthServiceInterface_GoogleSignup_Call) RunAndReturn(run func(*dto.GoogleSignupRequest) (*dto.SignupResponse, error)) *MockAuthServiceInterface_GoogleSignup_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GoogleLogin provides a mock function with given fields: req
+func (_m *MockAuthServiceInterface) GoogleLogin(req *dto.GoogleLoginRequest) (*dto.UserInfo, error) {
+	ret := _m.Called(req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GoogleLogin")
+	}
+
+	var r0 *dto.UserInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*dto.GoogleLoginRequest) (*dto.UserInfo, error)); ok {
+		return rf(req)
+	}
+	if rf, ok := ret.Get(0).(func(*dto.GoogleLoginRequest) *dto.UserInfo); ok {
+		r0 = rf(req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*dto.UserInfo)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*dto.GoogleLoginRequest) error); ok {
+		r1 = rf(req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockAuthServiceInterface_GoogleLogin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GoogleLogin'
+type MockAuthServiceInterface_GoogleLogin_Call struct {
+	*mock.Call
+}
+
+// GoogleLogin is a helper method to define mock.On call
+//   - req *dto.GoogleLoginRequest
+func (_e *MockAuthServiceInterface_Expecter) GoogleLogin(req interface{}) *MockAuthServiceInterface_GoogleLogin_Call {
+	return &MockAuthServiceInterface_GoogleLogin_Call{Call: _e.mock.On("GoogleLogin", req)}
+}
+
+func (_c *MockAuthServiceInterface_GoogleLogin_Call) Run(run func(req *dto.GoogleLoginRequest)) *MockAuthServiceInterface_GoogleLogin_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(*dto.GoogleLoginRequest))
+	})
+	return _c
+}
+
+func (_c *MockAuthServiceInterface_GoogleLogin_Call) Return(_a0 *dto.UserInfo, _a1 error) *MockAuthServiceInterface_GoogleLogin_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockAuthServiceInterface_GoogleLogin_Call) RunAndReturn(run func(*dto.GoogleLoginRequest) (*dto.UserInfo, error)) *MockAuthServiceInterface_GoogleLogin_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewMockAuthServiceInterface creates a new instance of MockAuthServiceInterface. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockAuthServiceInterface(t interface {

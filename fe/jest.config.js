@@ -5,9 +5,11 @@ export default {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
   transform: {
-    '^.+\\.(ts|tsx)$': 'ts-jest',
-    '^.+\\.(js|jsx)$': 'babel-jest',
+      '^.+\\.(ts|tsx|js|jsx)$': ['babel-jest'],
   },
+    transformIgnorePatterns: [
+        'node_modules/(?!(react-router-dom|.*\\.mjs$))'
+    ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
   testMatch: [
     '<rootDir>/src/**/__tests__/**/*.(ts|tsx|js)',
@@ -21,5 +23,13 @@ export default {
     '!src/vite-env.d.ts'
   ],
   coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov', 'html'],
+    coverageReporters: ['text', 'lcov', 'html', 'json-summary'],
+    coverageThreshold: {
+        global: {
+            branches: 50,
+            functions: 50,
+            lines: 50,
+            statements: 50
+        }
+    },
 }

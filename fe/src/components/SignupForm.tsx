@@ -4,6 +4,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import GoogleSignSection from './GoogleSignSection';
+import {Layout} from './Layout';
+import {Container} from './ui/Container';
+import {FadeIn} from './ui/FadeIn';
 
 const signupSchema = z.object({
   email: z.string().email('有効なメールアドレスを入力してください'),
@@ -25,7 +29,7 @@ type SignupFormData = z.infer<typeof signupSchema>;
 
 const SignupForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { signup, error } = useAuth();
+  const {signup, googleSignup, error} = useAuth();
   const navigate = useNavigate();
 
   const {
@@ -52,24 +56,61 @@ const SignupForm: React.FC = () => {
     }
   };
 
+  const handleGoogleSuccess = async (accessToken: string) => {
+    try {
+      setIsLoading(true);
+      await googleSignup(accessToken);
+      navigate('/dashboard');
+    } catch (error: any) {
+      setError('root', {
+        type: 'manual',
+        message: error.message || 'Googleサインアップに失敗しました',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleError = (error: string) => {
+    // Google認証の準備ができていない場合はエラーメッセージを表示しない
+    if (error.includes('準備ができていません') || error.includes('初期化に失敗')) {
+      console.warn('Google authentication not available:', error);
+      return;
+    }
+
+    setError('root', {
+      type: 'manual',
+      message: error,
+    });
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            StrikePadアカウント作成
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            すでにアカウントをお持ちの方は{' '}
-            <button
-              type="button"
-              onClick={() => navigate('/login')}
-              className="font-medium text-blue-600 hover:text-blue-500"
-            >
-              ログイン
-            </button>
-          </p>
-        </div>
+      <Layout>
+        <Container className="py-24 sm:py-32">
+          <FadeIn className="mx-auto w-full max-w-[600px]">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                StrikePadアカウント作成
+              </h1>
+              <p className="mt-2 text-sm text-gray-600">
+                すでにアカウントをお持ちの方は{' '}
+                <button
+                    type="button"
+                    onClick={() => navigate('/login')}
+                    className="font-medium text-blue-600 hover:text-blue-500"
+                >
+                  ログイン
+                </button>
+              </p>
+            </div>
+
+            {/* Google Sign-up Section */}
+            <GoogleSignSection
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                buttonText="Googleでサインイン"
+                disabled={isLoading}
+            />
         
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-4">
@@ -77,14 +118,18 @@ const SignupForm: React.FC = () => {
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 メールアドレス
               </label>
-              <input
-                {...register('email')}
-                type="email"
-                autoComplete="email"
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="example@email.com"
-                disabled={isLoading}
-              />
+              <div
+                  className="mt-1 flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-indigo-600">
+                <input
+                    {...register('email')}
+                    id="email"
+                    type="email"
+                    autoComplete="email"
+                    className="block min-w-0 grow bg-white py-1.5 pr-3 pl-1 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm/6"
+                    placeholder="example@email.com"
+                    disabled={isLoading}
+                />
+              </div>
               {errors.email && (
                 <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
               )}
@@ -94,14 +139,18 @@ const SignupForm: React.FC = () => {
               <label htmlFor="displayName" className="block text-sm font-medium text-gray-700">
                 表示名
               </label>
-              <input
-                {...register('displayName')}
-                type="text"
-                autoComplete="name"
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="表示名を入力"
-                disabled={isLoading}
-              />
+              <div
+                  className="mt-1 flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-indigo-600">
+                <input
+                    {...register('displayName')}
+                    id="displayName"
+                    type="text"
+                    autoComplete="name"
+                    className="block min-w-0 grow bg-white py-1.5 pr-3 pl-1 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm/6"
+                    placeholder="表示名を入力"
+                    disabled={isLoading}
+                />
+              </div>
               {errors.displayName && (
                 <p className="mt-1 text-sm text-red-600">{errors.displayName.message}</p>
               )}
@@ -111,14 +160,18 @@ const SignupForm: React.FC = () => {
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 パスワード
               </label>
-              <input
-                {...register('password')}
-                type="password"
-                autoComplete="new-password"
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="8文字以上、大文字・小文字・記号を含む"
-                disabled={isLoading}
-              />
+              <div
+                  className="mt-1 flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-indigo-600">
+                <input
+                    {...register('password')}
+                    id="password"
+                    type="password"
+                    autoComplete="new-password"
+                    className="block min-w-0 grow bg-white py-1.5 pr-3 pl-1 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm/6"
+                    placeholder="8文字以上、大文字・小文字・記号を含む"
+                    disabled={isLoading}
+                />
+              </div>
               {errors.password && (
                 <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
               )}
@@ -128,14 +181,18 @@ const SignupForm: React.FC = () => {
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
                 パスワード確認
               </label>
-              <input
-                {...register('confirmPassword')}
-                type="password"
-                autoComplete="new-password"
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="パスワードを再入力"
-                disabled={isLoading}
-              />
+              <div
+                  className="mt-1 flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-indigo-600">
+                <input
+                    {...register('confirmPassword')}
+                    id="confirmPassword"
+                    type="password"
+                    autoComplete="new-password"
+                    className="block min-w-0 grow bg-white py-1.5 pr-3 pl-1 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm/6"
+                    placeholder="パスワードを再入力"
+                    disabled={isLoading}
+                />
+              </div>
               {errors.confirmPassword && (
                 <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
               )}
@@ -167,8 +224,9 @@ const SignupForm: React.FC = () => {
             </button>
           </div>
         </form>
-      </div>
-    </div>
+          </FadeIn>
+        </Container>
+      </Layout>
   );
 };
 

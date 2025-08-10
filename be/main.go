@@ -51,6 +51,8 @@ func main() {
 			// Auth endpoints
 			e.POST("/api/auth/signup", authHandler.Signup)
 			e.POST("/api/auth/login", authHandler.Login)
+			e.POST("/api/auth/google/signup", authHandler.GoogleSignup)
+			e.POST("/api/auth/google/login", authHandler.GoogleLogin)
 		})
 
 	if err != nil {

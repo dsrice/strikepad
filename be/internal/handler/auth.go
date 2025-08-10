@@ -172,3 +172,104 @@ func (h *AuthHandler) Login(c echo.Context) error {
 	slog.Info("User login successful", "user_id", userInfo.ID, "email", userInfo.Email)
 	return c.JSON(http.StatusOK, userInfo)
 }
+
+// GoogleSignup handles user registration using Google OAuth
+func (h *AuthHandler) GoogleSignup(c echo.Context) error {
+	var req dto.GoogleSignupRequest
+
+	// Bind request body
+	if err := c.Bind(&req); err != nil {
+		slog.Warn("Invalid request body for Google signup", "error", err)
+		errorInfo := errors.GetErrorInfo(errors.ErrCodeInvalidRequest)
+		return c.JSON(errorInfo.HTTPStatus, dto.ErrorResponse{
+			Code:        string(errorInfo.Code),
+			Message:     errorInfo.Message,
+			Description: errorInfo.Description,
+		})
+	}
+
+	// Validate request using validator
+	if err := h.validator.Validate(&req); err != nil {
+		return h.handleValidationError(c, err, "Google signup")
+	}
+
+	// Call service
+	response, err := h.authService.GoogleSignup(&req)
+	if err != nil {
+		// Handle specific errors
+		switch err.Error() {
+		case "invalid access token":
+			errorInfo := errors.GetErrorInfo(errors.ErrCodeInvalidRequest)
+			return c.JSON(errorInfo.HTTPStatus, dto.ErrorResponse{
+				Code:        string(errorInfo.Code),
+				Message:     errorInfo.Message,
+				Description: "Invalid Google access token",
+			})
+		case auth.ErrUserAlreadyExists.Error():
+			errorInfo := errors.GetErrorInfo(errors.ErrCodeUserExists)
+			return c.JSON(errorInfo.HTTPStatus, dto.ErrorResponse{
+				Code:        string(errorInfo.Code),
+				Message:     errorInfo.Message,
+				Description: errorInfo.Description,
+			})
+		default:
+			slog.Error("Internal error during Google signup", "error", err)
+			errorInfo := errors.GetErrorInfo(errors.ErrCodeInternalError)
+			return c.JSON(errorInfo.HTTPStatus, dto.ErrorResponse{
+				Code:        string(errorInfo.Code),
+				Message:     errorInfo.Message,
+				Description: errorInfo.Description,
+			})
+		}
+	}
+
+	slog.Info("Google user signup successful", "user_id", response.ID, "email", response.Email)
+	return c.JSON(http.StatusCreated, response)
+}
+
+// GoogleLogin handles user authentication using Google OAuth
+func (h *AuthHandler) GoogleLogin(c echo.Context) error {
+	var req dto.GoogleLoginRequest
+
+	// Bind request body
+	if err := c.Bind(&req); err != nil {
+		slog.Warn("Invalid request body for Google login", "error", err)
+		errorInfo := errors.GetErrorInfo(errors.ErrCodeInvalidRequest)
+		return c.JSON(errorInfo.HTTPStatus, dto.ErrorResponse{
+			Code:        string(errorInfo.Code),
+			Message:     errorInfo.Message,
+			Description: errorInfo.Description,
+		})
+	}
+
+	// Validate request using validator
+	if err := h.validator.Validate(&req); err != nil {
+		return h.handleValidationError(c, err, "Google login")
+	}
+
+	// Call service
+	userInfo, err := h.authService.GoogleLogin(&req)
+	if err != nil {
+		// Handle specific errors
+		switch err {
+		case auth.ErrInvalidCredentials:
+			errorInfo := errors.GetErrorInfo(errors.ErrCodeInvalidCredentials)
+			return c.JSON(errorInfo.HTTPStatus, dto.ErrorResponse{
+				Code:        string(errorInfo.Code),
+				Message:     errorInfo.Message,
+				Description: "Invalid Google credentials",
+			})
+		default:
+			slog.Error("Internal error during Google login", "error", err)
+			errorInfo := errors.GetErrorInfo(errors.ErrCodeInternalError)
+			return c.JSON(errorInfo.HTTPStatus, dto.ErrorResponse{
+				Code:        string(errorInfo.Code),
+				Message:     errorInfo.Message,
+				Description: errorInfo.Description,
+			})
+		}
+	}
+
+	slog.Info("Google user login successful", "user_id", userInfo.ID, "email", userInfo.Email)
+	return c.JSON(http.StatusOK, userInfo)
+}

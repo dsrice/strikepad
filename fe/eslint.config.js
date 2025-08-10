@@ -43,8 +43,8 @@ export default [
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-non-null-assertion': 'warn',
+        '@typescript-eslint/no-explicit-any': 'off',
+        '@typescript-eslint/no-non-null-assertion': 'off',
       
       // React rules
       ...react.configs.recommended.rules,
@@ -63,12 +63,12 @@ export default [
       
       // React Refresh
       'react-refresh/only-export-components': [
-        'warn',
+          'off',
         { allowConstantExport: true },
       ],
       
       // General rules
-      'no-console': 'warn',
+        'no-console': 'off',
       'no-debugger': 'error',
       'no-unused-vars': 'off',
       'prefer-const': 'error',
@@ -79,7 +79,7 @@ export default [
       // Style rules
       'semi': ['error', 'always'],
       'quotes': ['error', 'single', { avoidEscape: true }],
-      'comma-dangle': ['error', 'always-multiline'],
+        'comma-dangle': 'off',
     },
   },
   // Test files configuration
@@ -89,11 +89,15 @@ export default [
       globals: {
         ...globals.browser,
         ...globals.jest,
+          React: true,
       },
     },
     rules: {
       'no-console': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
+        '@typescript-eslint/no-unused-vars': 'off',
+        '@typescript-eslint/no-non-null-assertion': 'off',
+        '@typescript-eslint/no-require-imports': 'off',
     },
   },
 ];

@@ -1,10 +1,13 @@
 import '@testing-library/jest-dom';
+import {TextEncoder as NodeTextEncoder, TextDecoder as NodeTextDecoder} from 'util';
 
 // Add TextEncoder/TextDecoder polyfill for Node.js
 if (typeof TextEncoder === 'undefined') {
-    const {TextEncoder, TextDecoder} = require('util');
-    global.TextEncoder = TextEncoder;
-    global.TextDecoder = TextDecoder;
+    // Assign Node's TextEncoder/TextDecoder to global if not present
+    // @ts-expect-error: Assign Node's TextEncoder to global in test env
+    global.TextEncoder = NodeTextEncoder as unknown as typeof TextEncoder;
+    // @ts-expect-error: Assign Node's TextDecoder to global in test env
+    global.TextDecoder = NodeTextDecoder as unknown as typeof TextDecoder;
 }
 
 // Mock import.meta.env for tests
@@ -13,6 +16,7 @@ Object.defineProperty(globalThis, 'import', {
         meta: {
             env: {
                 VITE_API_URL: 'http://localhost:8080/api',
+                VITE_GOOGLE_CLIENT_ID: 'test-client-id',
             },
         },
     },

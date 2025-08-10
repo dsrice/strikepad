@@ -1,5 +1,4 @@
 import {render, screen} from '@testing-library/react';
-import {BrowserRouter} from 'react-router-dom';
 import App from './App';
 
 // Mock the AuthContext since it makes API calls
@@ -14,28 +13,24 @@ jest.mock('./contexts/AuthContext', () => ({
     }),
 }));
 
-const renderWithRouter = (component: React.ReactElement) => {
-    return render(<BrowserRouter>{component}</BrowserRouter>);
-};
-
 describe('App', () => {
     it('renders StrikePad welcome page', () => {
-        renderWithRouter(<App/>);
-        const titleElement = screen.getByText(/StrikePad/i);
-    expect(titleElement).toBeInTheDocument();
-  });
+        render(<App/>);
+        const titleElements = screen.getAllByText(/StrikePad/i);
+        expect(titleElements.length).toBeGreaterThan(0);
+    });
 
     it('renders login and signup buttons', () => {
-        renderWithRouter(<App/>);
-        const loginButton = screen.getByText(/Login/i);
-        const signupButton = screen.getByText(/Sign Up/i);
-        expect(loginButton).toBeInTheDocument();
-        expect(signupButton).toBeInTheDocument();
-  });
+        render(<App/>);
+        const loginButtons = screen.getAllByText(/ログイン/i);
+        const signupButtons = screen.getAllByText(/サインアップ/i);
+        expect(loginButtons.length).toBeGreaterThan(0);
+        expect(signupButtons.length).toBeGreaterThan(0);
+    });
 
     it('renders welcome message', () => {
-        renderWithRouter(<App/>);
-        const welcomeMessage = screen.getByText(/Welcome to StrikePad Application/i);
+        render(<App/>);
+        const welcomeMessage = screen.getByText(/Made with ❤️ for better productivity/i);
         expect(welcomeMessage).toBeInTheDocument();
-  });
+    });
 });

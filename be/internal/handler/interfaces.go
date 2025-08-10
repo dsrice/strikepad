@@ -6,6 +6,8 @@ import "github.com/labstack/echo/v4"
 type AuthHandlerInterface interface {
 	Signup(c echo.Context) error
 	Login(c echo.Context) error
+	GoogleSignup(c echo.Context) error
+	GoogleLogin(c echo.Context) error
 }
 
 // HealthHandlerInterface defines the interface for health handlers

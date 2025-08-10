@@ -1,6 +1,10 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/* Custom Tailwind configuration */
+@theme {
+    --font-display: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    --radius-4xl: 2rem;
+}
 
 body {
   margin: 0;

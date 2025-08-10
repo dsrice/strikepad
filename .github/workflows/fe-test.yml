@@ -1,0 +1,97 @@
+name: Frontend Tests
+
+on:
+  pull_request:
+    branches: [ develop ]
+    paths:
+      - 'fe/**'
+      - '.github/workflows/fe-test.yml'
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./fe
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: fe/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run tests
+      run: npm test -- --coverage --watchAll=false --passWithNoTests
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v4
+      if: always()
+      continue-on-error: true
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: fe/coverage/coverage-final.json
+        flags: frontend
+        name: frontend-coverage
+
+    - name: Comment PR with test results
+      uses: actions/github-script@v7
+      if: always() && github.event.pull_request.head.repo.fork == false
+      with:
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+
+          const testsPassed = '${{ job.status }}' === 'success';
+
+          let coverageInfo = '';
+          try {
+            const coveragePath = path.join('fe/coverage/coverage-summary.json');
+            if (fs.existsSync(coveragePath)) {
+              const coverage = JSON.parse(fs.readFileSync(coveragePath, 'utf8'));
+              const total = coverage.total;
+              coverageInfo = `
+              
+          ## Test Coverage Summary
+          - **Lines**: ${total.lines.pct}%
+          - **Functions**: ${total.functions.pct}%
+          - **Branches**: ${total.branches.pct}%
+          - **Statements**: ${total.statements.pct}%
+              `;
+            }
+          } catch (error) {
+            console.log('Could not read coverage summary:', error);
+          }
+
+          const body = `## 🧪 Frontend Test Results
+          
+          **Status**: ${testsPassed ? '✅ All tests passed!' : '❌ Some tests failed'}
+
+          ${coverageInfo}
+
+          <details>
+          <summary>📊 View detailed results</summary>
+
+          Check the Actions tab for detailed test output and coverage reports.
+
+          </details>`;
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: body
+          });

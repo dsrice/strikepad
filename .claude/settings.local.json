@@ -22,7 +22,17 @@
       "Bash(npm run dev:*)",
       "Bash(taskkill:*)",
       "Bash(npm test:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx vite build:*)",
+      "Bash(timeout 5 npm run dev)",
+      "Bash(npm uninstall:*)",
+      "WebFetch(domain:tailwindcss.com)",
+      "Bash(npm run test:coverage:*)",
+      "Bash(git add:*)",
+      "Bash(git push:*)",
+      "Bash(npm ci:*)"
     ],
     "deny": []
   }

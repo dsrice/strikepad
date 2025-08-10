@@ -6,6 +6,8 @@ import "strikepad-backend/internal/dto"
 type AuthServiceInterface interface {
 	Signup(req *dto.SignupRequest) (*dto.SignupResponse, error)
 	Login(req *dto.LoginRequest) (*dto.UserInfo, error)
+	GoogleSignup(req *dto.GoogleSignupRequest) (*dto.SignupResponse, error)
+	GoogleLogin(req *dto.GoogleLoginRequest) (*dto.UserInfo, error)
 }
 
 // HealthServiceInterface defines the interface for health service
