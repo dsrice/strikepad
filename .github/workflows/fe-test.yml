@@ -2,7 +2,7 @@ name: Frontend Tests
 
 on:
   pull_request:
-    branches: [ develop ]
+    branches: [ develop, main ]
     paths:
       - 'fe/**'
       - '.github/workflows/fe-test.yml'
@@ -56,6 +56,27 @@ jobs:
           const path = require('path');
 
           const testsPassed = '${{ job.status }}' === 'success';
+          const commentIdentifier = '<!-- frontend-test-results -->';
+
+          // First, find and delete any existing comments from this workflow
+          const comments = await github.rest.issues.listComments({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+          });
+
+          const existingComment = comments.data.find(comment => 
+            comment.body.includes(commentIdentifier) && 
+            comment.user.login === 'github-actions[bot]'
+          );
+
+          if (existingComment) {
+            await github.rest.issues.deleteComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: existingComment.id,
+            });
+          }
 
           let coverageInfo = '';
           try {
@@ -76,7 +97,8 @@ jobs:
             console.log('Could not read coverage summary:', error);
           }
 
-          const body = `## 🧪 Frontend Test Results
+          const body = `${commentIdentifier}
+          ## 🧪 Frontend Test Results
           
           **Status**: ${testsPassed ? '✅ All tests passed!' : '❌ Some tests failed'}
 
@@ -89,7 +111,7 @@ jobs:
 
           </details>`;
 
-          github.rest.issues.createComment({
+          await github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
