@@ -29,7 +29,8 @@ type AuthHandlerTestSuite struct {
 
 func (suite *AuthHandlerTestSuite) SetupTest() {
 	suite.mockService = new(mocks.MockAuthServiceInterface)
-	suite.authHandler = handler.NewAuthHandler(suite.mockService)
+	mockSessionService := new(mocks.MockSessionServiceInterface)
+	suite.authHandler = handler.NewAuthHandler(suite.mockService, mockSessionService)
 	suite.echo = echo.New()
 }
 
@@ -381,7 +382,8 @@ func (suite *AuthHandlerTestSuite) TestLogin() {
 
 func (suite *AuthHandlerTestSuite) TestNewAuthHandler() {
 	// Test that NewAuthHandler creates a valid handler
-	h := handler.NewAuthHandler(suite.mockService)
+	mockSessionService := new(mocks.MockSessionServiceInterface)
+	h := handler.NewAuthHandler(suite.mockService, mockSessionService)
 	assert.NotNil(suite.T(), h)
 }
 
