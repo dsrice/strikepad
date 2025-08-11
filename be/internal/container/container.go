@@ -1,15 +1,13 @@
 package container
 
 import (
+	"strikepad-backend/internal/auth"
 	"strikepad-backend/internal/config"
 	"strikepad-backend/internal/handler"
-	"strikepad-backend/internal/model"
 	"strikepad-backend/internal/repository"
 	"strikepad-backend/internal/service"
 
 	"go.uber.org/dig"
-
-	"gorm.io/gorm"
 )
 
 func BuildContainer() *dig.Container {
@@ -21,10 +19,22 @@ func BuildContainer() *dig.Container {
 	if err := container.Provide(repository.NewUserRepository); err != nil {
 		panic(err)
 	}
+	if err := container.Provide(repository.NewSessionRepository); err != nil {
+		panic(err)
+	}
+	if err := container.Provide(auth.NewJWTService); err != nil {
+		panic(err)
+	}
 	if err := container.Provide(service.NewHealthService); err != nil {
 		panic(err)
 	}
 	if err := container.Provide(service.NewAPIService); err != nil {
+		panic(err)
+	}
+	if err := container.Provide(service.NewAuthService); err != nil {
+		panic(err)
+	}
+	if err := container.Provide(service.NewSessionService); err != nil {
 		panic(err)
 	}
 	if err := container.Provide(handler.NewHealthHandler); err != nil {
@@ -33,12 +43,7 @@ func BuildContainer() *dig.Container {
 	if err := container.Provide(handler.NewAPIHandler); err != nil {
 		panic(err)
 	}
-
-	if err := container.Invoke(func(db *gorm.DB) {
-		if err := db.AutoMigrate(&model.User{}); err != nil {
-			panic(err)
-		}
-	}); err != nil {
+	if err := container.Provide(handler.NewAuthHandler); err != nil {
 		panic(err)
 	}
 

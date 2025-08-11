@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go get:*)",
+      "Bash(./atlas.exe migrate diff:*)",
+      "Bash(mkdir:*)",
+      "Bash(go build:*)",
+      "Bash(go test:*)",
+      "Bash(CGO_ENABLED=1 go test ./internal/repository/... -v)",
+      "Bash(go mod:*)",
+      "Bash(make test-coverage:*)",
+      "Bash(CGO_ENABLED=1 go test -v -race -coverprofile=coverage.out -covermode=atomic ./...)",
+      "Bash(go tool cover:*)",
+      "Bash(rm:*)",
+      "Bash(make lint:*)",
+      "Bash(golangci-lint run:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run lint:*)",
+      "Bash(gofmt:*)",
+      "Bash(goimports:*)",
+      "Bash(npm run dev:*)",
+      "Bash(taskkill:*)",
+      "Bash(npm test:*)",
+      "Bash(mv:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx vite build:*)",
+      "Bash(timeout 5 npm run dev)",
+      "Bash(npm uninstall:*)",
+      "WebFetch(domain:tailwindcss.com)",
+      "Bash(npm run test:coverage:*)",
+      "Bash(git add:*)",
+      "Bash(git push:*)",
+      "Bash(npm ci:*)"
+    ],
+    "deny": []
+  }
+}

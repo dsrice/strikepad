@@ -24,6 +24,9 @@ tmp/
 # Air
 .air.toml.bak
 
+# Atlas
+atlas.exe
+
 # IDE
 .idea/
 # Goland run configurations (uncomment to exclude from git)
@@ -40,6 +43,9 @@ tmp/
 # Logs
 *.log
 build-errors.log
+logs/*.log
+logs/*.log.*
+logs/*.gz
 
 # Test coverage
 coverage.out

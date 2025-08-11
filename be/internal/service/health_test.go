@@ -1,7 +1,9 @@
-package service
+package service_test
 
 import (
 	"testing"
+
+	"strikepad-backend/internal/service"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -9,34 +11,61 @@ import (
 
 type HealthServiceTestSuite struct {
 	suite.Suite
-	healthService HealthService
+	healthService service.HealthServiceInterface
 }
 
 func (suite *HealthServiceTestSuite) SetupTest() {
-	suite.healthService = NewHealthService()
+	suite.healthService = service.NewHealthService()
 }
 
-func (suite *HealthServiceTestSuite) TestCheck() {
-	result := suite.healthService.Check()
+func (suite *HealthServiceTestSuite) TestGetHealth() {
+	testCases := []struct {
+		name            string
+		expectedStatus  string
+		expectedMessage string
+	}{
+		{
+			name:            "Health check returns ok status",
+			expectedStatus:  "ok",
+			expectedMessage: "Server is healthy",
+		},
+	}
 
-	assert.NotNil(suite.T(), result)
-	assert.Equal(suite.T(), "ok", result["status"])
-}
+	for _, tc := range testCases {
+		suite.T().Run(tc.name, func(t *testing.T) {
+			result := suite.healthService.GetHealth()
 
-func (suite *HealthServiceTestSuite) TestCheckReturnValue() {
-	result := suite.healthService.Check()
-
-	assert.Contains(suite.T(), result, "status")
-	assert.Len(suite.T(), result, 1)
+			assert.NotNil(t, result)
+			assert.Equal(t, tc.expectedStatus, result.Status)
+			assert.Equal(t, tc.expectedMessage, result.Message)
+		})
+	}
 }
 
 func TestHealthServiceTestSuite(t *testing.T) {
 	suite.Run(t, new(HealthServiceTestSuite))
 }
 
-func TestHealthService_Check_Simple(t *testing.T) {
-	service := NewHealthService()
-	result := service.Check()
+func TestHealthService_GetHealth_Simple(t *testing.T) {
+	testCases := []struct {
+		name            string
+		expectedStatus  string
+		expectedMessage string
+	}{
+		{
+			name:            "Simple health check test",
+			expectedStatus:  "ok",
+			expectedMessage: "Server is healthy",
+		},
+	}
 
-	assert.Equal(t, "ok", result["status"])
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			svc := service.NewHealthService()
+			result := svc.GetHealth()
+
+			assert.Equal(t, tc.expectedStatus, result.Status)
+			assert.Equal(t, tc.expectedMessage, result.Message)
+		})
+	}
 }

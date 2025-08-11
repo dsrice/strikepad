@@ -1,17 +1,20 @@
 export default {
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
-  moduleNameMapping: {
+    moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
   transform: {
-    '^.+\\.(ts|tsx)$': 'ts-jest',
-    '^.+\\.(js|jsx)$': 'babel-jest',
+      '^.+\\.(ts|tsx|js|jsx)$': ['babel-jest'],
   },
+    transformIgnorePatterns: [
+        'node_modules/(?!(react-router-dom|.*\\.mjs$))'
+    ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
   testMatch: [
     '<rootDir>/src/**/__tests__/**/*.(ts|tsx|js)',
-    '<rootDir>/src/**/?(*.)(spec|test).(ts|tsx|js)'
+      '<rootDir>/src/**/?(*.)(spec|test).(ts|tsx|js)',
+      '<rootDir>/src/**/*.test.(ts|tsx|js)'
   ],
   collectCoverageFrom: [
     'src/**/*.(ts|tsx)',
@@ -20,5 +23,13 @@ export default {
     '!src/vite-env.d.ts'
   ],
   coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov', 'html'],
+    coverageReporters: ['text', 'lcov', 'html', 'json-summary'],
+    coverageThreshold: {
+        global: {
+            branches: 50,
+            functions: 50,
+            lines: 50,
+            statements: 50
+        }
+    },
 }

@@ -1,17 +1,16 @@
 package service
 
-type HealthService interface {
-	Check() map[string]string
-}
+import "strikepad-backend/internal/dto"
 
 type healthService struct{}
 
-func NewHealthService() HealthService {
+func NewHealthService() HealthServiceInterface {
 	return &healthService{}
 }
 
-func (s *healthService) Check() map[string]string {
-	return map[string]string{
-		"status": "ok",
+func (s *healthService) GetHealth() *dto.HealthResponse {
+	return &dto.HealthResponse{
+		Status:  "ok",
+		Message: "Server is healthy",
 	}
 }

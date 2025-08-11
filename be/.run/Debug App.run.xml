@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Debug App" type="GoApplicationRunConfiguration" factoryName="Go Application">
-    <module name="strikepad-backend" />
-    <working_directory value="$PROJECT_DIR$" />
+      <module name="strikepad"/>
+      <working_directory value="$PROJECT_DIR$/be"/>
     <kind value="PACKAGE" />
     <package value="strikepad-backend" />
     <directory value="$PROJECT_DIR$" />

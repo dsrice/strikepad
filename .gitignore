@@ -1,1 +1,47 @@
+# Frontend
 /fe/node_modules/
+/fe/dist/
+/fe/build/
+/fe/.env.local
+/fe/.env.development.local
+/fe/.env.test.local
+/fe/.env.production.local
+
+# Backend
+/be/bin/
+/be/tmp/
+/be/*.exe
+/be/strikepad-backend
+/be/coverage.out
+/be/coverage.html
+/be/coverage.txt
+/be/logs/
+/be/.env
+/be/.env.local
+
+# Test files
+*.test
+*.db
+*.sqlite
+*.sqlite3
+
+# Build artifacts
+build/
+dist/
+
+# Logs
+logs/
+*.log
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Atlas
+atlas.sum
