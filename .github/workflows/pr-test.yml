@@ -64,7 +64,8 @@ jobs:
               console.log('✅ No lint report found - no issues detected!');
               
               // Comment success message
-              const successComment = `## 🎯 Lint Results
+              const successComment = `<!-- backend-lint-results -->
+              ## 🎯 Lint Results
               
               ✅ **No linting issues found!**
               
@@ -115,8 +116,9 @@ jobs:
             
             if (!lintResults.Issues || lintResults.Issues.length === 0) {
               console.log('✅ No issues in lint results!');
-              
-              const successComment = `## 🎯 Lint Results
+          
+              const successComment = `<!-- backend-lint-results -->
+              ## 🎯 Lint Results
               
               ✅ **No linting issues found!**
               
@@ -192,7 +194,8 @@ jobs:
             });
             
             // Create comment body
-            const comment = `## 🎯 Lint Results
+            const comment = `<!-- backend-lint-results -->
+            ## 🎯 Lint Results
             
             ${summary}
             
@@ -224,7 +227,8 @@ jobs:
             });
             
             const existingComment = comments.find(comment => 
-              comment.body.includes('🎯 Lint Results')
+              comment.body.includes('<!-- backend-lint-results -->') &&
+              comment.user.login === 'github-actions[bot]'
             );
             
             if (existingComment) {
@@ -259,7 +263,8 @@ jobs:
             console.error('Error processing lint results:', error);
             
             // Comment about the error
-            const errorComment = `## 🎯 Lint Results
+            const errorComment = `<!-- backend-lint-results -->
+            ## 🎯 Lint Results
             
             ❌ **Error occurred while processing lint results**
             
@@ -492,7 +497,8 @@ jobs:
               });
             }
           
-            const comment = `## 🧪 Test Results Summary
+            const comment = `<!-- backend-test-results -->
+            ## 🧪 Test Results Summary
           
             ${statusIcon} **${statusText}**
           
@@ -517,7 +523,8 @@ jobs:
             });
           
             const existingComment = comments.find(comment => 
-              comment.body.includes('🧪 Test Results Summary')
+              comment.body.includes('<!-- backend-test-results -->') &&
+              comment.user.login === 'github-actions[bot]'
             );
           
             if (existingComment) {
@@ -581,7 +588,8 @@ jobs:
             return null;
           }).filter(Boolean);
           
-          const comment = `## 🧪 Test Coverage Report
+          const comment = `<!-- backend-coverage-report -->
+          ## 🧪 Test Coverage Report
           
           ![Coverage](https://img.shields.io/badge/coverage-${coveragePercent}%25-${badgeColor})
           
@@ -619,7 +627,8 @@ jobs:
           });
           
           const existingComment = comments.find(comment => 
-            comment.body.includes('🧪 Test Coverage Report')
+            comment.body.includes('<!-- backend-coverage-report -->') &&
+            comment.user.login === 'github-actions[bot]'
           );
           
           if (existingComment) {

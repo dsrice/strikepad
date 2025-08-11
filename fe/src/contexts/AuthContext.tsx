@@ -38,8 +38,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
       setError(null);
-      
-      const userInfo = await authAPI.login({ email, password });
+
+      const loginResponse = await authAPI.login({email, password});
+
+      // Extract user info from login response
+      const userInfo: UserInfo = {
+        id: loginResponse.id,
+        email: loginResponse.email,
+        display_name: loginResponse.display_name,
+        email_verified: loginResponse.email_verified,
+        access_token: loginResponse.access_token,
+        refresh_token: loginResponse.refresh_token,
+        expires_at: loginResponse.expires_at,
+      };
+
+      // Store tokens separately
+        if (loginResponse.access_token) {
+            localStorage.setItem('access_token', loginResponse.access_token);
+        }
+        if (loginResponse.refresh_token) {
+            localStorage.setItem('refresh_token', loginResponse.refresh_token);
+        }
       
       setUser(userInfo);
       localStorage.setItem('user', JSON.stringify(userInfo));
@@ -55,16 +74,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
       setError(null);
-      
-      const response = await authAPI.signup({ email, password, displayName });
+
+      const response = await authAPI.signup({email, password, display_name: displayName});
       
       // Convert signup response to UserInfo format
       const userInfo: UserInfo = {
         id: response.id,
         email: response.email,
-        displayName: response.displayName,
-        emailVerified: response.emailVerified,
+        display_name: response.display_name,
+        email_verified: response.email_verified,
+        access_token: response.access_token,
+        refresh_token: response.refresh_token,
+        expires_at: response.expires_at,
       };
+
+      // Store tokens separately
+        if (response.access_token) {
+            localStorage.setItem('access_token', response.access_token);
+        }
+        if (response.refresh_token) {
+            localStorage.setItem('refresh_token', response.refresh_token);
+        }
       
       setUser(userInfo);
       localStorage.setItem('user', JSON.stringify(userInfo));
@@ -87,8 +117,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const userInfo: UserInfo = {
         id: response.id,
         email: response.email,
-        displayName: response.displayName,
-        emailVerified: response.emailVerified,
+        display_name: response.display_name,
+        email_verified: response.email_verified,
       };
 
       setUser(userInfo);
@@ -118,10 +148,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const logout = (): void => {
-    setUser(null);
-    setError(null);
-    localStorage.removeItem('user');
+  const logout = async (): Promise<void> => {
+    try {
+      // Call logout API to invalidate session on server
+      await authAPI.logout();
+    } catch (error: any) {
+      // Even if API call fails, we still want to clear local storage
+      console.error('Logout API call failed:', error.message);
+    } finally {
+      // Clear local state and storage regardless of API call result
+      setUser(null);
+      setError(null);
+      localStorage.removeItem('user');
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+    }
   };
 
   const value: AuthContextType = {

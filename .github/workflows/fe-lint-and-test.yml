@@ -2,7 +2,7 @@ name: Frontend CI
 
 on:
   pull_request:
-    branches: [ develop ]
+    branches: [ develop, main ]
     paths:
       - 'fe/**'
       - '.github/workflows/fe-lint-and-test.yml'

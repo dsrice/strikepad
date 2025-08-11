@@ -1,0 +1,114 @@
+﻿# A5:ER FORMAT:18
+# A5:ER ENCODING:UTF8
+# A5:ER Mk-1 Copyright © 2007 m.matsubara
+# A5:SQL Mk-2 Version 2.19.0 beta 25 Copyright © 1997 - 2023 m.matsubara
+#  https://a5m2.mmatsubara.com
+
+[Manager]
+ProjectName=strikepad
+Author=
+MaxEntityRowShow=1000
+ReadOnlyRecommend=0
+Page=Main
+PageInfo="Main",6,"A3Landscape",$FFFFFF
+LogicalView=0
+DecodeDomain=0
+ViewModePageIndividually=1
+ViewMode=6
+ViewFormat=0
+UseNondependenceDashLine=0
+FontName=Tahoma
+FontSize=6
+PaperSize=A4Landscape
+HeaderLeft=
+HeaderCenter=
+HeaderRight=
+FooterLeft=
+FooterCenter=
+FooterRight=
+ShowPageoutRelation=1
+RDBMSType=7
+RDBMSTypeName=PostgreSQL
+ForceQuoteIdentifier=1
+CreateFk=1
+CommonField="作成日","created_at","@DATETIME","NOT NULL",,"CURRENT_TIMESTAMP","",$FFFFFFFF
+CommonField="更新日","updated_at","@DATETIME","NOT NULL",,"CURRENT_TIMESTAMP","",$FFFFFFFF
+CommonField="削除フラグ","is_deleted","@BOOLEAN","NOT NULL",,"false","",$FFFFFFFF
+CommonField="削除日","deleted_at","@DATETIME",,,"","",$FFFFFFFF
+DefaultPkName=%0:s_PKC
+DefaultPkIndexName=%0:s_PKI
+DefaultIndexName=%0:s_IX%1:d
+DefaultFkName=%0:s_FK%1:d
+SqlSeparator=0
+UpperCaseKeyword=0
+ShowTag=1
+ShowCommonAttributes=1
+BugFixEntityWidth=1
+
+[Entity]
+PName=users
+LName=ユーザー情報
+Comment=
+TableInnerOption=
+TableOption=
+Page=MAIN
+Left=200
+Top=100
+Field="ID","id","serial","NOT NULL",0,"","ID",$FFFFFFFF,""
+Field="プロバイダー種別","provider_type","@VARCHAR(20)","NOT NULL",,"","プロバイダー種別",$FFFFFFFF,""
+Field="プロバイダーユーザーID","provider_user_id","@VARCHAR(255)",,,"","プロバイダーユーザーID",$FFFFFFFF,""
+Field="Eメール","email","@VARCHAR(255)",,,"","Eメール",$FFFFFFFF,""
+Field="表示名","display_name","@VARCHAR(100)","NOT NULL",,"","表示名",$FFFFFFFF,""
+Field="パスワードハッシュ","password_hash","@VARCHAR(255)",,,"","パスワードハッシュ",$FFFFFFFF,""
+Field="メール利用フラグ","email_verified","@BOOLEAN","NOT NULL",,"false","メール利用フラグ",$FFFFFFFF,""
+EffectMode=None
+Color=$000000
+BkColor=$FFFFFF
+ModifiedDateTime=20250802010402
+Position="MAIN",200,100,646,302
+ZOrder=1
+
+[Entity]
+PName=user_sessions
+LName=ユーザーセッション情報
+Comment=
+TableInnerOption=
+TableOption=
+Page=MAIN
+Left=200
+Top=600
+Field="セッションID","id","serial","NOT NULL",0,"","セッションID",$FFFFFFFF,""
+Field="ユーザーID","user_id","@INT","NOT NULL",,"","ユーザーID",$FFFFFFFF,""
+Field="アクセストークン","access_token","text","NOT NULL",,"","アクセストークン",$FFFFFFFF,""
+Field="リフレッシュトークン","refresh-token","text",,,"","リフレッシュトークン",$FFFFFFFF,""
+Field="有効期限","expires_at","@DATETIME","NOT NULL",,"","有効期限",$FFFFFFFF,""
+EffectMode=None
+Color=$000000
+BkColor=$FFFFFF
+ModifiedDateTime=20250727233314
+Position="MAIN",200,600,372,265
+ZOrder=2
+
+[Relation]
+Entity1=users
+Entity2=user_sessions
+RelationType1=2
+RelationType2=3
+Fields1=id
+Fields2=user_id
+Cardinarity1=
+Cardinarity2=
+Position="MAIN",0,950,9050,1272,R,R,""
+Dependence=0
+Caption=
+PName=
+FkOnDeleteOption=cascade
+FkOnUpdateOption=cascade
+ModifiedDateTime=20250727233340
+LineMode=0
+Bar1=95
+Bar2=905
+Bar3=127
+TermPos1=R
+TermPos2=R
+ZOrder=3

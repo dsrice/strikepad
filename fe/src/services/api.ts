@@ -42,6 +42,12 @@ api.interceptors.response.use(
   },
 );
 
+// Helper function to get Authorization header with Bearer token
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('access_token');
+  return token ? {Authorization: `Bearer ${token}`} : {};
+};
+
 // Auth API functions
 export const authAPI = {
   // Login user
@@ -60,7 +66,12 @@ export const authAPI = {
   // Register new user
   signup: async (userData: SignupRequest): Promise<SignupResponse> => {
     try {
-      const response: AxiosResponse<SignupResponse> = await api.post('/auth/signup', userData);
+      const requestData = {
+        email: userData.email,
+        password: userData.password,
+        display_name: userData.display_name
+      };
+      const response: AxiosResponse<SignupResponse> = await api.post('/auth/signup', requestData);
       return response.data;
     } catch (error: any) {
       if (error.response?.data) {
@@ -106,11 +117,28 @@ export const authAPI = {
   // Get current user profile (if we have token-based auth in the future)
   getProfile: async (): Promise<UserInfo> => {
     try {
-      const response: AxiosResponse<UserInfo> = await api.get('/auth/profile');
+      const response: AxiosResponse<UserInfo> = await api.get('/auth/profile', {
+        headers: getAuthHeaders(),
+      });
       return response.data;
     } catch (error: any) {
       if (error.response?.data) {
         throw new Error(error.response.data.message || 'Failed to fetch profile');
+      }
+      throw new Error('Network error occurred');
+    }
+  },
+
+  // Logout user
+  logout: async (): Promise<{ message: string }> => {
+    try {
+      const response: AxiosResponse<{ message: string }> = await api.post('/auth/logout', {}, {
+        headers: getAuthHeaders(),
+      });
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.data) {
+        throw new Error(error.response.data.message || 'Logout failed');
       }
       throw new Error('Network error occurred');
     }

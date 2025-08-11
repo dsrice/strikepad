@@ -36,9 +36,10 @@ type GoogleLoginRequest struct {
 
 // LoginResponse represents the response payload for user login
 type LoginResponse struct {
-	ExpiresAt   time.Time `json:"expires_at"`
-	AccessToken string    `json:"access_token"`
-	User        UserInfo  `json:"user"`
+	ExpiresAt    time.Time `json:"expires_at"`
+	AccessToken  string    `json:"access_token"`
+	RefreshToken string    `json:"refresh_token"`
+	UserInfo     `json:",inline"`
 }
 
 // UserInfo represents basic user information
@@ -63,6 +64,14 @@ type ValidationError struct {
 	Tag     string `json:"tag"`
 	Value   string `json:"value"`
 	Message string `json:"message"`
+}
+
+// AuthResponse represents the response payload for signup with tokens
+type AuthResponse struct {
+	ExpiresAt      time.Time `json:"expires_at"`
+	AccessToken    string    `json:"access_token"`
+	RefreshToken   string    `json:"refresh_token"`
+	SignupResponse `json:",inline"`
 }
 
 // HealthResponse represents the health check response

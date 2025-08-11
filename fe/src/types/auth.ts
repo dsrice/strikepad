@@ -8,7 +8,7 @@ export interface LoginRequest {
 export interface SignupRequest {
   email: string;
   password: string;
-  displayName: string;
+  display_name: string;
 }
 
 export interface GoogleSignupRequest {
@@ -22,16 +22,22 @@ export interface GoogleLoginRequest {
 export interface UserInfo {
   id: number;
   email: string;
-  displayName: string;
-  emailVerified: boolean;
+  display_name: string;
+  email_verified: boolean;
+  access_token?: string;
+  refresh_token?: string;
+  expires_at?: string;
 }
 
 export interface SignupResponse {
   id: number;
   email: string;
-  displayName: string;
-  emailVerified: boolean;
-  createdAt: string;
+  display_name: string;
+  email_verified: boolean;
+  created_at: string;
+  access_token: string;
+  refresh_token: string;
+  expires_at: string;
 }
 
 export interface ValidationError {
@@ -53,9 +59,9 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, displayName: string) => Promise<void>;
+  signup: (email: string, password: string, display_name: string) => Promise<void>;
   googleSignup: (accessToken: string) => Promise<void>;
   googleLogin: (accessToken: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   error: string | null;
 }

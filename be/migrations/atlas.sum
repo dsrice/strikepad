@@ -1,3 +1,5 @@
-h1:vGfVU+90a6b7T2K8ifHiBKU1peh0x5OO97A4bLS531I=
+h1:7TAkcBmIbzzN3xIgxEBjCS6pJTxFYj/eqU+KFhq9aB0=
 20250127000001_initial.sql h1:Dp41KeCd4jl8F02l/6Zta0uz4o5lafnA3kcTiA1xpE8=
 20250127000002_add_user_sessions.sql h1:iZHk7Ofa9GRD9VpjBIcD7FSRoOIq0pXWl34Vs4cRCEc=
+20250127000003_fix_user_sessions_jwt_support.sql h1:fEMGAwmioswUI1XT3jXhCC0APdjY6d7LpH3UHf27D0w=
+20250127000004_remove_unused_expires_at_column.sql h1:PPf1Od7GLUdoKZTfdkWAujehBQLQrXCO5ZW+ZEoM0Do=

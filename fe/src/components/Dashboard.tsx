@@ -10,10 +10,10 @@ const Dashboard: React.FC = () => {
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">StrikePad Dashboard</h1>
-            <p className="text-blue-100 mt-2">ようこそ、{user?.displayName}さん</p>
+            <p className="text-blue-100 mt-2">ようこそ、{user?.display_name}さん</p>
           </div>
           <button
-            onClick={logout}
+              onClick={() => logout()}
             className="bg-blue-500 hover:bg-blue-400 px-4 py-2 rounded transition-colors"
           >
             ログアウト
@@ -28,11 +28,11 @@ const Dashboard: React.FC = () => {
             <div className="space-y-2">
               <p><span className="font-medium">ID:</span> {user?.id}</p>
               <p><span className="font-medium">メール:</span> {user?.email}</p>
-              <p><span className="font-medium">表示名:</span> {user?.displayName}</p>
+              <p><span className="font-medium">表示名:</span> {user?.display_name}</p>
               <p>
                 <span className="font-medium">メール認証:</span>{' '}
-                <span className={user?.emailVerified ? 'text-green-600' : 'text-red-600'}>
-                  {user?.emailVerified ? '認証済み' : '未認証'}
+                <span className={user?.email_verified ? 'text-green-600' : 'text-red-600'}>
+                  {user?.email_verified ? '認証済み' : '未認証'}
                 </span>
               </p>
             </div>

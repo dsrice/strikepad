@@ -10,6 +10,7 @@ jest.mock('./api', () => ({
         getProfile: jest.fn(),
         googleSignup: jest.fn(),
         googleLogin: jest.fn(),
+        logout: jest.fn(),
     },
     healthAPI: {
         check: jest.fn(),
@@ -246,6 +247,39 @@ describe('authAPI Interface Tests', () => {
             };
 
             await expect(authAPI.googleLogin(googleData)).rejects.toThrow('Network error occurred');
+        });
+    });
+
+    describe('logout', () => {
+        it('successfully logs out user', async () => {
+            const mockResponse = {
+                message: 'Logout successful',
+            };
+
+            mockedAuthAPI.logout.mockResolvedValue(mockResponse);
+
+            const result = await authAPI.logout();
+
+            expect(authAPI.logout).toHaveBeenCalled();
+            expect(result).toEqual(mockResponse);
+        });
+
+        it('handles logout error', async () => {
+            mockedAuthAPI.logout.mockRejectedValue(new Error('Logout failed'));
+
+            await expect(authAPI.logout()).rejects.toThrow('Logout failed');
+        });
+
+        it('handles logout network error', async () => {
+            mockedAuthAPI.logout.mockRejectedValue(new Error('Network error occurred'));
+
+            await expect(authAPI.logout()).rejects.toThrow('Network error occurred');
+        });
+
+        it('handles logout unauthorized error', async () => {
+            mockedAuthAPI.logout.mockRejectedValue(new Error('Unauthorized'));
+
+            await expect(authAPI.logout()).rejects.toThrow('Unauthorized');
         });
     });
 });

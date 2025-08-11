@@ -70,7 +70,8 @@ func TestAuthHandler_GoogleSignup(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Setup
 			mockService := &mocks.MockAuthServiceInterface{}
-			handler := NewAuthHandler(mockService)
+			mockSessionService := &mocks.MockSessionServiceInterface{}
+			handler := NewAuthHandler(mockService, mockSessionService)
 
 			if tt.setupMocks != nil {
 				tt.setupMocks(mockService)
@@ -149,7 +150,8 @@ func TestAuthHandler_GoogleLogin(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Setup
 			mockService := &mocks.MockAuthServiceInterface{}
-			handler := NewAuthHandler(mockService)
+			mockSessionService := &mocks.MockSessionServiceInterface{}
+			handler := NewAuthHandler(mockService, mockSessionService)
 
 			if tt.setupMocks != nil {
 				tt.setupMocks(mockService)
