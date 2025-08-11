@@ -34,14 +34,14 @@ func (suite *AuthMiddlewareTestSuite) TearDownTest() {
 
 func (suite *AuthMiddlewareTestSuite) TestJWTMiddleware() {
 	testCases := []struct {
-		name            string
-		description     string
 		setupRequest    func(req *http.Request)
 		setupMocks      func()
-		expectedStatus  int
 		expectedError   map[string]string
-		expectNext      bool
 		validateContext func(t *testing.T, c echo.Context)
+		name            string
+		description     string
+		expectedStatus  int
+		expectNext      bool
 	}{
 		{
 			name:        "Valid Bearer token",
@@ -77,7 +77,7 @@ func (suite *AuthMiddlewareTestSuite) TestJWTMiddleware() {
 		{
 			name:        "Missing Authorization header",
 			description: "Should return 401 when Authorization header is missing",
-			setupRequest: func(req *http.Request) {
+			setupRequest: func(_ *http.Request) {
 				// No Authorization header
 			},
 			setupMocks:     func() {},
@@ -256,7 +256,7 @@ func (suite *AuthMiddlewareTestSuite) TestJWTMiddleware() {
 			}
 
 			// Create HTTP request
-			req := httptest.NewRequest(http.MethodGet, "/protected", nil)
+			req := httptest.NewRequest(http.MethodGet, "/protected", http.NoBody)
 			tc.setupRequest(req)
 			rec := httptest.NewRecorder()
 			c := suite.echo.NewContext(req, rec)
@@ -282,9 +282,9 @@ func (suite *AuthMiddlewareTestSuite) TestJWTMiddleware() {
 
 func (suite *AuthMiddlewareTestSuite) TestGetUserIDFromContext() {
 	testCases := []struct {
+		setupContext func(c echo.Context)
 		name         string
 		description  string
-		setupContext func(c echo.Context)
 		expectedID   uint
 		expectedOK   bool
 	}{
@@ -300,7 +300,7 @@ func (suite *AuthMiddlewareTestSuite) TestGetUserIDFromContext() {
 		{
 			name:        "Missing user ID in context",
 			description: "Should return false when user_id is not in context",
-			setupContext: func(c echo.Context) {
+			setupContext: func(_ echo.Context) {
 				// Don't set user_id
 			},
 			expectedID: 0,
@@ -347,7 +347,7 @@ func (suite *AuthMiddlewareTestSuite) TestGetUserIDFromContext() {
 	for _, tc := range testCases {
 		suite.T().Run(tc.name, func(t *testing.T) {
 			// Create context
-			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			req := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 			rec := httptest.NewRecorder()
 			c := suite.echo.NewContext(req, rec)
 
@@ -384,7 +384,7 @@ func (suite *AuthMiddlewareTestSuite) TestGetAccessTokenFromContext() {
 		{
 			name:        "Missing access token in context",
 			description: "Should return false when access_token is not in context",
-			setupContext: func(c echo.Context) {
+			setupContext: func(_ echo.Context) {
 				// Don't set access_token
 			},
 			expectedToken: "",
@@ -441,7 +441,7 @@ func (suite *AuthMiddlewareTestSuite) TestGetAccessTokenFromContext() {
 	for _, tc := range testCases {
 		suite.T().Run(tc.name, func(t *testing.T) {
 			// Create context
-			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			req := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 			rec := httptest.NewRecorder()
 			c := suite.echo.NewContext(req, rec)
 
@@ -460,11 +460,11 @@ func (suite *AuthMiddlewareTestSuite) TestGetAccessTokenFromContext() {
 
 func (suite *AuthMiddlewareTestSuite) TestMiddlewareIntegration() {
 	testCases := []struct {
-		name         string
-		description  string
 		setupRequest func(req *http.Request)
 		setupMocks   func()
 		testFlow     func(t *testing.T, c echo.Context)
+		name         string
+		description  string
 	}{
 		{
 			name:        "Complete authentication flow",
@@ -543,7 +543,7 @@ func (suite *AuthMiddlewareTestSuite) TestMiddlewareIntegration() {
 			}
 
 			// Create HTTP request
-			req := httptest.NewRequest(http.MethodGet, "/protected", nil)
+			req := httptest.NewRequest(http.MethodGet, "/protected", http.NoBody)
 			tc.setupRequest(req)
 			rec := httptest.NewRecorder()
 			c := suite.echo.NewContext(req, rec)

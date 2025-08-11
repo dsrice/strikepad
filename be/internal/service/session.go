@@ -28,7 +28,10 @@ type SessionServiceInterface interface {
 }
 
 // NewSessionService creates a new session service
-func NewSessionService(sessionRepo repository.SessionRepositoryInterface, jwtService *auth.JWTService) SessionServiceInterface {
+func NewSessionService(
+	sessionRepo repository.SessionRepositoryInterface,
+	jwtService *auth.JWTService,
+) SessionServiceInterface {
 	return &SessionService{
 		sessionRepo: sessionRepo,
 		jwtService:  jwtService,

@@ -139,9 +139,9 @@ func (suite *JWTServiceTestSuite) TestValidateToken() {
 	testCases := []struct {
 		name         string
 		token        string
-		expectError  bool
-		expectedUID  uint
 		expectedType string
+		expectedUID  uint
+		expectError  bool
 	}{
 		{
 			name:         "Valid access token",

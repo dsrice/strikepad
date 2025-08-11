@@ -11,9 +11,9 @@ import (
 
 // JWTClaims represents the claims structure for JWT tokens
 type JWTClaims struct {
-	UserID uint   `json:"user_id"`
-	Type   string `json:"type"` // "access" or "refresh"
 	jwt.RegisteredClaims
+	Type   string `json:"type"`
+	UserID uint   `json:"user_id"`
 }
 
 // JWTService handles JWT token operations
@@ -23,10 +23,10 @@ type JWTService struct {
 
 // TokenPair represents access and refresh tokens
 type TokenPair struct {
-	AccessToken           string    `json:"access_token"`
-	RefreshToken          string    `json:"refresh_token"`
 	AccessTokenExpiresAt  time.Time `json:"access_token_expires_at"`
 	RefreshTokenExpiresAt time.Time `json:"refresh_token_expires_at"`
+	AccessToken           string    `json:"access_token"`
+	RefreshToken          string    `json:"refresh_token"`
 }
 
 // NewJWTService creates a new JWT service
@@ -76,7 +76,7 @@ func (j *JWTService) generateToken(userID uint, tokenType string, duration time.
 			IssuedAt:  jwt.NewNumericDate(now),
 			NotBefore: jwt.NewNumericDate(now),
 			Issuer:    "strikepad-backend",
-			Subject:   strconv.Itoa(int(userID)),
+			Subject:   strconv.FormatUint(uint64(userID), 10),
 		},
 	}
 

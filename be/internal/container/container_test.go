@@ -42,9 +42,9 @@ type ContainerTestSuite struct {
 
 func (suite *ContainerTestSuite) TestBuildContainer() {
 	testCases := []struct {
+		testFunction func(t *testing.T)
 		name         string
 		description  string
-		testFunction func(t *testing.T)
 		skipDB       bool
 	}{
 		{
@@ -197,11 +197,11 @@ func (suite *ContainerTestSuite) TestBuildContainer() {
 
 func (suite *ContainerTestSuite) TestContainerProvides() {
 	testCases := []struct {
+		invokeFunc   interface{}
 		name         string
 		description  string
-		invokeFunc   interface{}
-		expectError  bool
 		errorMessage string
+		expectError  bool
 	}{
 		{
 			name:        "HealthService resolution",
@@ -376,9 +376,9 @@ func (suite *ContainerTestSuite) TestContainerWithDatabaseComponents() {
 
 func (suite *ContainerTestSuite) TestContainerErrorScenarios() {
 	testCases := []struct {
+		testFunction func(t *testing.T)
 		name         string
 		description  string
-		testFunction func(t *testing.T)
 	}{
 		{
 			name:        "Container creation consistency",
@@ -420,7 +420,7 @@ func (suite *ContainerTestSuite) TestContainerErrorScenarios() {
 					SomeMethod()
 				}
 
-				err := c.Invoke(func(ui UnprovidedInterface) {
+				err := c.Invoke(func(_ UnprovidedInterface) {
 					// This should fail
 				})
 

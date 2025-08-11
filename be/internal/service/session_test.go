@@ -42,11 +42,11 @@ func (suite *SessionServiceTestSuite) TearDownTest() {
 
 func (suite *SessionServiceTestSuite) TestCreateSession() {
 	testCases := []struct {
-		name          string
-		userID        uint
 		mockSetup     func()
-		expectedError bool
+		name          string
 		errorMessage  string
+		userID        uint
+		expectedError bool
 	}{
 		{
 			name:   "Success",
@@ -145,12 +145,12 @@ func (suite *SessionServiceTestSuite) TestValidateAccessToken() {
 	}
 
 	testCases := []struct {
+		mockSetup     func()
 		name          string
 		token         string
-		mockSetup     func()
-		expectedError bool
 		errorMessage  string
 		expectedUID   uint
+		expectedError bool
 	}{
 		{
 			name:  "Valid access token",
@@ -254,11 +254,11 @@ func (suite *SessionServiceTestSuite) TestRefreshToken() {
 	}
 
 	testCases := []struct {
+		mockSetup     func()
 		name          string
 		refreshToken  string
-		mockSetup     func()
-		expectedError bool
 		errorMessage  string
+		expectedError bool
 	}{
 		{
 			name:         "Success",
@@ -324,8 +324,8 @@ func (suite *SessionServiceTestSuite) TestRefreshToken() {
 				assert.NotEmpty(t, newTokenPair.AccessToken)
 				assert.NotEmpty(t, newTokenPair.RefreshToken)
 				// New tokens should be different from original (check lengths are reasonable)
-				assert.True(t, len(newTokenPair.AccessToken) > 0)
-				assert.True(t, len(newTokenPair.RefreshToken) > 0)
+				assert.True(t, newTokenPair.AccessToken != "")
+				assert.True(t, newTokenPair.RefreshToken != "")
 				// Validate that new tokens are structurally valid JWTs
 				_, err = suite.jwtService.ValidateAccessToken(newTokenPair.AccessToken)
 				assert.NoError(t, err)
@@ -347,12 +347,12 @@ func (suite *SessionServiceTestSuite) TestLogout() {
 	}
 
 	testCases := []struct {
-		name          string
-		userID        uint
-		accessToken   string
 		mockSetup     func()
-		expectedError bool
+		name          string
+		accessToken   string
 		errorMessage  string
+		userID        uint
+		expectedError bool
 	}{
 		{
 			name:        "Success",
@@ -424,11 +424,11 @@ func (suite *SessionServiceTestSuite) TestLogout() {
 
 func (suite *SessionServiceTestSuite) TestInvalidateAllUserSessions() {
 	testCases := []struct {
-		name          string
-		userID        uint
 		mockSetup     func()
-		expectedError bool
+		name          string
 		errorMessage  string
+		userID        uint
+		expectedError bool
 	}{
 		{
 			name:   "Success",
@@ -476,10 +476,10 @@ func (suite *SessionServiceTestSuite) TestInvalidateAllUserSessions() {
 
 func (suite *SessionServiceTestSuite) TestCleanupExpiredSessions() {
 	testCases := []struct {
-		name          string
 		mockSetup     func()
-		expectedError bool
+		name          string
 		errorMessage  string
+		expectedError bool
 	}{
 		{
 			name: "Success",

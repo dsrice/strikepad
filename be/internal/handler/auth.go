@@ -20,7 +20,10 @@ type AuthHandler struct {
 	validator      *validator.Validator
 }
 
-func NewAuthHandler(authService service.AuthServiceInterface, sessionService service.SessionServiceInterface) AuthHandlerInterface {
+func NewAuthHandler(
+	authService service.AuthServiceInterface,
+	sessionService service.SessionServiceInterface,
+) AuthHandlerInterface {
 	return &AuthHandler{
 		authService:    authService,
 		sessionService: sessionService,

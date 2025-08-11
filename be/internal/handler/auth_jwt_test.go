@@ -41,12 +41,12 @@ func (suite *AuthJWTHandlerTestSuite) TearDownTest() {
 
 func (suite *AuthJWTHandlerTestSuite) TestLogout() {
 	testCases := []struct {
-		name           string
 		setupContext   func(c echo.Context)
 		mockSetup      func()
-		expectedStatus int
 		expectedError  *dto.ErrorResponse
+		name           string
 		expectedMsg    string
+		expectedStatus int
 	}{
 		{
 			name: "Success",
@@ -150,7 +150,7 @@ func (suite *AuthJWTHandlerTestSuite) TestLogout() {
 			tc.mockSetup()
 
 			// Create HTTP request and response recorder
-			req := httptest.NewRequest(http.MethodPost, "/auth/logout", nil)
+			req := httptest.NewRequest(http.MethodPost, "/auth/logout", http.NoBody)
 			rec := httptest.NewRecorder()
 			c := suite.echo.NewContext(req, rec)
 

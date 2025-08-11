@@ -44,11 +44,11 @@ func (suite *SessionRepositoryTestSuite) TearDownTest() {
 
 func (suite *SessionRepositoryTestSuite) TestCreate() {
 	testCases := []struct {
-		name        string
 		session     *model.UserSession
 		mockSetup   func()
-		expectError bool
+		name        string
 		errorMsg    string
+		expectError bool
 	}{
 		{
 			name: "Success",
@@ -119,12 +119,12 @@ func (suite *SessionRepositoryTestSuite) TestCreate() {
 
 func (suite *SessionRepositoryTestSuite) TestFindByAccessToken() {
 	testCases := []struct {
+		mockSetup   func()
 		name        string
 		accessToken string
-		mockSetup   func()
-		expectError bool
 		errorMsg    string
 		expectedUID uint
+		expectError bool
 	}{
 		{
 			name:        "Success",
@@ -213,12 +213,12 @@ func (suite *SessionRepositoryTestSuite) TestFindByAccessToken() {
 
 func (suite *SessionRepositoryTestSuite) TestFindByRefreshToken() {
 	testCases := []struct {
+		mockSetup    func()
 		name         string
 		refreshToken string
-		mockSetup    func()
-		expectError  bool
 		errorMsg     string
 		expectedUID  uint
+		expectError  bool
 	}{
 		{
 			name:         "Success",
@@ -296,12 +296,12 @@ func (suite *SessionRepositoryTestSuite) TestFindByRefreshToken() {
 
 func (suite *SessionRepositoryTestSuite) TestFindActiveByUserID() {
 	testCases := []struct {
-		name          string
-		userID        uint
 		mockSetup     func()
-		expectError   bool
+		name          string
 		errorMsg      string
+		userID        uint
 		expectedCount int
+		expectError   bool
 	}{
 		{
 			name:   "Success with multiple sessions",
@@ -383,11 +383,11 @@ func (suite *SessionRepositoryTestSuite) TestFindActiveByUserID() {
 
 func (suite *SessionRepositoryTestSuite) TestUpdate() {
 	testCases := []struct {
-		name        string
 		session     *model.UserSession
 		mockSetup   func()
-		expectError bool
+		name        string
 		errorMsg    string
+		expectError bool
 	}{
 		{
 			name: "Success",
@@ -460,11 +460,11 @@ func (suite *SessionRepositoryTestSuite) TestUpdate() {
 
 func (suite *SessionRepositoryTestSuite) TestInvalidateByUserID() {
 	testCases := []struct {
-		name        string
-		userID      uint
 		mockSetup   func()
-		expectError bool
+		name        string
 		errorMsg    string
+		userID      uint
+		expectError bool
 	}{
 		{
 			name:   "Success",
@@ -516,10 +516,10 @@ func (suite *SessionRepositoryTestSuite) TestInvalidateByUserID() {
 
 func (suite *SessionRepositoryTestSuite) TestInvalidateExpiredSessions() {
 	testCases := []struct {
-		name        string
 		mockSetup   func()
-		expectError bool
+		name        string
 		errorMsg    string
+		expectError bool
 	}{
 		{
 			name: "Success",
@@ -569,11 +569,11 @@ func (suite *SessionRepositoryTestSuite) TestInvalidateExpiredSessions() {
 
 func (suite *SessionRepositoryTestSuite) TestDelete() {
 	testCases := []struct {
-		name        string
-		sessionID   uint
 		mockSetup   func()
-		expectError bool
+		name        string
 		errorMsg    string
+		sessionID   uint
+		expectError bool
 	}{
 		{
 			name:      "Success",

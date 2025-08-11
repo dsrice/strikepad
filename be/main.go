@@ -11,8 +11,8 @@ import (
 
 	"strikepad-backend/internal/container"
 	"strikepad-backend/internal/handler"
-	"strikepad-backend/internal/migrations"
 	authMiddleware "strikepad-backend/internal/middleware"
+	"strikepad-backend/internal/migrations"
 	"strikepad-backend/internal/service"
 
 	"github.com/labstack/echo/v4"
