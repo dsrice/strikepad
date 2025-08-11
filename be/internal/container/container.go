@@ -1,6 +1,7 @@
 package container
 
 import (
+	"strikepad-backend/internal/auth"
 	"strikepad-backend/internal/config"
 	"strikepad-backend/internal/handler"
 	"strikepad-backend/internal/repository"
@@ -18,6 +19,12 @@ func BuildContainer() *dig.Container {
 	if err := container.Provide(repository.NewUserRepository); err != nil {
 		panic(err)
 	}
+	if err := container.Provide(repository.NewSessionRepository); err != nil {
+		panic(err)
+	}
+	if err := container.Provide(auth.NewJWTService); err != nil {
+		panic(err)
+	}
 	if err := container.Provide(service.NewHealthService); err != nil {
 		panic(err)
 	}
@@ -25,6 +32,9 @@ func BuildContainer() *dig.Container {
 		panic(err)
 	}
 	if err := container.Provide(service.NewAuthService); err != nil {
+		panic(err)
+	}
+	if err := container.Provide(service.NewSessionService); err != nil {
 		panic(err)
 	}
 	if err := container.Provide(handler.NewHealthHandler); err != nil {

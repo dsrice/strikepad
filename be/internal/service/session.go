@@ -18,7 +18,7 @@ type SessionService struct {
 
 // SessionServiceInterface defines the interface for session service
 type SessionServiceInterface interface {
-	CreateSession(userID uint, email string) (*auth.TokenPair, error)
+	CreateSession(userID uint) (*auth.TokenPair, error)
 	ValidateAccessToken(token string) (*model.UserSession, error)
 	RefreshToken(refreshToken string) (*auth.TokenPair, error)
 	InvalidateSession(accessToken string) error
@@ -36,9 +36,9 @@ func NewSessionService(sessionRepo repository.SessionRepositoryInterface, jwtSer
 }
 
 // CreateSession creates a new session with token pair
-func (s *SessionService) CreateSession(userID uint, email string) (*auth.TokenPair, error) {
+func (s *SessionService) CreateSession(userID uint) (*auth.TokenPair, error) {
 	// Generate token pair
-	tokenPair, err := s.jwtService.GenerateTokenPair(userID, email)
+	tokenPair, err := s.jwtService.GenerateTokenPair(userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate token pair: %w", err)
 	}
@@ -115,7 +115,7 @@ func (s *SessionService) RefreshToken(refreshToken string) (*auth.TokenPair, err
 	}
 
 	// Generate new token pair
-	tokenPair, err := s.jwtService.GenerateTokenPair(claims.UserID, claims.Email)
+	tokenPair, err := s.jwtService.GenerateTokenPair(claims.UserID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate new token pair: %w", err)
 	}

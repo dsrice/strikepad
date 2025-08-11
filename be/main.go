@@ -12,6 +12,8 @@ import (
 	"strikepad-backend/internal/container"
 	"strikepad-backend/internal/handler"
 	"strikepad-backend/internal/migrations"
+	authMiddleware "strikepad-backend/internal/middleware"
+	"strikepad-backend/internal/service"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -34,6 +36,7 @@ func main() {
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+	e.Use(middleware.CORS())
 
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello from StrikePad Backend!")
@@ -44,15 +47,20 @@ func main() {
 			healthHandler handler.HealthHandlerInterface,
 			apiHandler *handler.APIHandler,
 			authHandler handler.AuthHandlerInterface,
+			sessionService service.SessionServiceInterface,
 		) {
 			e.GET("/health", healthHandler.Check)
 			e.GET("/api/test", apiHandler.Test)
 
-			// Auth endpoints
+			// Public auth endpoints (no JWT required)
 			e.POST("/api/auth/signup", authHandler.Signup)
 			e.POST("/api/auth/login", authHandler.Login)
 			e.POST("/api/auth/google/signup", authHandler.GoogleSignup)
 			e.POST("/api/auth/google/login", authHandler.GoogleLogin)
+
+			// Protected auth endpoints (JWT required)
+			protected := e.Group("/api/auth", authMiddleware.JWTMiddleware(sessionService))
+			protected.POST("/logout", authHandler.Logout)
 		})
 
 	if err != nil {

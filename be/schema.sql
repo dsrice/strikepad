@@ -30,9 +30,10 @@ COMMENT ON COLUMN users.deleted_at IS '削除日';
 CREATE TABLE user_sessions (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL,
-    session_token VARCHAR(255) NOT NULL UNIQUE,
-    refresh_token VARCHAR(255),
-    expires_at TIMESTAMP NOT NULL,
+    access_token             TEXT      NOT NULL,
+    refresh_token            TEXT,
+    access_token_expires_at  TIMESTAMP NOT NULL,
+    refresh_token_expires_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     is_deleted BOOLEAN NOT NULL DEFAULT false,
@@ -43,9 +44,10 @@ CREATE TABLE user_sessions (
 COMMENT ON TABLE user_sessions IS 'ユーザーセッション情報';
 COMMENT ON COLUMN user_sessions.id IS 'セッションID:セッションID';
 COMMENT ON COLUMN user_sessions.user_id IS 'ユーザーID:ユーザーID';
-COMMENT ON COLUMN user_sessions.session_token IS 'セッショントークン:セッショントークン';
+COMMENT ON COLUMN user_sessions.access_token IS 'アクセストークン:アクセストークン';
 COMMENT ON COLUMN user_sessions.refresh_token IS 'リフレッシュトークン:リフレッシュトークン';
-COMMENT ON COLUMN user_sessions.expires_at IS '有効期限:有効期限';
+COMMENT ON COLUMN user_sessions.access_token_expires_at IS 'アクセストークン有効期限:アクセストークン有効期限';
+COMMENT ON COLUMN user_sessions.refresh_token_expires_at IS 'リフレッシュトークン有効期限:リフレッシュトークン有効期限';
 COMMENT ON COLUMN user_sessions.created_at IS '作成日';
 COMMENT ON COLUMN user_sessions.updated_at IS '更新日';
 COMMENT ON COLUMN user_sessions.is_deleted IS '削除フラグ';
@@ -53,6 +55,8 @@ COMMENT ON COLUMN user_sessions.deleted_at IS '削除日';
 
 -- Create indexes
 CREATE INDEX idx_user_sessions_user_id ON user_sessions(user_id);
-CREATE INDEX idx_user_sessions_session_token ON user_sessions(session_token);
-CREATE INDEX idx_user_sessions_expires_at ON user_sessions(expires_at);
+CREATE INDEX idx_user_sessions_access_token ON user_sessions (access_token);
+CREATE INDEX idx_user_sessions_refresh_token ON user_sessions (refresh_token);
+CREATE INDEX idx_user_sessions_access_expires_at ON user_sessions (access_token_expires_at);
+CREATE INDEX idx_user_sessions_refresh_expires_at ON user_sessions (refresh_token_expires_at);
 CREATE INDEX idx_user_sessions_is_deleted ON user_sessions(is_deleted);

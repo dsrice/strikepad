@@ -15,14 +15,16 @@ import (
 )
 
 type AuthHandler struct {
-	authService service.AuthServiceInterface
-	validator   *validator.Validator
+	authService    service.AuthServiceInterface
+	sessionService service.SessionServiceInterface
+	validator      *validator.Validator
 }
 
-func NewAuthHandler(authService service.AuthServiceInterface) AuthHandlerInterface {
+func NewAuthHandler(authService service.AuthServiceInterface, sessionService service.SessionServiceInterface) AuthHandlerInterface {
 	return &AuthHandler{
-		authService: authService,
-		validator:   validator.New(),
+		authService:    authService,
+		sessionService: sessionService,
+		validator:      validator.New(),
 	}
 }
 
@@ -122,8 +124,28 @@ func (h *AuthHandler) Signup(c echo.Context) error {
 		}
 	}
 
+	// Create session and generate tokens
+	tokenPair, err := h.sessionService.CreateSession(response.ID)
+	if err != nil {
+		slog.Error("Failed to create session after signup", "error", err, "user_id", response.ID)
+		errorInfo := errors.GetErrorInfo(errors.ErrCodeInternalError)
+		return c.JSON(errorInfo.HTTPStatus, dto.ErrorResponse{
+			Code:        string(errorInfo.Code),
+			Message:     errorInfo.Message,
+			Description: "Failed to create session",
+		})
+	}
+
+	// Create response with tokens
+	signupResponse := dto.AuthResponse{
+		SignupResponse: *response,
+		AccessToken:    tokenPair.AccessToken,
+		RefreshToken:   tokenPair.RefreshToken,
+		ExpiresAt:      tokenPair.AccessTokenExpiresAt,
+	}
+
 	slog.Info("User signup successful", "user_id", response.ID, "email", response.Email)
-	return c.JSON(http.StatusCreated, response)
+	return c.JSON(http.StatusCreated, signupResponse)
 }
 
 // Login handles user authentication
@@ -169,8 +191,28 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		}
 	}
 
+	// Create session and generate tokens
+	tokenPair, err := h.sessionService.CreateSession(userInfo.ID)
+	if err != nil {
+		slog.Error("Failed to create session after login", "error", err, "user_id", userInfo.ID)
+		errorInfo := errors.GetErrorInfo(errors.ErrCodeInternalError)
+		return c.JSON(errorInfo.HTTPStatus, dto.ErrorResponse{
+			Code:        string(errorInfo.Code),
+			Message:     errorInfo.Message,
+			Description: "Failed to create session",
+		})
+	}
+
+	// Create response with tokens
+	loginResponse := dto.LoginResponse{
+		UserInfo:     *userInfo,
+		AccessToken:  tokenPair.AccessToken,
+		RefreshToken: tokenPair.RefreshToken,
+		ExpiresAt:    tokenPair.AccessTokenExpiresAt,
+	}
+
 	slog.Info("User login successful", "user_id", userInfo.ID, "email", userInfo.Email)
-	return c.JSON(http.StatusOK, userInfo)
+	return c.JSON(http.StatusOK, loginResponse)
 }
 
 // GoogleSignup handles user registration using Google OAuth
@@ -272,4 +314,47 @@ func (h *AuthHandler) GoogleLogin(c echo.Context) error {
 
 	slog.Info("Google user login successful", "user_id", userInfo.ID, "email", userInfo.Email)
 	return c.JSON(http.StatusOK, userInfo)
+}
+
+// Logout handles user logout
+func (h *AuthHandler) Logout(c echo.Context) error {
+	// Get user ID from JWT claims (set by JWT middleware)
+	userID, ok := c.Get("user_id").(uint)
+	if !ok {
+		slog.Error("Failed to get user ID from JWT token")
+		errorInfo := errors.GetErrorInfo(errors.ErrCodeUnauthorized)
+		return c.JSON(errorInfo.HTTPStatus, dto.ErrorResponse{
+			Code:        string(errorInfo.Code),
+			Message:     errorInfo.Message,
+			Description: "Invalid token: user ID not found",
+		})
+	}
+
+	accessToken, ok := c.Get("access_token").(string)
+	if !ok {
+		slog.Error("Failed to get access token from context")
+		errorInfo := errors.GetErrorInfo(errors.ErrCodeInternalError)
+		return c.JSON(errorInfo.HTTPStatus, dto.ErrorResponse{
+			Code:        string(errorInfo.Code),
+			Message:     errorInfo.Message,
+			Description: "Failed to get token information",
+		})
+	}
+
+	// Call session service to logout using JWT user_id
+	err := h.sessionService.Logout(userID, accessToken)
+	if err != nil {
+		slog.Error("Failed to logout user", "error", err, "user_id", userID)
+		errorInfo := errors.GetErrorInfo(errors.ErrCodeInternalError)
+		return c.JSON(errorInfo.HTTPStatus, dto.ErrorResponse{
+			Code:        string(errorInfo.Code),
+			Message:     errorInfo.Message,
+			Description: "Logout failed",
+		})
+	}
+
+	slog.Info("User logout successful", "user_id", userID)
+	return c.JSON(http.StatusOK, map[string]string{
+		"message": "Logout successful",
+	})
 }
