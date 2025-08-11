@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"log/slog"
-	"net/http"
 	"strings"
 
 	"strikepad-backend/internal/errors"

@@ -12,7 +12,6 @@ import (
 // JWTClaims represents the claims structure for JWT tokens
 type JWTClaims struct {
 	UserID uint   `json:"user_id"`
-	Email  string `json:"email"`
 	Type   string `json:"type"` // "access" or "refresh"
 	jwt.RegisteredClaims
 }
@@ -43,15 +42,15 @@ func NewJWTService() *JWTService {
 }
 
 // GenerateTokenPair generates both access and refresh tokens
-func (j *JWTService) GenerateTokenPair(userID uint, email string) (*TokenPair, error) {
+func (j *JWTService) GenerateTokenPair(userID uint) (*TokenPair, error) {
 	// Generate access token (1 hour)
-	accessToken, accessExpiresAt, err := j.generateToken(userID, email, "access", time.Hour)
+	accessToken, accessExpiresAt, err := j.generateToken(userID, "access", time.Hour)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate access token: %w", err)
 	}
 
 	// Generate refresh token (30 days)
-	refreshToken, refreshExpiresAt, err := j.generateToken(userID, email, "refresh", 30*24*time.Hour)
+	refreshToken, refreshExpiresAt, err := j.generateToken(userID, "refresh", 30*24*time.Hour)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate refresh token: %w", err)
 	}
@@ -65,13 +64,12 @@ func (j *JWTService) GenerateTokenPair(userID uint, email string) (*TokenPair, e
 }
 
 // generateToken generates a JWT token with specified type and duration
-func (j *JWTService) generateToken(userID uint, email, tokenType string, duration time.Duration) (string, time.Time, error) {
+func (j *JWTService) generateToken(userID uint, tokenType string, duration time.Duration) (string, time.Time, error) {
 	now := time.Now()
 	expiresAt := now.Add(duration)
 
 	claims := JWTClaims{
 		UserID: userID,
-		Email:  email,
 		Type:   tokenType,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expiresAt),
