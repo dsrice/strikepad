@@ -53,8 +53,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       };
 
       // Store tokens separately
-      localStorage.setItem('access_token', loginResponse.access_token);
-      localStorage.setItem('refresh_token', loginResponse.refresh_token);
+        if (loginResponse.access_token) {
+            localStorage.setItem('access_token', loginResponse.access_token);
+        }
+        if (loginResponse.refresh_token) {
+            localStorage.setItem('refresh_token', loginResponse.refresh_token);
+        }
       
       setUser(userInfo);
       localStorage.setItem('user', JSON.stringify(userInfo));
@@ -85,8 +89,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       };
 
       // Store tokens separately
-      localStorage.setItem('access_token', response.access_token);
-      localStorage.setItem('refresh_token', response.refresh_token);
+        if (response.access_token) {
+            localStorage.setItem('access_token', response.access_token);
+        }
+        if (response.refresh_token) {
+            localStorage.setItem('refresh_token', response.refresh_token);
+        }
       
       setUser(userInfo);
       localStorage.setItem('user', JSON.stringify(userInfo));
