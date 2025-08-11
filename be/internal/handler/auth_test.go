@@ -22,20 +22,22 @@ import (
 
 type AuthHandlerTestSuite struct {
 	suite.Suite
-	authHandler handler.AuthHandlerInterface
-	mockService *mocks.MockAuthServiceInterface
-	echo        *echo.Echo
+	authHandler        handler.AuthHandlerInterface
+	mockService        *mocks.MockAuthServiceInterface
+	mockSessionService *mocks.MockSessionServiceInterface
+	echo               *echo.Echo
 }
 
 func (suite *AuthHandlerTestSuite) SetupTest() {
 	suite.mockService = new(mocks.MockAuthServiceInterface)
-	mockSessionService := new(mocks.MockSessionServiceInterface)
-	suite.authHandler = handler.NewAuthHandler(suite.mockService, mockSessionService)
+	suite.mockSessionService = new(mocks.MockSessionServiceInterface)
+	suite.authHandler = handler.NewAuthHandler(suite.mockService, suite.mockSessionService)
 	suite.echo = echo.New()
 }
 
 func (suite *AuthHandlerTestSuite) TearDownTest() {
 	suite.mockService.AssertExpectations(suite.T())
+	suite.mockSessionService.AssertExpectations(suite.T())
 }
 
 func (suite *AuthHandlerTestSuite) TestSignup() {
@@ -69,6 +71,15 @@ func (suite *AuthHandlerTestSuite) TestSignup() {
 						req.Password == "Password123!" &&
 						req.DisplayName == "Test User"
 				})).Return(expectedResponse, nil)
+
+				// Mock session creation for successful signup
+				expectedTokenPair := &auth.TokenPair{
+					AccessToken:           "test-access-token",
+					RefreshToken:          "test-refresh-token",
+					AccessTokenExpiresAt:  time.Now().Add(time.Hour),
+					RefreshTokenExpiresAt: time.Now().Add(24 * time.Hour),
+				}
+				suite.mockSessionService.On("CreateSession", uint(1)).Return(expectedTokenPair, nil)
 			},
 			expectedStatus: http.StatusCreated,
 			expectedData: &dto.SignupResponse{
@@ -262,6 +273,15 @@ func (suite *AuthHandlerTestSuite) TestLogin() {
 				suite.mockService.On("Login", mock.MatchedBy(func(req *dto.LoginRequest) bool {
 					return req.Email == "test@example.com" && req.Password == "Password123!"
 				})).Return(expectedResponse, nil)
+
+				// Mock session creation for successful login
+				expectedTokenPair := &auth.TokenPair{
+					AccessToken:           "test-access-token",
+					RefreshToken:          "test-refresh-token",
+					AccessTokenExpiresAt:  time.Now().Add(time.Hour),
+					RefreshTokenExpiresAt: time.Now().Add(24 * time.Hour),
+				}
+				suite.mockSessionService.On("CreateSession", uint(1)).Return(expectedTokenPair, nil)
 			},
 			expectedStatus: http.StatusOK,
 			expectedData: &dto.UserInfo{
@@ -382,8 +402,7 @@ func (suite *AuthHandlerTestSuite) TestLogin() {
 
 func (suite *AuthHandlerTestSuite) TestNewAuthHandler() {
 	// Test that NewAuthHandler creates a valid handler
-	mockSessionService := new(mocks.MockSessionServiceInterface)
-	h := handler.NewAuthHandler(suite.mockService, mockSessionService)
+	h := handler.NewAuthHandler(suite.mockService, suite.mockSessionService)
 	assert.NotNil(suite.T(), h)
 }
 

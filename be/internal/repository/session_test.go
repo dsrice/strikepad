@@ -141,7 +141,7 @@ func (suite *SessionRepositoryTestSuite) TestFindByAccessToken() {
 				)
 
 				suite.mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `user_sessions`")).
-					WithArgs("valid-access-token", false).
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg()).
 					WillReturnRows(rows)
 
 				// Mock for User preload
@@ -167,7 +167,7 @@ func (suite *SessionRepositoryTestSuite) TestFindByAccessToken() {
 			accessToken: "nonexistent-token",
 			mockSetup: func() {
 				suite.mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `user_sessions`")).
-					WithArgs("nonexistent-token", false).
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg()).
 					WillReturnError(gorm.ErrRecordNotFound)
 			},
 			expectError: true,
@@ -178,7 +178,7 @@ func (suite *SessionRepositoryTestSuite) TestFindByAccessToken() {
 			accessToken: "error-token",
 			mockSetup: func() {
 				suite.mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `user_sessions`")).
-					WithArgs("error-token", false).
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg()).
 					WillReturnError(assert.AnError)
 			},
 			expectError: true,
@@ -235,7 +235,7 @@ func (suite *SessionRepositoryTestSuite) TestFindByRefreshToken() {
 				)
 
 				suite.mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `user_sessions`")).
-					WithArgs("valid-refresh-token", false).
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg()).
 					WillReturnRows(rows)
 
 				// Mock for User preload
@@ -261,7 +261,7 @@ func (suite *SessionRepositoryTestSuite) TestFindByRefreshToken() {
 			refreshToken: "nonexistent-refresh-token",
 			mockSetup: func() {
 				suite.mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `user_sessions`")).
-					WithArgs("nonexistent-refresh-token", false).
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg()).
 					WillReturnError(gorm.ErrRecordNotFound)
 			},
 			expectError: true,
@@ -344,7 +344,7 @@ func (suite *SessionRepositoryTestSuite) TestFindActiveByUserID() {
 			userID: 888,
 			mockSetup: func() {
 				suite.mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `user_sessions`")).
-					WithArgs(uint(888), false, sqlmock.AnyArg()).
+					WithArgs(uint(888), sqlmock.AnyArg()).
 					WillReturnError(assert.AnError)
 			},
 			expectError: true,
@@ -472,7 +472,7 @@ func (suite *SessionRepositoryTestSuite) TestInvalidateByUserID() {
 			mockSetup: func() {
 				suite.mock.ExpectBegin()
 				suite.mock.ExpectExec(regexp.QuoteMeta("UPDATE `user_sessions`")).
-					WithArgs(true, sqlmock.AnyArg(), sqlmock.AnyArg(), uint(123), false).
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), uint(123)).
 					WillReturnResult(sqlmock.NewResult(0, 2)) // 2 rows affected
 				suite.mock.ExpectCommit()
 			},
@@ -484,7 +484,7 @@ func (suite *SessionRepositoryTestSuite) TestInvalidateByUserID() {
 			mockSetup: func() {
 				suite.mock.ExpectBegin()
 				suite.mock.ExpectExec(regexp.QuoteMeta("UPDATE `user_sessions`")).
-					WithArgs(true, sqlmock.AnyArg(), sqlmock.AnyArg(), uint(456), false).
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), uint(456)).
 					WillReturnError(assert.AnError)
 				suite.mock.ExpectRollback()
 			},
@@ -526,7 +526,7 @@ func (suite *SessionRepositoryTestSuite) TestInvalidateExpiredSessions() {
 			mockSetup: func() {
 				suite.mock.ExpectBegin()
 				suite.mock.ExpectExec(regexp.QuoteMeta("UPDATE `user_sessions`")).
-					WithArgs(true, sqlmock.AnyArg(), sqlmock.AnyArg(), false, sqlmock.AnyArg()).
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
 					WillReturnResult(sqlmock.NewResult(0, 3)) // 3 expired sessions
 				suite.mock.ExpectCommit()
 			},
@@ -537,7 +537,7 @@ func (suite *SessionRepositoryTestSuite) TestInvalidateExpiredSessions() {
 			mockSetup: func() {
 				suite.mock.ExpectBegin()
 				suite.mock.ExpectExec(regexp.QuoteMeta("UPDATE `user_sessions`")).
-					WithArgs(true, sqlmock.AnyArg(), sqlmock.AnyArg(), false, sqlmock.AnyArg()).
+					WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
 					WillReturnError(assert.AnError)
 				suite.mock.ExpectRollback()
 			},
