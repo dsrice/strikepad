@@ -6,8 +6,8 @@ const mockLogout = jest.fn();
 const mockUser = {
     id: 1,
     email: 'test@example.com',
-    displayName: 'Test User',
-    emailVerified: true,
+    display_name: 'Test User',
+    email_verified: true,
     createdAt: '2023-01-01T00:00:00Z',
     updatedAt: '2023-01-01T00:00:00Z',
 };
@@ -43,7 +43,7 @@ describe('Dashboard', () => {
     it('displays unverified email status when user email is not verified', () => {
         const unverifiedUser = {
             ...mockUser,
-            emailVerified: false,
+            email_verified: false,
         };
 
         mockUseAuth.mockReturnValue({
@@ -76,7 +76,7 @@ describe('Dashboard', () => {
     it('renders properly when user displayName is null or undefined', () => {
         const userWithoutDisplayName = {
             ...mockUser,
-            displayName: undefined,
+            display_name: undefined,
         };
 
         mockUseAuth.mockReturnValue({
