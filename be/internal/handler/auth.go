@@ -64,6 +64,17 @@ func (h *AuthHandler) handleValidationError(c echo.Context, err error, operation
 }
 
 // Signup handles user registration
+// @Summary User signup
+// @Description Create a new user account with email and password
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body dto.SignupRequest true "Signup request"
+// @Success 201 {object} dto.AuthResponse "User created successfully"
+// @Failure 400 {object} dto.ErrorResponse "Bad request"
+// @Failure 409 {object} dto.ErrorResponse "User already exists"
+// @Failure 500 {object} dto.ErrorResponse "Internal server error"
+// @Router /api/auth/signup [post]
 func (h *AuthHandler) Signup(c echo.Context) error {
 	var req dto.SignupRequest
 
@@ -152,6 +163,17 @@ func (h *AuthHandler) Signup(c echo.Context) error {
 }
 
 // Login handles user authentication
+// @Summary User login
+// @Description Authenticate user with email and password
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body dto.LoginRequest true "Login request"
+// @Success 200 {object} dto.LoginResponse "Login successful"
+// @Failure 400 {object} dto.ErrorResponse "Bad request"
+// @Failure 401 {object} dto.ErrorResponse "Invalid credentials"
+// @Failure 500 {object} dto.ErrorResponse "Internal server error"
+// @Router /api/auth/login [post]
 func (h *AuthHandler) Login(c echo.Context) error {
 	var req dto.LoginRequest
 
@@ -219,6 +241,17 @@ func (h *AuthHandler) Login(c echo.Context) error {
 }
 
 // GoogleSignup handles user registration using Google OAuth
+// @Summary Google OAuth signup
+// @Description Create a new user account using Google OAuth
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body dto.GoogleSignupRequest true "Google signup request"
+// @Success 201 {object} dto.SignupResponse "User created successfully"
+// @Failure 400 {object} dto.ErrorResponse "Bad request"
+// @Failure 409 {object} dto.ErrorResponse "User already exists"
+// @Failure 500 {object} dto.ErrorResponse "Internal server error"
+// @Router /api/auth/google/signup [post]
 func (h *AuthHandler) GoogleSignup(c echo.Context) error {
 	var req dto.GoogleSignupRequest
 
@@ -273,6 +306,17 @@ func (h *AuthHandler) GoogleSignup(c echo.Context) error {
 }
 
 // GoogleLogin handles user authentication using Google OAuth
+// @Summary Google OAuth login
+// @Description Authenticate user using Google OAuth
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body dto.GoogleLoginRequest true "Google login request"
+// @Success 200 {object} dto.UserInfo "Login successful"
+// @Failure 400 {object} dto.ErrorResponse "Bad request"
+// @Failure 401 {object} dto.ErrorResponse "Invalid credentials"
+// @Failure 500 {object} dto.ErrorResponse "Internal server error"
+// @Router /api/auth/google/login [post]
 func (h *AuthHandler) GoogleLogin(c echo.Context) error {
 	var req dto.GoogleLoginRequest
 
@@ -320,6 +364,16 @@ func (h *AuthHandler) GoogleLogin(c echo.Context) error {
 }
 
 // Logout handles user logout
+// @Summary User logout
+// @Description Logout current user and invalidate session
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]string "Logout successful"
+// @Failure 401 {object} dto.ErrorResponse "Unauthorized"
+// @Failure 500 {object} dto.ErrorResponse "Internal server error"
+// @Router /api/auth/logout [post]
 func (h *AuthHandler) Logout(c echo.Context) error {
 	// Get user ID from JWT claims (set by JWT middleware)
 	userID, ok := c.Get("user_id").(uint)

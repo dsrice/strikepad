@@ -17,8 +17,31 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	echoSwagger "github.com/swaggo/echo-swagger"
 	"gopkg.in/natefinch/lumberjack.v2"
+
+	_ "strikepad-backend/docs" // Import generated docs
 )
+
+// @title StrikePad Backend API
+// @version 1.0
+// @description This is the StrikePad backend API server.
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.url http://www.striker.com/support
+// @contact.email support@striker.com
+
+// @license.name MIT
+// @license.url https://opensource.org/licenses/MIT
+
+// @host localhost:8080
+// @BasePath /
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
 
 func main() {
 	// Initialize structured logger
@@ -41,6 +64,11 @@ func main() {
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello from StrikePad Backend!")
 	})
+
+	// Swagger endpoint (only in development)
+	if os.Getenv("APP_ENV") != "production" {
+		e.GET("/swagger/*", echoSwagger.WrapHandler)
+	}
 
 	err := c.Invoke(
 		func(

@@ -24,6 +24,16 @@ func NewUserHandler(userService service.UserServiceInterface) UserHandlerInterfa
 }
 
 // Me returns current user information
+// @Summary Get current user information
+// @Description Get information about the currently authenticated user
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} dto.UserInfo "User information"
+// @Failure 401 {object} dto.ErrorResponse "Unauthorized"
+// @Failure 500 {object} dto.ErrorResponse "Internal server error"
+// @Router /api/user/me [get]
 func (h *UserHandler) Me(c echo.Context) error {
 	// Get user ID from JWT claims (set by JWT middleware)
 	userID, ok := c.Get("user_id").(uint)
