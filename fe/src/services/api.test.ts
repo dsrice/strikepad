@@ -11,6 +11,7 @@ jest.mock('./api', () => ({
         googleSignup: jest.fn(),
         googleLogin: jest.fn(),
         logout: jest.fn(),
+        refresh: jest.fn(),
     },
     healthAPI: {
         check: jest.fn(),
@@ -280,6 +281,61 @@ describe('authAPI Interface Tests', () => {
             mockedAuthAPI.logout.mockRejectedValue(new Error('Unauthorized'));
 
             await expect(authAPI.logout()).rejects.toThrow('Unauthorized');
+        });
+    });
+
+    describe('refresh', () => {
+        it('successfully refreshes tokens', async () => {
+            const mockResponse = {
+                access_token: 'new-access-token',
+                refresh_token: 'new-refresh-token',
+                expires_at: '2024-12-31T23:59:59Z',
+            };
+
+            mockedAuthAPI.refresh.mockResolvedValue(mockResponse);
+
+            const refreshRequest = {
+                access_token: 'old-access-token',
+                refresh_token: 'old-refresh-token',
+            };
+
+            const result = await authAPI.refresh(refreshRequest);
+
+            expect(authAPI.refresh).toHaveBeenCalledWith(refreshRequest);
+            expect(result).toEqual(mockResponse);
+        });
+
+        it('handles refresh failure with invalid tokens', async () => {
+            mockedAuthAPI.refresh.mockRejectedValue(new Error('Invalid refresh token'));
+
+            const refreshRequest = {
+                access_token: 'invalid-access-token',
+                refresh_token: 'invalid-refresh-token',
+            };
+
+            await expect(authAPI.refresh(refreshRequest)).rejects.toThrow('Invalid refresh token');
+        });
+
+        it('handles refresh failure with expired tokens', async () => {
+            mockedAuthAPI.refresh.mockRejectedValue(new Error('Refresh token expired'));
+
+            const refreshRequest = {
+                access_token: 'expired-access-token',
+                refresh_token: 'expired-refresh-token',
+            };
+
+            await expect(authAPI.refresh(refreshRequest)).rejects.toThrow('Refresh token expired');
+        });
+
+        it('handles refresh network error', async () => {
+            mockedAuthAPI.refresh.mockRejectedValue(new Error('Network error occurred'));
+
+            const refreshRequest = {
+                access_token: 'valid-access-token',
+                refresh_token: 'valid-refresh-token',
+            };
+
+            await expect(authAPI.refresh(refreshRequest)).rejects.toThrow('Network error occurred');
         });
     });
 });

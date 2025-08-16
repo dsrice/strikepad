@@ -676,4 +676,238 @@ describe('AuthContext', () => {
 
         consoleErrorSpy.mockRestore();
     });
+
+    it('handles getProfile failure during initialization', async () => {
+        // Set token in localStorage but make getProfile fail
+        localStorage.setItem('access_token', 'invalid-token');
+        mockedAuthAPI.getProfile.mockRejectedValue(new Error('Token expired'));
+
+        renderWithAuthProvider();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('auth-status')).toHaveTextContent('not-authenticated');
+            expect(screen.getByTestId('user-info')).toHaveTextContent('no-user');
+            expect(screen.getByTestId('loading-status')).toHaveTextContent('not-loading');
+        });
+
+        expect(mockedAuthAPI.getProfile).toHaveBeenCalled();
+    });
+
+    it('handles getProfile failure after successful login', async () => {
+        const mockLoginResponse = {
+            access_token: 'test-access-token',
+            refresh_token: 'test-refresh-token',
+            expires_at: '2024-12-31T23:59:59Z',
+        };
+
+        mockedAuthAPI.login.mockResolvedValue(mockLoginResponse);
+        mockedAuthAPI.getProfile.mockRejectedValue(new Error('Profile fetch failed'));
+
+        renderWithAuthProvider();
+
+        const loginButton = screen.getByText('Login');
+        fireEvent.click(loginButton);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('auth-status')).toHaveTextContent('not-authenticated');
+            expect(screen.getByTestId('error-status')).toHaveTextContent('Profile fetch failed');
+            expect(screen.getByTestId('loading-status')).toHaveTextContent('not-loading');
+        });
+
+        expect(mockedAuthAPI.login).toHaveBeenCalled();
+        expect(mockedAuthAPI.getProfile).toHaveBeenCalled();
+    });
+
+    it('handles getProfile failure after successful signup', async () => {
+        const mockSignupResponse = {
+            id: 2,
+            email: 'newuser@example.com',
+            display_name: 'New User',
+            email_verified: false,
+            access_token: 'access_token_123',
+            refresh_token: 'refresh_token_456',
+            expires_at: '2024-12-31T23:59:59Z',
+            created_at: '2023-01-01T00:00:00Z',
+        };
+
+        mockedAuthAPI.signup.mockResolvedValue(mockSignupResponse);
+        mockedAuthAPI.getProfile.mockRejectedValue(new Error('Profile fetch failed'));
+
+        const TestComponentWithSignup = () => {
+            const {signup, isAuthenticated, user, isLoading, error} = useAuth();
+
+            return (
+                <div>
+                    <div data-testid="signup-auth-status">
+                        {isAuthenticated ? 'authenticated' : 'not-authenticated'}
+                    </div>
+                    <div data-testid="signup-loading-status">
+                        {isLoading ? 'loading' : 'not-loading'}
+                    </div>
+                    <div data-testid="signup-error-status">
+                        {error || 'no-error'}
+                    </div>
+                    <div data-testid="signup-user-info">
+                        {user ? `${user.email}-${user.display_name}` : 'no-user'}
+                    </div>
+                    <button onClick={async () => {
+                        try {
+                            await signup('newuser@example.com', 'password123', 'New User');
+                        } catch (error) {
+                            // Error is already handled in context
+                        }
+                    }}>
+                        Signup
+                    </button>
+                </div>
+            );
+        };
+
+        render(
+            <BrowserRouter>
+                <AuthProvider>
+                    <TestComponentWithSignup/>
+                </AuthProvider>
+            </BrowserRouter>
+        );
+
+        const signupButton = screen.getByText('Signup');
+        fireEvent.click(signupButton);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('signup-auth-status')).toHaveTextContent('not-authenticated');
+            expect(screen.getByTestId('signup-error-status')).toHaveTextContent('Profile fetch failed');
+            expect(screen.getByTestId('signup-loading-status')).toHaveTextContent('not-loading');
+        });
+
+        expect(mockedAuthAPI.signup).toHaveBeenCalled();
+        expect(mockedAuthAPI.getProfile).toHaveBeenCalled();
+    });
+
+    it('handles getProfile failure after Google signup', async () => {
+        const mockGoogleSignupResponse = {
+            id: 3,
+            email: 'google@example.com',
+            display_name: 'Google User',
+            email_verified: true,
+            access_token: 'google-access-token',
+            refresh_token: 'google-refresh-token',
+            expires_at: '2024-12-31T23:59:59Z',
+            created_at: '2023-01-01T00:00:00Z',
+        };
+
+        mockedAuthAPI.googleSignup.mockResolvedValue(mockGoogleSignupResponse);
+        mockedAuthAPI.getProfile.mockRejectedValue(new Error('Profile fetch failed'));
+
+        const TestComponentWithGoogleSignup = () => {
+            const {googleSignup, isAuthenticated, user, isLoading, error} = useAuth();
+
+            return (
+                <div>
+                    <div data-testid="auth-status">
+                        {isAuthenticated ? 'authenticated' : 'not-authenticated'}
+                    </div>
+                    <div data-testid="loading-status">
+                        {isLoading ? 'loading' : 'not-loading'}
+                    </div>
+                    <div data-testid="error-status">
+                        {error || 'no-error'}
+                    </div>
+                    <div data-testid="user-info">
+                        {user ? `${user.email}-${user.display_name}` : 'no-user'}
+                    </div>
+                    <button onClick={async () => {
+                        try {
+                            await googleSignup('google-access-token');
+                        } catch (error) {
+                            // Error is already handled in context
+                        }
+                    }}>
+                        Google Signup
+                    </button>
+                </div>
+            );
+        };
+
+        render(
+            <BrowserRouter>
+                <AuthProvider>
+                    <TestComponentWithGoogleSignup/>
+                </AuthProvider>
+            </BrowserRouter>
+        );
+
+        const googleSignupButton = screen.getByText('Google Signup');
+        fireEvent.click(googleSignupButton);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('auth-status')).toHaveTextContent('not-authenticated');
+            expect(screen.getByTestId('error-status')).toHaveTextContent('Profile fetch failed');
+            expect(screen.getByTestId('loading-status')).toHaveTextContent('not-loading');
+        });
+
+        expect(mockedAuthAPI.googleSignup).toHaveBeenCalled();
+        expect(mockedAuthAPI.getProfile).toHaveBeenCalled();
+    });
+
+    it('handles getProfile failure after Google login', async () => {
+        const mockGoogleLoginResponse = {
+            access_token: 'google-access-token',
+            refresh_token: 'google-refresh-token',
+            expires_at: '2024-12-31T23:59:59Z',
+        };
+
+        mockedAuthAPI.googleLogin.mockResolvedValue(mockGoogleLoginResponse);
+        mockedAuthAPI.getProfile.mockRejectedValue(new Error('Profile fetch failed'));
+
+        const TestComponentWithGoogleLogin = () => {
+            const {googleLogin, isAuthenticated, user, isLoading, error} = useAuth();
+
+            return (
+                <div>
+                    <div data-testid="auth-status">
+                        {isAuthenticated ? 'authenticated' : 'not-authenticated'}
+                    </div>
+                    <div data-testid="loading-status">
+                        {isLoading ? 'loading' : 'not-loading'}
+                    </div>
+                    <div data-testid="error-status">
+                        {error || 'no-error'}
+                    </div>
+                    <div data-testid="user-info">
+                        {user ? `${user.email}-${user.display_name}` : 'no-user'}
+                    </div>
+                    <button onClick={async () => {
+                        try {
+                            await googleLogin('google-access-token');
+                        } catch (error) {
+                            // Error is already handled in context
+                        }
+                    }}>
+                        Google Login
+                    </button>
+                </div>
+            );
+        };
+
+        render(
+            <BrowserRouter>
+                <AuthProvider>
+                    <TestComponentWithGoogleLogin/>
+                </AuthProvider>
+            </BrowserRouter>
+        );
+
+        const googleLoginButton = screen.getByText('Google Login');
+        fireEvent.click(googleLoginButton);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('auth-status')).toHaveTextContent('not-authenticated');
+            expect(screen.getByTestId('error-status')).toHaveTextContent('Profile fetch failed');
+            expect(screen.getByTestId('loading-status')).toHaveTextContent('not-loading');
+        });
+
+        expect(mockedAuthAPI.googleLogin).toHaveBeenCalled();
+        expect(mockedAuthAPI.getProfile).toHaveBeenCalled();
+    });
 });
