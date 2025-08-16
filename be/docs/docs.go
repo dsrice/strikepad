@@ -459,22 +459,9 @@ const docTemplate = `{
                 "access_token": {
                     "type": "string"
                 },
-                "display_name": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string",
-                    "format": "email"
-                },
-                "email_verified": {
-                    "type": "boolean"
-                },
                 "expires_at": {
                     "type": "string",
                     "format": "date-time"
-                },
-                "id": {
-                    "type": "integer"
                 },
                 "refresh_token": {
                     "type": "string"

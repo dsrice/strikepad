@@ -228,9 +228,8 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		})
 	}
 
-	// Create response with tokens
+	// Create response with tokens only
 	loginResponse := dto.LoginResponse{
-		UserInfo:     *userInfo,
 		AccessToken:  tokenPair.AccessToken,
 		RefreshToken: tokenPair.RefreshToken,
 		ExpiresAt:    tokenPair.AccessTokenExpiresAt,

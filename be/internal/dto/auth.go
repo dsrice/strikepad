@@ -39,7 +39,6 @@ type LoginResponse struct {
 	ExpiresAt    time.Time `json:"expires_at" swaggertype:"string" format:"date-time"`
 	AccessToken  string    `json:"access_token" swaggertype:"string"`
 	RefreshToken string    `json:"refresh_token" swaggertype:"string"`
-	UserInfo     `json:",inline"`
 }
 
 // UserInfo represents basic user information

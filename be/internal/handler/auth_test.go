@@ -388,13 +388,12 @@ func (suite *AuthHandlerTestSuite) TestLogin() {
 			}
 
 			if tt.expectedData != nil {
-				var response dto.UserInfo
+				var response dto.LoginResponse
 				err = json.Unmarshal(rec.Body.Bytes(), &response)
 				assert.NoError(suite.T(), err)
-				assert.Equal(suite.T(), tt.expectedData.ID, response.ID, tt.description)
-				assert.Equal(suite.T(), tt.expectedData.Email, response.Email, tt.description)
-				assert.Equal(suite.T(), tt.expectedData.DisplayName, response.DisplayName, tt.description)
-				assert.Equal(suite.T(), tt.expectedData.EmailVerified, response.EmailVerified, tt.description)
+				assert.NotEmpty(suite.T(), response.AccessToken, "AccessToken should be set")
+				assert.NotEmpty(suite.T(), response.RefreshToken, "RefreshToken should be set")
+				assert.NotZero(suite.T(), response.ExpiresAt, "ExpiresAt should be set")
 			}
 		})
 	}
