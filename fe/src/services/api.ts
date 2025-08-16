@@ -8,7 +8,8 @@ import {
   SignupResponse,
     ErrorResponse,
     RefreshRequest,
-    RefreshResponse
+    RefreshResponse,
+    LoginResponse
 } from '../types/auth';
 
 // Flag to prevent infinite refresh loops
@@ -150,9 +151,9 @@ const getAuthHeaders = () => {
 // Auth API functions
 export const authAPI = {
   // Login user
-  login: async (credentials: LoginRequest): Promise<UserInfo> => {
+    login: async (credentials: LoginRequest): Promise<LoginResponse> => {
     try {
-      const response: AxiosResponse<UserInfo> = await api.post('/auth/login', credentials);
+        const response: AxiosResponse<LoginResponse> = await api.post('/auth/login', credentials);
       return response.data;
     } catch (error: any) {
       if (error.response?.data) {
@@ -201,9 +202,9 @@ export const authAPI = {
   },
 
   // Google OAuth login
-  googleLogin: async (googleData: GoogleLoginRequest): Promise<UserInfo> => {
+    googleLogin: async (googleData: GoogleLoginRequest): Promise<LoginResponse> => {
     try {
-      const response: AxiosResponse<UserInfo> = await api.post('/auth/google/login', googleData);
+        const response: AxiosResponse<LoginResponse> = await api.post('/auth/google/login', googleData);
       return response.data;
     } catch (error: any) {
       if (error.response?.data) {

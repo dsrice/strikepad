@@ -25,6 +25,12 @@ export interface RefreshRequest {
 }
 
 export interface RefreshResponse {
+  access_token: string;
+  refresh_token: string;
+  expires_at: string;
+}
+
+export interface LoginResponse {
     access_token: string;
     refresh_token: string;
     expires_at: string;

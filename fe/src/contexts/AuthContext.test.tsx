@@ -103,6 +103,12 @@ describe('AuthContext', () => {
     });
 
     it('handles successful login', async () => {
+        const mockLoginResponse = {
+            access_token: 'test-access-token',
+            refresh_token: 'test-refresh-token',
+            expires_at: '2024-12-31T23:59:59Z',
+        };
+
         const mockUser = {
             id: 1,
             email: 'test@example.com',
@@ -110,7 +116,8 @@ describe('AuthContext', () => {
             email_verified: false,
         };
 
-        mockedAuthAPI.login.mockResolvedValue(mockUser);
+        mockedAuthAPI.login.mockResolvedValue(mockLoginResponse);
+        mockedAuthAPI.getProfile.mockResolvedValue(mockUser);
 
         renderWithAuthProvider();
 
@@ -134,6 +141,7 @@ describe('AuthContext', () => {
             email: 'test@example.com',
             password: 'password',
         });
+        expect(mockedAuthAPI.getProfile).toHaveBeenCalled();
     });
 
     it('handles login failure', async () => {
@@ -158,6 +166,12 @@ describe('AuthContext', () => {
     });
 
     it('handles logout', async () => {
+        const mockLoginResponse = {
+            access_token: 'test-access-token',
+            refresh_token: 'test-refresh-token',
+            expires_at: '2024-12-31T23:59:59Z',
+        };
+
         const mockUser = {
             id: 1,
             email: 'test@example.com',
@@ -165,7 +179,8 @@ describe('AuthContext', () => {
             email_verified: false,
         };
 
-        mockedAuthAPI.login.mockResolvedValue(mockUser);
+        mockedAuthAPI.login.mockResolvedValue(mockLoginResponse);
+        mockedAuthAPI.getProfile.mockResolvedValue(mockUser);
 
         renderWithAuthProvider();
 
@@ -188,7 +203,13 @@ describe('AuthContext', () => {
         });
     });
 
-    it('persists user session in localStorage', async () => {
+    it('persists tokens in localStorage', async () => {
+        const mockLoginResponse = {
+            access_token: 'test-access-token',
+            refresh_token: 'test-refresh-token',
+            expires_at: '2024-12-31T23:59:59Z',
+        };
+
         const mockUser = {
             id: 1,
             email: 'test@example.com',
@@ -196,7 +217,8 @@ describe('AuthContext', () => {
             email_verified: false,
         };
 
-        mockedAuthAPI.login.mockResolvedValue(mockUser);
+        mockedAuthAPI.login.mockResolvedValue(mockLoginResponse);
+        mockedAuthAPI.getProfile.mockResolvedValue(mockUser);
 
         renderWithAuthProvider();
 
@@ -207,12 +229,12 @@ describe('AuthContext', () => {
             expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated');
         });
 
-        // Check if user is stored in localStorage
-        const storedUser = localStorage.getItem('user');
-        expect(storedUser).toBe(JSON.stringify(mockUser));
+        // Check if tokens are stored in localStorage
+        expect(localStorage.setItem).toHaveBeenCalledWith('access_token', 'test-access-token');
+        expect(localStorage.setItem).toHaveBeenCalledWith('refresh_token', 'test-refresh-token');
     });
 
-    it('restores session from localStorage on initialization', () => {
+    it('restores session from localStorage on initialization', async () => {
         const mockUser = {
             id: 1,
             email: 'test@example.com',
@@ -220,13 +242,18 @@ describe('AuthContext', () => {
             email_verified: false,
         };
 
-        // Pre-populate localStorage
-        localStorage.setItem('user', JSON.stringify(mockUser));
+        // Pre-populate localStorage with token
+        localStorage.setItem('access_token', 'existing-token');
+        mockedAuthAPI.getProfile.mockResolvedValue(mockUser);
 
         renderWithAuthProvider();
 
-        expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated');
-        expect(screen.getByTestId('user-info')).toHaveTextContent('test@example.com-testuser');
+        await waitFor(() => {
+            expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated');
+            expect(screen.getByTestId('user-info')).toHaveTextContent('test@example.com-testuser');
+        });
+
+        expect(mockedAuthAPI.getProfile).toHaveBeenCalled();
     });
 
     it('clears localStorage on logout', async () => {
@@ -237,12 +264,16 @@ describe('AuthContext', () => {
             email_verified: false,
         };
 
-        localStorage.setItem('user', JSON.stringify(mockUser));
+        localStorage.setItem('access_token', 'existing-token');
+        localStorage.setItem('refresh_token', 'existing-refresh-token');
+        mockedAuthAPI.getProfile.mockResolvedValue(mockUser);
 
         renderWithAuthProvider();
 
         // Should start authenticated due to localStorage
-        expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated');
+        await waitFor(() => {
+            expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated');
+        });
 
         // Logout
         const logoutButton = screen.getByText('Logout');
@@ -253,7 +284,8 @@ describe('AuthContext', () => {
         });
 
         // Check localStorage is cleared
-        expect(localStorage.getItem('user')).toBeNull();
+        expect(localStorage.removeItem).toHaveBeenCalledWith('access_token');
+        expect(localStorage.removeItem).toHaveBeenCalledWith('refresh_token');
     });
 
     it('handles successful signup', async () => {
@@ -268,7 +300,15 @@ describe('AuthContext', () => {
             created_at: '2023-01-01T00:00:00Z',
         };
 
+        const mockUser = {
+            id: 2,
+            email: 'newuser@example.com',
+            display_name: 'New User',
+            email_verified: false,
+        };
+
         mockedAuthAPI.signup.mockResolvedValue(mockSignupResponse);
+        mockedAuthAPI.getProfile.mockResolvedValue(mockUser);
 
         const TestComponentWithSignup = () => {
             const {signup, isAuthenticated, user, isLoading, error} = useAuth();
@@ -334,6 +374,7 @@ describe('AuthContext', () => {
             password: 'password123',
             display_name: 'New User',
         });
+        expect(mockedAuthAPI.getProfile).toHaveBeenCalled();
 
         // Check tokens are stored
         expect(localStorage.setItem).toHaveBeenCalledWith('access_token', 'access_token_123');
@@ -399,10 +440,21 @@ describe('AuthContext', () => {
             email: 'google@example.com',
             display_name: 'Google User',
             email_verified: true,
+            access_token: 'google-access-token',
+            refresh_token: 'google-refresh-token',
+            expires_at: '2024-12-31T23:59:59Z',
             created_at: '2023-01-01T00:00:00Z',
         };
 
+        const mockUser = {
+            id: 3,
+            email: 'google@example.com',
+            display_name: 'Google User',
+            email_verified: true,
+        };
+
         mockedAuthAPI.googleSignup.mockResolvedValue(mockGoogleSignupResponse);
+        mockedAuthAPI.getProfile.mockResolvedValue(mockUser);
 
         const TestComponentWithGoogleSignup = () => {
             const {googleSignup, isAuthenticated, user, isLoading, error} = useAuth();
@@ -455,9 +507,20 @@ describe('AuthContext', () => {
         expect(mockedAuthAPI.googleSignup).toHaveBeenCalledWith({
             access_token: 'google-access-token',
         });
+        expect(mockedAuthAPI.getProfile).toHaveBeenCalled();
+
+        // Check tokens are stored
+        expect(localStorage.setItem).toHaveBeenCalledWith('access_token', 'google-access-token');
+        expect(localStorage.setItem).toHaveBeenCalledWith('refresh_token', 'google-refresh-token');
     });
 
     it('handles Google login', async () => {
+        const mockGoogleLoginResponse = {
+            access_token: 'google-access-token',
+            refresh_token: 'google-refresh-token',
+            expires_at: '2024-12-31T23:59:59Z',
+        };
+
         const mockGoogleUser = {
             id: 4,
             email: 'googlelogin@example.com',
@@ -465,7 +528,8 @@ describe('AuthContext', () => {
             email_verified: true,
         };
 
-        mockedAuthAPI.googleLogin.mockResolvedValue(mockGoogleUser);
+        mockedAuthAPI.googleLogin.mockResolvedValue(mockGoogleLoginResponse);
+        mockedAuthAPI.getProfile.mockResolvedValue(mockGoogleUser);
 
         const TestComponentWithGoogleLogin = () => {
             const {googleLogin, isAuthenticated, user, isLoading, error} = useAuth();
@@ -518,24 +582,31 @@ describe('AuthContext', () => {
         expect(mockedAuthAPI.googleLogin).toHaveBeenCalledWith({
             access_token: 'google-access-token',
         });
+        expect(mockedAuthAPI.getProfile).toHaveBeenCalled();
+
+        // Check tokens are stored
+        expect(localStorage.setItem).toHaveBeenCalledWith('access_token', 'google-access-token');
+        expect(localStorage.setItem).toHaveBeenCalledWith('refresh_token', 'google-refresh-token');
     });
 
-    it('handles corrupted localStorage data on initialization', () => {
+    it('handles invalid access token on initialization', async () => {
         // Mock console.error to avoid noise in test output
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {
         });
 
-        // Set corrupted JSON data
-        localStorage.setItem('user', 'invalid-json{');
+        // Set invalid token data
+        localStorage.setItem('access_token', 'invalid-token');
+        mockedAuthAPI.getProfile.mockRejectedValue(new Error('Invalid token'));
 
         renderWithAuthProvider();
 
-        // Should handle corrupted data gracefully
-        expect(screen.getByTestId('auth-status')).toHaveTextContent('not-authenticated');
-        expect(screen.getByTestId('user-info')).toHaveTextContent('no-user');
+        // Should handle invalid token gracefully
+        await waitFor(() => {
+            expect(screen.getByTestId('auth-status')).toHaveTextContent('not-authenticated');
+            expect(screen.getByTestId('user-info')).toHaveTextContent('no-user');
+        });
 
-        // Should remove corrupted data
-        expect(localStorage.removeItem).toHaveBeenCalledWith('user');
+        expect(mockedAuthAPI.getProfile).toHaveBeenCalled();
 
         consoleErrorSpy.mockRestore();
     });
@@ -545,6 +616,12 @@ describe('AuthContext', () => {
         });
 
         // First, log in a user
+        const mockLoginResponse = {
+            access_token: 'test-access-token',
+            refresh_token: 'test-refresh-token',
+            expires_at: '2024-12-31T23:59:59Z',
+        };
+
         const mockUser = {
             id: 1,
             email: 'test@example.com',
@@ -552,7 +629,8 @@ describe('AuthContext', () => {
             email_verified: false,
         };
 
-        mockedAuthAPI.login.mockResolvedValue(mockUser);
+        mockedAuthAPI.login.mockResolvedValue(mockLoginResponse);
+        mockedAuthAPI.getProfile.mockResolvedValue(mockUser);
         mockedAuthAPI.logout.mockRejectedValue(new Error('Server error'));
 
         renderWithAuthProvider();
@@ -576,7 +654,6 @@ describe('AuthContext', () => {
         });
 
         // Should clear all localStorage items
-        expect(localStorage.removeItem).toHaveBeenCalledWith('user');
         expect(localStorage.removeItem).toHaveBeenCalledWith('access_token');
         expect(localStorage.removeItem).toHaveBeenCalledWith('refresh_token');
 
