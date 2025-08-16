@@ -120,7 +120,7 @@ func (suite *UserHandlerTestSuite) TestMe() {
 			tt.mockSetup()
 
 			// Create request
-			req := httptest.NewRequest(http.MethodGet, "/me", nil)
+			req := httptest.NewRequest(http.MethodGet, "/me", http.NoBody)
 			rec := httptest.NewRecorder()
 			c := suite.echo.NewContext(req, rec)
 

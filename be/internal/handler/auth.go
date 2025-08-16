@@ -468,4 +468,3 @@ func (h *AuthHandler) Refresh(c echo.Context) error {
 	slog.Info("Token refresh successful")
 	return c.JSON(http.StatusOK, refreshResponse)
 }
-

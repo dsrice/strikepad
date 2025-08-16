@@ -280,4 +280,3 @@ func (s *AuthService) GoogleLogin(req *dto.GoogleLoginRequest) (*dto.UserInfo, e
 
 	return userInfo, nil
 }
-

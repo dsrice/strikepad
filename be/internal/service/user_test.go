@@ -34,11 +34,11 @@ func (suite *UserServiceTestSuite) TearDownTest() {
 
 func (suite *UserServiceTestSuite) TestGetCurrentUser() {
 	testCases := []struct {
-		name           string
-		userID         uint
-		mockSetup      func()
 		expectedError  error
+		mockSetup      func()
+		name           string
 		expectedErrMsg string
+		userID         uint
 		checkResult    bool
 	}{
 		{
