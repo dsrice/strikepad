@@ -114,10 +114,10 @@ export const authAPI = {
     }
   },
 
-  // Get current user profile (if we have token-based auth in the future)
+    // Get current user profile
   getProfile: async (): Promise<UserInfo> => {
     try {
-      const response: AxiosResponse<UserInfo> = await api.get('/auth/profile', {
+        const response: AxiosResponse<UserInfo> = await api.get('/user/me', {
         headers: getAuthHeaders(),
       });
       return response.data;

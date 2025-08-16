@@ -24,9 +24,6 @@ export interface UserInfo {
   email: string;
   display_name: string;
   email_verified: boolean;
-  access_token?: string;
-  refresh_token?: string;
-  expires_at?: string;
 }
 
 export interface SignupResponse {
