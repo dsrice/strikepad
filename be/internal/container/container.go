@@ -34,6 +34,9 @@ func BuildContainer() *dig.Container {
 	if err := container.Provide(service.NewAuthService); err != nil {
 		panic(err)
 	}
+	if err := container.Provide(service.NewUserService); err != nil {
+		panic(err)
+	}
 	if err := container.Provide(service.NewSessionService); err != nil {
 		panic(err)
 	}
@@ -44,6 +47,9 @@ func BuildContainer() *dig.Container {
 		panic(err)
 	}
 	if err := container.Provide(handler.NewAuthHandler); err != nil {
+		panic(err)
+	}
+	if err := container.Provide(handler.NewUserHandler); err != nil {
 		panic(err)
 	}
 

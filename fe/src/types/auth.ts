@@ -19,14 +19,28 @@ export interface GoogleLoginRequest {
   access_token: string;
 }
 
+export interface RefreshRequest {
+    access_token: string;
+    refresh_token: string;
+}
+
+export interface RefreshResponse {
+  access_token: string;
+  refresh_token: string;
+  expires_at: string;
+}
+
+export interface LoginResponse {
+    access_token: string;
+    refresh_token: string;
+    expires_at: string;
+}
+
 export interface UserInfo {
   id: number;
   email: string;
   display_name: string;
   email_verified: boolean;
-  access_token?: string;
-  refresh_token?: string;
-  expires_at?: string;
 }
 
 export interface SignupResponse {

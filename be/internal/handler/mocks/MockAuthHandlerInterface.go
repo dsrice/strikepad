@@ -21,6 +21,98 @@ func (_m *MockAuthHandlerInterface) EXPECT() *MockAuthHandlerInterface_Expecter 
 	return &MockAuthHandlerInterface_Expecter{mock: &_m.Mock}
 }
 
+// GoogleLogin provides a mock function with given fields: c
+func (_m *MockAuthHandlerInterface) GoogleLogin(c echo.Context) error {
+	ret := _m.Called(c)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GoogleLogin")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(echo.Context) error); ok {
+		r0 = rf(c)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockAuthHandlerInterface_GoogleLogin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GoogleLogin'
+type MockAuthHandlerInterface_GoogleLogin_Call struct {
+	*mock.Call
+}
+
+// GoogleLogin is a helper method to define mock.On call
+//   - c echo.Context
+func (_e *MockAuthHandlerInterface_Expecter) GoogleLogin(c interface{}) *MockAuthHandlerInterface_GoogleLogin_Call {
+	return &MockAuthHandlerInterface_GoogleLogin_Call{Call: _e.mock.On("GoogleLogin", c)}
+}
+
+func (_c *MockAuthHandlerInterface_GoogleLogin_Call) Run(run func(c echo.Context)) *MockAuthHandlerInterface_GoogleLogin_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(echo.Context))
+	})
+	return _c
+}
+
+func (_c *MockAuthHandlerInterface_GoogleLogin_Call) Return(_a0 error) *MockAuthHandlerInterface_GoogleLogin_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockAuthHandlerInterface_GoogleLogin_Call) RunAndReturn(run func(echo.Context) error) *MockAuthHandlerInterface_GoogleLogin_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GoogleSignup provides a mock function with given fields: c
+func (_m *MockAuthHandlerInterface) GoogleSignup(c echo.Context) error {
+	ret := _m.Called(c)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GoogleSignup")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(echo.Context) error); ok {
+		r0 = rf(c)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockAuthHandlerInterface_GoogleSignup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GoogleSignup'
+type MockAuthHandlerInterface_GoogleSignup_Call struct {
+	*mock.Call
+}
+
+// GoogleSignup is a helper method to define mock.On call
+//   - c echo.Context
+func (_e *MockAuthHandlerInterface_Expecter) GoogleSignup(c interface{}) *MockAuthHandlerInterface_GoogleSignup_Call {
+	return &MockAuthHandlerInterface_GoogleSignup_Call{Call: _e.mock.On("GoogleSignup", c)}
+}
+
+func (_c *MockAuthHandlerInterface_GoogleSignup_Call) Run(run func(c echo.Context)) *MockAuthHandlerInterface_GoogleSignup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(echo.Context))
+	})
+	return _c
+}
+
+func (_c *MockAuthHandlerInterface_GoogleSignup_Call) Return(_a0 error) *MockAuthHandlerInterface_GoogleSignup_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockAuthHandlerInterface_GoogleSignup_Call) RunAndReturn(run func(echo.Context) error) *MockAuthHandlerInterface_GoogleSignup_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Login provides a mock function with given fields: c
 func (_m *MockAuthHandlerInterface) Login(c echo.Context) error {
 	ret := _m.Called(c)
@@ -63,6 +155,98 @@ func (_c *MockAuthHandlerInterface_Login_Call) Return(_a0 error) *MockAuthHandle
 }
 
 func (_c *MockAuthHandlerInterface_Login_Call) RunAndReturn(run func(echo.Context) error) *MockAuthHandlerInterface_Login_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Logout provides a mock function with given fields: c
+func (_m *MockAuthHandlerInterface) Logout(c echo.Context) error {
+	ret := _m.Called(c)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Logout")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(echo.Context) error); ok {
+		r0 = rf(c)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockAuthHandlerInterface_Logout_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Logout'
+type MockAuthHandlerInterface_Logout_Call struct {
+	*mock.Call
+}
+
+// Logout is a helper method to define mock.On call
+//   - c echo.Context
+func (_e *MockAuthHandlerInterface_Expecter) Logout(c interface{}) *MockAuthHandlerInterface_Logout_Call {
+	return &MockAuthHandlerInterface_Logout_Call{Call: _e.mock.On("Logout", c)}
+}
+
+func (_c *MockAuthHandlerInterface_Logout_Call) Run(run func(c echo.Context)) *MockAuthHandlerInterface_Logout_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(echo.Context))
+	})
+	return _c
+}
+
+func (_c *MockAuthHandlerInterface_Logout_Call) Return(_a0 error) *MockAuthHandlerInterface_Logout_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockAuthHandlerInterface_Logout_Call) RunAndReturn(run func(echo.Context) error) *MockAuthHandlerInterface_Logout_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Refresh provides a mock function with given fields: c
+func (_m *MockAuthHandlerInterface) Refresh(c echo.Context) error {
+	ret := _m.Called(c)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Refresh")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(echo.Context) error); ok {
+		r0 = rf(c)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockAuthHandlerInterface_Refresh_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Refresh'
+type MockAuthHandlerInterface_Refresh_Call struct {
+	*mock.Call
+}
+
+// Refresh is a helper method to define mock.On call
+//   - c echo.Context
+func (_e *MockAuthHandlerInterface_Expecter) Refresh(c interface{}) *MockAuthHandlerInterface_Refresh_Call {
+	return &MockAuthHandlerInterface_Refresh_Call{Call: _e.mock.On("Refresh", c)}
+}
+
+func (_c *MockAuthHandlerInterface_Refresh_Call) Run(run func(c echo.Context)) *MockAuthHandlerInterface_Refresh_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(echo.Context))
+	})
+	return _c
+}
+
+func (_c *MockAuthHandlerInterface_Refresh_Call) Return(_a0 error) *MockAuthHandlerInterface_Refresh_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockAuthHandlerInterface_Refresh_Call) RunAndReturn(run func(echo.Context) error) *MockAuthHandlerInterface_Refresh_Call {
 	_c.Call.Return(run)
 	return _c
 }

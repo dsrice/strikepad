@@ -21,6 +21,7 @@ type SessionServiceInterface interface {
 	CreateSession(userID uint) (*auth.TokenPair, error)
 	ValidateAccessToken(token string) (*model.UserSession, error)
 	RefreshToken(refreshToken string) (*auth.TokenPair, error)
+	RefreshSession(accessToken, refreshToken string) (*auth.TokenPair, error)
 	InvalidateSession(accessToken string) error
 	InvalidateAllUserSessions(userID uint) error
 	Logout(userID uint, accessToken string) error
@@ -135,6 +136,56 @@ func (s *SessionService) RefreshToken(refreshToken string) (*auth.TokenPair, err
 	}
 
 	slog.Info("Token refreshed successfully", "user_id", claims.UserID, "session_id", session.ID)
+	return tokenPair, nil
+}
+
+// RefreshSession refreshes tokens using both access and refresh tokens
+func (s *SessionService) RefreshSession(accessToken, refreshToken string) (*auth.TokenPair, error) {
+	// Validate refresh token first
+	refreshClaims, err := s.jwtService.ValidateRefreshToken(refreshToken)
+	if err != nil {
+		return nil, fmt.Errorf("invalid refresh token: %w", err)
+	}
+
+	// Find session by refresh token
+	session, err := s.sessionRepo.FindByRefreshToken(refreshToken)
+	if err != nil {
+		return nil, fmt.Errorf("session not found: %w", err)
+	}
+
+	// Check if refresh token is still valid
+	if !session.IsRefreshTokenValid() {
+		return nil, fmt.Errorf("refresh token is expired or invalidated")
+	}
+
+	// Verify the provided access token matches the session
+	if session.AccessToken != accessToken {
+		return nil, fmt.Errorf("access token does not match session")
+	}
+
+	// Verify user ID matches
+	if session.UserID != refreshClaims.UserID {
+		return nil, fmt.Errorf("token user ID mismatch")
+	}
+
+	// Generate new token pair
+	tokenPair, err := s.jwtService.GenerateTokenPair(refreshClaims.UserID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate new token pair: %w", err)
+	}
+
+	// Update session with new tokens
+	session.AccessToken = tokenPair.AccessToken
+	session.RefreshToken = tokenPair.RefreshToken
+	session.AccessTokenExpiresAt = tokenPair.AccessTokenExpiresAt
+	session.RefreshTokenExpiresAt = tokenPair.RefreshTokenExpiresAt
+	session.UpdatedAt = time.Now()
+
+	if err := s.sessionRepo.Update(session); err != nil {
+		return nil, fmt.Errorf("failed to update session: %w", err)
+	}
+
+	slog.Info("Session refreshed successfully", "user_id", refreshClaims.UserID, "session_id", session.ID)
 	return tokenPair, nil
 }
 
