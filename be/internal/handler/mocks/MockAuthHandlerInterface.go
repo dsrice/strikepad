@@ -205,6 +205,52 @@ func (_c *MockAuthHandlerInterface_Logout_Call) RunAndReturn(run func(echo.Conte
 	return _c
 }
 
+// Refresh provides a mock function with given fields: c
+func (_m *MockAuthHandlerInterface) Refresh(c echo.Context) error {
+	ret := _m.Called(c)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Refresh")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(echo.Context) error); ok {
+		r0 = rf(c)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockAuthHandlerInterface_Refresh_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Refresh'
+type MockAuthHandlerInterface_Refresh_Call struct {
+	*mock.Call
+}
+
+// Refresh is a helper method to define mock.On call
+//   - c echo.Context
+func (_e *MockAuthHandlerInterface_Expecter) Refresh(c interface{}) *MockAuthHandlerInterface_Refresh_Call {
+	return &MockAuthHandlerInterface_Refresh_Call{Call: _e.mock.On("Refresh", c)}
+}
+
+func (_c *MockAuthHandlerInterface_Refresh_Call) Run(run func(c echo.Context)) *MockAuthHandlerInterface_Refresh_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(echo.Context))
+	})
+	return _c
+}
+
+func (_c *MockAuthHandlerInterface_Refresh_Call) Return(_a0 error) *MockAuthHandlerInterface_Refresh_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockAuthHandlerInterface_Refresh_Call) RunAndReturn(run func(echo.Context) error) *MockAuthHandlerInterface_Refresh_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Signup provides a mock function with given fields: c
 func (_m *MockAuthHandlerInterface) Signup(c echo.Context) error {
 	ret := _m.Called(c)

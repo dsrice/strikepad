@@ -86,6 +86,7 @@ func main() {
 			e.POST("/api/auth/login", authHandler.Login)
 			e.POST("/api/auth/google/signup", authHandler.GoogleSignup)
 			e.POST("/api/auth/google/login", authHandler.GoogleLogin)
+			e.POST("/api/auth/refresh", authHandler.Refresh)
 
 			// Protected auth endpoints (JWT required)
 			protectedAuth := e.Group("/api/auth", authMiddleware.JWTMiddleware(sessionService))

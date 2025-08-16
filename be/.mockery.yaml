@@ -12,6 +12,7 @@ packages:
       AuthServiceInterface:
       HealthServiceInterface:
       UserServiceInterface:
+      SessionServiceInterface:
   strikepad-backend/internal/handler:
     interfaces:
       AuthHandlerInterface:

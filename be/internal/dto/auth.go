@@ -34,8 +34,21 @@ type GoogleLoginRequest struct {
 	AccessToken string `json:"access_token" validate:"required" example:"ya29.a0ARrdaM..." swaggertype:"string"`
 }
 
+// RefreshRequest represents the request payload for token refresh
+type RefreshRequest struct {
+	AccessToken  string `json:"access_token" validate:"required" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." swaggertype:"string"`
+	RefreshToken string `json:"refresh_token" validate:"required" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." swaggertype:"string"`
+}
+
 // LoginResponse represents the response payload for user login
 type LoginResponse struct {
+	ExpiresAt    time.Time `json:"expires_at" swaggertype:"string" format:"date-time"`
+	AccessToken  string    `json:"access_token" swaggertype:"string"`
+	RefreshToken string    `json:"refresh_token" swaggertype:"string"`
+}
+
+// RefreshResponse represents the response payload for token refresh
+type RefreshResponse struct {
 	ExpiresAt    time.Time `json:"expires_at" swaggertype:"string" format:"date-time"`
 	AccessToken  string    `json:"access_token" swaggertype:"string"`
 	RefreshToken string    `json:"refresh_token" swaggertype:"string"`

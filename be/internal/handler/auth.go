@@ -415,3 +415,57 @@ func (h *AuthHandler) Logout(c echo.Context) error {
 	})
 }
 
+// Refresh handles token refresh
+// @Summary Token refresh
+// @Description Refresh access token using refresh token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body dto.RefreshRequest true "Refresh request"
+// @Success 200 {object} dto.RefreshResponse "Token refreshed successfully"
+// @Failure 400 {object} dto.ErrorResponse "Bad request"
+// @Failure 401 {object} dto.ErrorResponse "Invalid token"
+// @Failure 500 {object} dto.ErrorResponse "Internal server error"
+// @Router /api/auth/refresh [post]
+func (h *AuthHandler) Refresh(c echo.Context) error {
+	var req dto.RefreshRequest
+
+	// Bind request body
+	if err := c.Bind(&req); err != nil {
+		slog.Warn("Invalid request body for refresh", "error", err)
+		errorInfo := errors.GetErrorInfo(errors.ErrCodeInvalidRequest)
+		return c.JSON(errorInfo.HTTPStatus, dto.ErrorResponse{
+			Code:        string(errorInfo.Code),
+			Message:     errorInfo.Message,
+			Description: errorInfo.Description,
+		})
+	}
+
+	// Validate request using validator
+	if err := h.validator.Validate(&req); err != nil {
+		return h.handleValidationError(c, err, "token refresh")
+	}
+
+	// Call session service to refresh tokens
+	tokenPair, err := h.sessionService.RefreshSession(req.AccessToken, req.RefreshToken)
+	if err != nil {
+		slog.Error("Failed to refresh token", "error", err)
+		errorInfo := errors.GetErrorInfo(errors.ErrCodeUnauthorized)
+		return c.JSON(errorInfo.HTTPStatus, dto.ErrorResponse{
+			Code:        string(errorInfo.Code),
+			Message:     errorInfo.Message,
+			Description: "Token refresh failed",
+		})
+	}
+
+	// Create response
+	refreshResponse := dto.RefreshResponse{
+		AccessToken:  tokenPair.AccessToken,
+		RefreshToken: tokenPair.RefreshToken,
+		ExpiresAt:    tokenPair.AccessTokenExpiresAt,
+	}
+
+	slog.Info("Token refresh successful")
+	return c.JSON(http.StatusOK, refreshResponse)
+}
+

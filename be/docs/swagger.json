@@ -217,6 +217,58 @@
         }
       }
     },
+    "/api/auth/refresh": {
+      "post": {
+        "description": "Refresh access token using refresh token",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Token refresh",
+        "parameters": [
+          {
+            "description": "Refresh request",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.RefreshRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token refreshed successfully",
+            "schema": {
+              "$ref": "#/definitions/dto.RefreshResponse"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/dto.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid token",
+            "schema": {
+              "$ref": "#/definitions/dto.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/dto.ErrorResponse"
+            }
+          }
+        }
+      }
+    },
     "/api/auth/signup": {
       "post": {
         "description": "Create a new user account with email and password",
@@ -448,6 +500,38 @@
       }
     },
     "dto.LoginResponse": {
+      "type": "object",
+      "properties": {
+        "access_token": {
+          "type": "string"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "refresh_token": {
+          "type": "string"
+        }
+      }
+    },
+    "dto.RefreshRequest": {
+      "type": "object",
+      "required": [
+        "access_token",
+        "refresh_token"
+      ],
+      "properties": {
+        "access_token": {
+          "type": "string",
+          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        },
+        "refresh_token": {
+          "type": "string",
+          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        }
+      }
+    },
+    "dto.RefreshResponse": {
       "type": "object",
       "properties": {
         "access_token": {

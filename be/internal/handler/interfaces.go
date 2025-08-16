@@ -9,6 +9,7 @@ type AuthHandlerInterface interface {
 	GoogleSignup(c echo.Context) error
 	GoogleLogin(c echo.Context) error
 	Logout(c echo.Context) error
+	Refresh(c echo.Context) error
 }
 
 // HealthHandlerInterface defines the interface for health handlers

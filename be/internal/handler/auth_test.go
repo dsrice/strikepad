@@ -399,6 +399,128 @@ func (suite *AuthHandlerTestSuite) TestLogin() {
 	}
 }
 
+func (suite *AuthHandlerTestSuite) TestRefresh() {
+	// Comprehensive table-driven test for refresh endpoint
+	tests := []struct {
+		requestBody    interface{}
+		mockSetup      func()
+		expectedError  *dto.ErrorResponse
+		name           string
+		description    string
+		expectedStatus int
+		expectTokens   bool
+	}{
+		{
+			name: "successful refresh",
+			requestBody: dto.RefreshRequest{
+				AccessToken:  "old-access-token",
+				RefreshToken: "valid-refresh-token",
+			},
+			mockSetup: func() {
+				// Mock session service refresh
+				expectedTokenPair := &auth.TokenPair{
+					AccessToken:           "new-access-token",
+					RefreshToken:          "new-refresh-token",
+					AccessTokenExpiresAt:  time.Now().Add(time.Hour),
+					RefreshTokenExpiresAt: time.Now().Add(24 * time.Hour),
+				}
+				suite.mockSessionService.On("RefreshSession", "old-access-token", "valid-refresh-token").Return(expectedTokenPair, nil)
+			},
+			expectedStatus: http.StatusOK,
+			expectTokens:   true,
+			description:    "should successfully refresh tokens",
+		},
+		{
+			name:           "invalid JSON",
+			requestBody:    "invalid json",
+			mockSetup:      func() {}, // No mock setup needed
+			expectedStatus: http.StatusBadRequest,
+			expectedError: &dto.ErrorResponse{
+				Code:    "E002",
+				Message: "Invalid request",
+			},
+			description: "should return error for invalid JSON",
+		},
+		{
+			name: "validation failure - missing fields",
+			requestBody: dto.RefreshRequest{
+				AccessToken:  "", // Invalid - required
+				RefreshToken: "", // Invalid - required
+			},
+			mockSetup:      func() {}, // No mock setup needed
+			expectedStatus: http.StatusBadRequest,
+			expectedError: &dto.ErrorResponse{
+				Code:    "E003",
+				Message: "Validation failed",
+			},
+			description: "should return validation error for missing required fields",
+		},
+		{
+			name: "invalid refresh token",
+			requestBody: dto.RefreshRequest{
+				AccessToken:  "old-access-token",
+				RefreshToken: "invalid-refresh-token",
+			},
+			mockSetup: func() {
+				suite.mockSessionService.On("RefreshSession", "old-access-token", "invalid-refresh-token").Return(nil, assert.AnError)
+			},
+			expectedStatus: http.StatusUnauthorized,
+			expectedError: &dto.ErrorResponse{
+				Code:    "E005",
+				Message: "Unauthorized",
+			},
+			description: "should return unauthorized for invalid refresh token",
+		},
+	}
+
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			// Setup
+			suite.SetupTest() // Reset mocks
+			tt.mockSetup()
+
+			// Create request
+			var req *http.Request
+			if str, ok := tt.requestBody.(string); ok {
+				req = httptest.NewRequest(http.MethodPost, "/refresh", bytes.NewBufferString(str))
+			} else {
+				jsonBody, _ := json.Marshal(tt.requestBody)
+				req = httptest.NewRequest(http.MethodPost, "/refresh", bytes.NewBuffer(jsonBody))
+			}
+			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+			rec := httptest.NewRecorder()
+			c := suite.echo.NewContext(req, rec)
+
+			// Execute
+			err := suite.authHandler.Refresh(c)
+
+			// Assert
+			assert.NoError(suite.T(), err, tt.description)
+			assert.Equal(suite.T(), tt.expectedStatus, rec.Code, tt.description)
+
+			if tt.expectedError != nil {
+				var errorResponse dto.ErrorResponse
+				err = json.Unmarshal(rec.Body.Bytes(), &errorResponse)
+				assert.NoError(suite.T(), err)
+				assert.Equal(suite.T(), tt.expectedError.Code, errorResponse.Code, tt.description)
+				assert.Equal(suite.T(), tt.expectedError.Message, errorResponse.Message, tt.description)
+				if tt.expectedError.Code == "E003" { // Validation failed
+					assert.NotEmpty(suite.T(), errorResponse.Details, "Validation errors should have details")
+				}
+			}
+
+			if tt.expectTokens {
+				var response dto.RefreshResponse
+				err = json.Unmarshal(rec.Body.Bytes(), &response)
+				assert.NoError(suite.T(), err)
+				assert.NotEmpty(suite.T(), response.AccessToken, "AccessToken should be set")
+				assert.NotEmpty(suite.T(), response.RefreshToken, "RefreshToken should be set")
+				assert.NotZero(suite.T(), response.ExpiresAt, "ExpiresAt should be set")
+			}
+		})
+	}
+}
+
 func (suite *AuthHandlerTestSuite) TestNewAuthHandler() {
 	// Test that NewAuthHandler creates a valid handler
 	h := handler.NewAuthHandler(suite.mockService, suite.mockSessionService)

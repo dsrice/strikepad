@@ -89,6 +89,28 @@ definitions:
       refresh_token:
         type: string
     type: object
+  dto.RefreshRequest:
+    properties:
+      access_token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      refresh_token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    required:
+      - access_token
+      - refresh_token
+    type: object
+  dto.RefreshResponse:
+    properties:
+      access_token:
+        type: string
+      expires_at:
+        format: date-time
+        type: string
+      refresh_token:
+        type: string
+    type: object
   dto.SignupRequest:
     properties:
       display_name:
@@ -295,6 +317,40 @@ paths:
       security:
         - BearerAuth: [ ]
       summary: User logout
+      tags:
+        - Authentication
+  /api/auth/refresh:
+    post:
+      consumes:
+        - application/json
+      description: Refresh access token using refresh token
+      parameters:
+        - description: Refresh request
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/dto.RefreshRequest'
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: Token refreshed successfully
+          schema:
+            $ref: '#/definitions/dto.RefreshResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Invalid token
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Token refresh
       tags:
         - Authentication
   /api/auth/signup:
