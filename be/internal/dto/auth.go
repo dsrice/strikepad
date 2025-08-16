@@ -4,9 +4,9 @@ import "time"
 
 // SignupRequest represents the request payload for user signup
 type SignupRequest struct {
-	Email       string `json:"email" validate:"required,email,max=255" example:"user@example.com" swaggertype:"string" format:"email"`
-	Password    string `json:"password" validate:"required,min=8,max=128,password_complex" example:"Password123!" swaggertype:"string" minLength:"8" maxLength:"128"`
-	DisplayName string `json:"display_name" validate:"required,min=1,max=100" example:"John Doe" swaggertype:"string" minLength:"1" maxLength:"100"`
+	Email       string `json:"email" validate:"required,email,max=255" example:"user@example.com"`
+	Password    string `json:"password" validate:"required,min=8,max=128,password_complex"`
+	DisplayName string `json:"display_name" validate:"required,min=1,max=100" example:"John Doe"`
 }
 
 // GoogleSignupRequest represents the request payload for Google OAuth signup
@@ -25,7 +25,7 @@ type SignupResponse struct {
 
 // LoginRequest represents the request payload for user login
 type LoginRequest struct {
-	Email    string `json:"email" validate:"required,email,max=255" example:"user@example.com" swaggertype:"string" format:"email"`
+	Email    string `json:"email" validate:"required,email,max=255" example:"user@example.com"`
 	Password string `json:"password" validate:"required,min=1,max=128" example:"password123" swaggertype:"string"`
 }
 
@@ -36,8 +36,8 @@ type GoogleLoginRequest struct {
 
 // RefreshRequest represents the request payload for token refresh
 type RefreshRequest struct {
-	AccessToken  string `json:"access_token" validate:"required" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." swaggertype:"string"`
-	RefreshToken string `json:"refresh_token" validate:"required" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." swaggertype:"string"`
+	AccessToken  string `json:"access_token" validate:"required"`
+	RefreshToken string `json:"refresh_token" validate:"required"`
 }
 
 // LoginResponse represents the response payload for user login

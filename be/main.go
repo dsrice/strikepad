@@ -23,6 +23,8 @@ import (
 	_ "strikepad-backend/docs" // Import generated docs
 )
 
+const productionEnv = "production"
+
 // @title StrikePad Backend API
 // @version 1.0
 // @description This is the StrikePad backend API server.
@@ -66,7 +68,7 @@ func main() {
 	})
 
 	// Swagger endpoint (only in development)
-	if os.Getenv("APP_ENV") != "production" {
+	if os.Getenv("APP_ENV") != productionEnv {
 		e.GET("/swagger/*", echoSwagger.WrapHandler)
 	}
 
@@ -148,7 +150,7 @@ func initLogger() {
 	var writer io.Writer
 	env := os.Getenv("APP_ENV")
 
-	if env == "production" {
+	if env == productionEnv {
 		// Production: only write to file
 		writer = logFile
 	} else {
@@ -163,7 +165,7 @@ func initLogger() {
 	}
 
 	var handler slog.Handler
-	if env == "production" {
+	if env == productionEnv {
 		handler = slog.NewJSONHandler(writer, opts)
 	} else {
 		handler = slog.NewTextHandler(writer, opts)

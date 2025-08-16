@@ -20,6 +20,8 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+const validationFailedCode = "E003"
+
 type AuthHandlerTestSuite struct {
 	suite.Suite
 	authHandler        handler.AuthHandlerInterface
@@ -227,7 +229,7 @@ func (suite *AuthHandlerTestSuite) TestSignup() {
 				assert.NoError(suite.T(), err)
 				assert.Equal(suite.T(), tt.expectedError.Code, errorResponse.Code, tt.description)
 				assert.Equal(suite.T(), tt.expectedError.Message, errorResponse.Message, tt.description)
-				if tt.expectedError.Code == "E003" { // Validation failed
+				if tt.expectedError.Code == validationFailedCode { // Validation failed
 					assert.NotEmpty(suite.T(), errorResponse.Details, "Validation errors should have details")
 				}
 			}
@@ -382,7 +384,7 @@ func (suite *AuthHandlerTestSuite) TestLogin() {
 				assert.NoError(suite.T(), err)
 				assert.Equal(suite.T(), tt.expectedError.Code, errorResponse.Code, tt.description)
 				assert.Equal(suite.T(), tt.expectedError.Message, errorResponse.Message, tt.description)
-				if tt.expectedError.Code == "E003" { // Validation failed
+				if tt.expectedError.Code == validationFailedCode { // Validation failed
 					assert.NotEmpty(suite.T(), errorResponse.Details, "Validation errors should have details")
 				}
 			}
@@ -504,7 +506,7 @@ func (suite *AuthHandlerTestSuite) TestRefresh() {
 				assert.NoError(suite.T(), err)
 				assert.Equal(suite.T(), tt.expectedError.Code, errorResponse.Code, tt.description)
 				assert.Equal(suite.T(), tt.expectedError.Message, errorResponse.Message, tt.description)
-				if tt.expectedError.Code == "E003" { // Validation failed
+				if tt.expectedError.Code == validationFailedCode { // Validation failed
 					assert.NotEmpty(suite.T(), errorResponse.Details, "Validation errors should have details")
 				}
 			}

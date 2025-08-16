@@ -70,7 +70,7 @@ func (suite *UserHandlerTestSuite) TestMe() {
 		},
 		{
 			name: "missing user ID in context",
-			setupContext: func(c echo.Context) {
+			setupContext: func(_ echo.Context) {
 				// Don't set user_id
 			},
 			mockSetup:      func() {}, // No mock setup needed
