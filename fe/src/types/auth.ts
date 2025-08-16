@@ -19,6 +19,17 @@ export interface GoogleLoginRequest {
   access_token: string;
 }
 
+export interface RefreshRequest {
+    access_token: string;
+    refresh_token: string;
+}
+
+export interface RefreshResponse {
+    access_token: string;
+    refresh_token: string;
+    expires_at: string;
+}
+
 export interface UserInfo {
   id: number;
   email: string;
