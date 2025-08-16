@@ -15,3 +15,8 @@ type AuthHandlerInterface interface {
 type HealthHandlerInterface interface {
 	Check(c echo.Context) error
 }
+
+// UserHandlerInterface defines the interface for user handlers
+type UserHandlerInterface interface {
+	Me(c echo.Context) error
+}

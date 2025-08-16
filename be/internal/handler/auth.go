@@ -361,3 +361,4 @@ func (h *AuthHandler) Logout(c echo.Context) error {
 		"message": "Logout successful",
 	})
 }
+

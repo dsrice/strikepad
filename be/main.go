@@ -47,6 +47,7 @@ func main() {
 			healthHandler handler.HealthHandlerInterface,
 			apiHandler *handler.APIHandler,
 			authHandler handler.AuthHandlerInterface,
+			userHandler handler.UserHandlerInterface,
 			sessionService service.SessionServiceInterface,
 		) {
 			e.GET("/health", healthHandler.Check)
@@ -59,8 +60,12 @@ func main() {
 			e.POST("/api/auth/google/login", authHandler.GoogleLogin)
 
 			// Protected auth endpoints (JWT required)
-			protected := e.Group("/api/auth", authMiddleware.JWTMiddleware(sessionService))
-			protected.POST("/logout", authHandler.Logout)
+			protectedAuth := e.Group("/api/auth", authMiddleware.JWTMiddleware(sessionService))
+			protectedAuth.POST("/logout", authHandler.Logout)
+
+			// Protected user endpoints (JWT required)
+			protectedUser := e.Group("/api/user", authMiddleware.JWTMiddleware(sessionService))
+			protectedUser.GET("/me", userHandler.Me)
 		})
 
 	if err != nil {
