@@ -1,0 +1,182 @@
+name: Auto Release Notes
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+    types: [ closed ]
+
+jobs:
+  release-notes:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get latest release
+        id: latest_release
+        run: |
+          LATEST_RELEASE=$(gh release list --limit 1 --json tagName --jq '.[0].tagName // ""')
+          echo "latest_release=$LATEST_RELEASE" >> $GITHUB_OUTPUT
+          echo "Latest release: $LATEST_RELEASE"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get merged PRs since last release
+        id: get_prs
+        run: |
+          # 最新リリース以降のマージされたPRを取得
+          if [ -z "${{ steps.latest_release.outputs.latest_release }}" ]; then
+            # 初回リリースの場合、すべてのマージされたPRを取得
+            echo "No previous release found, getting all merged PRs"
+            MERGED_PRS=$(gh pr list --state merged --limit 50 --json number,title,author,mergedAt,labels --jq '
+              map(select(.mergedAt != null)) | 
+              sort_by(.mergedAt) | 
+              reverse |
+              map("- **#\(.number)** \(.title) (@\(.author.login))")[] 
+            ')
+          else
+            # 最新リリース以降のマージされたPRを取得
+            echo "Getting PRs merged since ${{ steps.latest_release.outputs.latest_release }}"
+            RELEASE_DATE=$(gh release view "${{ steps.latest_release.outputs.latest_release }}" --json publishedAt --jq '.publishedAt')
+            MERGED_PRS=$(gh pr list --state merged --limit 50 --json number,title,author,mergedAt,labels --jq --arg since "$RELEASE_DATE" '
+              map(select(.mergedAt != null and .mergedAt > $since)) | 
+              sort_by(.mergedAt) | 
+              reverse |
+              map("- **#\(.number)** \(.title) (@\(.author.login))")[] 
+            ')
+          fi
+          
+          # PRリストをファイルに保存
+          echo "$MERGED_PRS" > merged_prs.txt
+          
+          # PRの数をカウント
+          PR_COUNT=$(echo "$MERGED_PRS" | grep -c "^- " || echo "0")
+          echo "pr_count=$PR_COUNT" >> $GITHUB_OUTPUT
+          echo "Found $PR_COUNT merged PRs"
+          
+          # デバッグ用出力
+          echo "Merged PRs:"
+          cat merged_prs.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate release notes
+        id: generate_notes
+        run: |
+          # 現在の日付を取得
+          CURRENT_DATE=$(date '+%Y-%m-%d')
+          
+          # バージョン番号を生成（日付ベース）
+          VERSION="v$(date '+%Y.%m.%d')"
+          
+          # 既存のドラフトリリースがあるかチェック
+          EXISTING_DRAFT=$(gh release list --json isDraft,tagName --jq '.[] | select(.isDraft == true) | .tagName' | head -1 || echo "")
+          
+          if [ -n "$EXISTING_DRAFT" ]; then
+            VERSION="$EXISTING_DRAFT"
+            echo "Using existing draft release: $VERSION"
+          else
+            # 同じ日付のリリースが既に存在する場合、連番を追加
+            COUNTER=1
+            BASE_VERSION="$VERSION"
+            while gh release view "$VERSION" > /dev/null 2>&1; do
+              VERSION="${BASE_VERSION}.${COUNTER}"
+              COUNTER=$((COUNTER + 1))
+            done
+          fi
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Generated version: $VERSION"
+          
+          # リリースノートの内容を生成
+          cat > release_notes.md << 'EOF'
+          ## 🚀 What's New
+          
+          This release includes the following changes:
+          
+          ### 📝 Changes
+          
+          EOF
+          
+          # マージされたPRがある場合は追加
+          if [ "${{ steps.get_prs.outputs.pr_count }}" -gt "0" ]; then
+            cat merged_prs.txt >> release_notes.md
+          else
+            echo "- No new changes since last release" >> release_notes.md
+          fi
+          
+          cat >> release_notes.md << 'EOF'
+          
+          ### 📊 Statistics
+          
+          - **Total Changes**: ${{ steps.get_prs.outputs.pr_count }} Pull Requests
+          - **Release Date**: CURRENT_DATE_PLACEHOLDER
+          - **Build**: ${{ github.sha }}
+          
+          ---
+          
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ steps.latest_release.outputs.latest_release }}...${{ github.sha }}
+          
+          > 📝 This is an automated release created by GitHub Actions
+          EOF
+          
+          # 日付プレースホルダーを実際の日付に置換
+          sed -i "s/CURRENT_DATE_PLACEHOLDER/$CURRENT_DATE/g" release_notes.md
+          
+          echo "Generated release notes:"
+          cat release_notes.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create or update draft release
+        run: |
+          VERSION="${{ steps.generate_notes.outputs.version }}"
+          
+          # 既存のドラフトリリースがあるかチェック
+          if gh release view "$VERSION" > /dev/null 2>&1; then
+            echo "Updating existing draft release: $VERSION"
+            gh release edit "$VERSION" \
+              --draft \
+              --title "Release $VERSION" \
+              --notes-file release_notes.md
+          else
+            echo "Creating new draft release: $VERSION"
+            gh release create "$VERSION" \
+              --draft \
+              --title "Release $VERSION" \
+              --notes-file release_notes.md \
+              --generate-notes=false
+          fi
+          
+          echo "✅ Draft release created/updated: $VERSION"
+          echo "🔗 View at: https://github.com/${{ github.repository }}/releases"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment on PR (if applicable)
+        if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+        run: |
+          VERSION="${{ steps.generate_notes.outputs.version }}"
+          
+          # PRにコメントを追加
+          gh pr comment ${{ github.event.pull_request.number }} --body "
+          🚀 **Release Notes Updated**
+          
+          This PR has been included in the draft release: [\`$VERSION\`](https://github.com/${{ github.repository }}/releases/tag/$VERSION)
+          
+          📝 **Changes included:**
+          - **#${{ github.event.pull_request.number }}** ${{ github.event.pull_request.title }} (@${{ github.event.pull_request.user.login }})
+          
+          The release notes will be automatically updated with all merged PRs.
+          "
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
