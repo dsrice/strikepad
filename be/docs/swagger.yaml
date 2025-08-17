@@ -1,0 +1,436 @@
+basePath: /
+definitions:
+  dto.AuthResponse:
+    properties:
+      access_token:
+        type: string
+      created_at:
+        example: "2025-01-27T10:15:30Z"
+        format: date-time
+        type: string
+      display_name:
+        example: John Doe
+        type: string
+      email:
+        example: user@example.com
+        format: email
+        type: string
+      email_verified:
+        example: false
+        type: boolean
+      expires_at:
+        format: date-time
+        type: string
+      id:
+        example: 1
+        type: integer
+      refresh_token:
+        type: string
+    type: object
+  dto.ErrorResponse:
+    properties:
+      code:
+        type: string
+      description:
+        type: string
+      details:
+        items:
+          $ref: '#/definitions/dto.ValidationError'
+        type: array
+      message:
+        type: string
+    type: object
+  dto.GoogleLoginRequest:
+    properties:
+      access_token:
+        example: ya29.a0ARrdaM...
+        type: string
+    required:
+      - access_token
+    type: object
+  dto.GoogleSignupRequest:
+    properties:
+      access_token:
+        example: ya29.a0ARrdaM...
+        type: string
+    required:
+      - access_token
+    type: object
+  dto.HealthResponse:
+    properties:
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  dto.LoginRequest:
+    properties:
+      email:
+        example: user@example.com
+        format: email
+        maxLength: 255
+        type: string
+      password:
+        example: password123
+        maxLength: 128
+        minLength: 1
+        type: string
+    required:
+      - email
+      - password
+    type: object
+  dto.LoginResponse:
+    properties:
+      access_token:
+        type: string
+      expires_at:
+        format: date-time
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  dto.RefreshRequest:
+    properties:
+      access_token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      refresh_token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    required:
+      - access_token
+      - refresh_token
+    type: object
+  dto.RefreshResponse:
+    properties:
+      access_token:
+        type: string
+      expires_at:
+        format: date-time
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  dto.SignupRequest:
+    properties:
+      display_name:
+        example: John Doe
+        maxLength: 100
+        minLength: 1
+        type: string
+      email:
+        example: user@example.com
+        format: email
+        maxLength: 255
+        type: string
+      password:
+        example: Password123!
+        maxLength: 128
+        minLength: 8
+        type: string
+    required:
+      - display_name
+      - email
+      - password
+    type: object
+  dto.SignupResponse:
+    properties:
+      created_at:
+        example: "2025-01-27T10:15:30Z"
+        format: date-time
+        type: string
+      display_name:
+        example: John Doe
+        type: string
+      email:
+        example: user@example.com
+        format: email
+        type: string
+      email_verified:
+        example: false
+        type: boolean
+      id:
+        example: 1
+        type: integer
+    type: object
+  dto.UserInfo:
+    properties:
+      display_name:
+        type: string
+      email:
+        format: email
+        type: string
+      email_verified:
+        type: boolean
+      id:
+        type: integer
+    type: object
+  dto.ValidationError:
+    properties:
+      field:
+        type: string
+      message:
+        type: string
+      tag:
+        type: string
+      value:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@striker.com
+    name: API Support
+    url: http://www.striker.com/support
+  description: This is the StrikePad backend API server.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: StrikePad Backend API
+  version: "1.0"
+paths:
+  /api/auth/google/login:
+    post:
+      consumes:
+        - application/json
+      description: Authenticate user using Google OAuth
+      parameters:
+        - description: Google login request
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/dto.GoogleLoginRequest'
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            $ref: '#/definitions/dto.UserInfo'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Invalid credentials
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Google OAuth login
+      tags:
+        - Authentication
+  /api/auth/google/signup:
+    post:
+      consumes:
+        - application/json
+      description: Create a new user account using Google OAuth
+      parameters:
+        - description: Google signup request
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/dto.GoogleSignupRequest'
+      produces:
+        - application/json
+      responses:
+        "201":
+          description: User created successfully
+          schema:
+            $ref: '#/definitions/dto.SignupResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: User already exists
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Google OAuth signup
+      tags:
+        - Authentication
+  /api/auth/login:
+    post:
+      consumes:
+        - application/json
+      description: Authenticate user with email and password
+      parameters:
+        - description: Login request
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/dto.LoginRequest'
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            $ref: '#/definitions/dto.LoginResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Invalid credentials
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: User login
+      tags:
+        - Authentication
+  /api/auth/logout:
+    post:
+      consumes:
+        - application/json
+      description: Logout current user and invalidate session
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: Logout successful
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+        - BearerAuth: [ ]
+      summary: User logout
+      tags:
+        - Authentication
+  /api/auth/refresh:
+    post:
+      consumes:
+        - application/json
+      description: Refresh access token using refresh token
+      parameters:
+        - description: Refresh request
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/dto.RefreshRequest'
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: Token refreshed successfully
+          schema:
+            $ref: '#/definitions/dto.RefreshResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Invalid token
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Token refresh
+      tags:
+        - Authentication
+  /api/auth/signup:
+    post:
+      consumes:
+        - application/json
+      description: Create a new user account with email and password
+      parameters:
+        - description: Signup request
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/dto.SignupRequest'
+      produces:
+        - application/json
+      responses:
+        "201":
+          description: User created successfully
+          schema:
+            $ref: '#/definitions/dto.AuthResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: User already exists
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: User signup
+      tags:
+        - Authentication
+  /api/user/me:
+    get:
+      consumes:
+        - application/json
+      description: Get information about the currently authenticated user
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: User information
+          schema:
+            $ref: '#/definitions/dto.UserInfo'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+        - BearerAuth: [ ]
+      summary: Get current user information
+      tags:
+        - User
+  /health:
+    get:
+      consumes:
+        - application/json
+      description: Check if the service is healthy
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: Service is healthy
+          schema:
+            $ref: '#/definitions/dto.HealthResponse'
+      summary: Health check
+      tags:
+        - Health
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

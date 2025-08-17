@@ -19,3 +19,8 @@ type HealthServiceInterface interface {
 type APIServiceInterface interface {
 	GetTestMessage() map[string]string
 }
+
+// UserServiceInterface defines the interface for user service
+type UserServiceInterface interface {
+	GetCurrentUser(userID uint) (*dto.UserInfo, error)
+}

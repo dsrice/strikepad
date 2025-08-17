@@ -353,8 +353,8 @@ jobs:
         ENV: test
         CGO_ENABLED: 1
       run: |
-        # Get list of packages excluding mocks and testutil
-        PACKAGES=$(go list ./... | grep -v -E '/mocks|/testutil' | tr '\n' ' ')
+        # Get list of packages excluding mocks, testutil, and docs
+        PACKAGES=$(go list ./... | grep -v -E '/mocks|/testutil|/docs' | tr '\n' ' ')
         echo "Testing packages: $PACKAGES"
         
         # Run tests with JSON output for detailed reporting
@@ -578,15 +578,32 @@ jobs:
           
           // Format coverage report for comment
           const lines = coverage.split('\n').filter(line => line.trim() && !line.includes('total:'));
-          const packageCoverage = lines.map(line => {
+          const packageMap = new Map();
+          
+          lines.forEach(line => {
             const parts = line.split('\t');
             if (parts.length >= 3) {
-              const pkg = parts[0].replace('strikepad-backend/', '');
+              const fullPath = parts[0].replace('strikepad-backend/', '');
               const percent = parts[2];
-              return `| ${pkg} | ${percent} |`;
+          
+              // Extract package directory from file path (e.g., internal/auth from internal/auth/jwt.go)
+              if (fullPath.includes('.go:')) {
+                const filePath = fullPath.split(':')[0]; // Remove function name
+                const packageDir = filePath.split('/').slice(0, -1).join('/'); // Remove file name
+          
+                if (packageDir && percent.includes('%')) {
+                  // Store the first occurrence of each package (usually the package summary line)
+                  if (!packageMap.has(packageDir)) {
+                    packageMap.set(packageDir, percent);
+                  }
+                }
+              }
             }
-            return null;
-          }).filter(Boolean);
+          });
+          
+          const packageCoverage = Array.from(packageMap.entries()).map(([pkg, percent]) => {
+            return `| ${pkg} | ${percent} |`;
+          });
           
           const comment = `<!-- backend-coverage-report -->
           ## 🧪 Test Coverage Report

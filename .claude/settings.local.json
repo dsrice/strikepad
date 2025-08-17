@@ -32,7 +32,9 @@
       "Bash(npm run test:coverage:*)",
       "Bash(git add:*)",
       "Bash(git push:*)",
-      "Bash(npm ci:*)"
+      "Bash(npm ci:*)",
+      "Bash(find:*)",
+      "Bash(mockery:*)"
     ],
     "deny": []
   }
