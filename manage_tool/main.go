@@ -1,8 +1,11 @@
 package main
 
 import (
+	"log"
 	"net/http"
+	"strikepad-manage-tool/config"
 	"strikepad-manage-tool/handlers"
+	"strikepad-manage-tool/repository"
 	"strikepad-manage-tool/templates"
 
 	"github.com/labstack/echo/v4"
@@ -10,6 +13,16 @@ import (
 )
 
 func main() {
+	// データベース接続
+	dbConfig := config.NewDatabaseConfig()
+	db, err := config.ConnectDatabase(dbConfig)
+	if err != nil {
+		log.Fatal("Failed to connect to database:", err)
+	}
+
+	// リポジトリ初期化
+	userRepo := repository.NewUserRepository(db)
+
 	// Echoインスタンス作成
 	e := echo.New()
 
@@ -21,8 +34,9 @@ func main() {
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
 
-	// 認証ハンドラー初期化
+	// ハンドラー初期化
 	authHandler := handlers.NewAuthHandler()
+	adminHandler := handlers.NewAdminHandler(userRepo)
 
 	// 認証関連ルート
 	e.GET("/login", authHandler.ShowLogin)
@@ -32,6 +46,13 @@ func main() {
 	e.GET("/", func(c echo.Context) error {
 		return c.Redirect(http.StatusFound, "/login")
 	})
+
+	// 管理機能ルート
+	admin := e.Group("/admin")
+	admin.GET("/users", adminHandler.ShowUsers)
+	admin.GET("/users/:id", adminHandler.ShowUserDetail)
+	admin.POST("/users/:id/status", adminHandler.UpdateUserStatus)
+	admin.DELETE("/users/:id", adminHandler.DeleteUser)
 
 	// 管理用API群
 	api := e.Group("/api")
