@@ -19,13 +19,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
+          const token = localStorage.getItem('access_token');
+          if (token) {
+              // Fetch user info from API
+              const userInfo = await authAPI.getProfile();
+              setUser(userInfo);
         }
       } catch (error) {
-        console.error('Failed to load user from storage:', error);
-        localStorage.removeItem('user');
+          console.error('Failed to load user from API:', error);
+          // Clear tokens if API call fails
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
       } finally {
         setIsLoading(false);
       }
@@ -41,17 +45,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const loginResponse = await authAPI.login({email, password});
 
-      // Extract user info from login response
-      const userInfo: UserInfo = {
-        id: loginResponse.id,
-        email: loginResponse.email,
-        display_name: loginResponse.display_name,
-        email_verified: loginResponse.email_verified,
-        access_token: loginResponse.access_token,
-        refresh_token: loginResponse.refresh_token,
-        expires_at: loginResponse.expires_at,
-      };
-
       // Store tokens separately
         if (loginResponse.access_token) {
             localStorage.setItem('access_token', loginResponse.access_token);
@@ -59,9 +52,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (loginResponse.refresh_token) {
             localStorage.setItem('refresh_token', loginResponse.refresh_token);
         }
-      
+
+        // Fetch user info from API after login
+        const userInfo = await authAPI.getProfile();
       setUser(userInfo);
-      localStorage.setItem('user', JSON.stringify(userInfo));
     } catch (error: any) {
       setError(error.message || 'Login failed');
       throw error;
@@ -77,17 +71,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const response = await authAPI.signup({email, password, display_name: displayName});
       
-      // Convert signup response to UserInfo format
-      const userInfo: UserInfo = {
-        id: response.id,
-        email: response.email,
-        display_name: response.display_name,
-        email_verified: response.email_verified,
-        access_token: response.access_token,
-        refresh_token: response.refresh_token,
-        expires_at: response.expires_at,
-      };
-
       // Store tokens separately
         if (response.access_token) {
             localStorage.setItem('access_token', response.access_token);
@@ -95,9 +78,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (response.refresh_token) {
             localStorage.setItem('refresh_token', response.refresh_token);
         }
-      
+
+        // Fetch user info from API after signup
+        const userInfo = await authAPI.getProfile();
       setUser(userInfo);
-      localStorage.setItem('user', JSON.stringify(userInfo));
     } catch (error: any) {
       setError(error.message || 'Signup failed');
       throw error;
@@ -113,16 +97,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const response = await authAPI.googleSignup({access_token: accessToken});
 
-      // Convert signup response to UserInfo format
-      const userInfo: UserInfo = {
-        id: response.id,
-        email: response.email,
-        display_name: response.display_name,
-        email_verified: response.email_verified,
-      };
+        // Store tokens if available
+        if (response.access_token) {
+            localStorage.setItem('access_token', response.access_token);
+        }
+        if (response.refresh_token) {
+            localStorage.setItem('refresh_token', response.refresh_token);
+        }
 
+        // Fetch user info from API after signup
+        const userInfo = await authAPI.getProfile();
       setUser(userInfo);
-      localStorage.setItem('user', JSON.stringify(userInfo));
     } catch (error: any) {
       setError(error.message || 'Google signup failed');
       throw error;
@@ -136,10 +121,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
       setError(null);
 
-      const userInfo = await authAPI.googleLogin({access_token: accessToken});
+        const loginResponse = await authAPI.googleLogin({access_token: accessToken});
 
+        // Store tokens if available
+        if (loginResponse.access_token) {
+            localStorage.setItem('access_token', loginResponse.access_token);
+        }
+        if (loginResponse.refresh_token) {
+            localStorage.setItem('refresh_token', loginResponse.refresh_token);
+        }
+
+        // Fetch user info from API after login
+        const userInfo = await authAPI.getProfile();
       setUser(userInfo);
-      localStorage.setItem('user', JSON.stringify(userInfo));
     } catch (error: any) {
       setError(error.message || 'Google login failed');
       throw error;
@@ -159,7 +153,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Clear local state and storage regardless of API call result
       setUser(null);
       setError(null);
-      localStorage.removeItem('user');
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
     }

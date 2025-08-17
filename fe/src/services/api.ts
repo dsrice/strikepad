@@ -6,8 +6,30 @@ import {
   GoogleLoginRequest,
   UserInfo,
   SignupResponse,
-  ErrorResponse
+    ErrorResponse,
+    RefreshRequest,
+    RefreshResponse,
+    LoginResponse
 } from '../types/auth';
+
+// Flag to prevent infinite refresh loops
+let isRefreshing = false;
+let failedQueue: Array<{
+    resolve: (value?: any) => void;
+    reject: (reason?: any) => void;
+}> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+    failedQueue.forEach(({resolve, reject}) => {
+        if (error) {
+            reject(error);
+        } else {
+            resolve(token);
+        }
+    });
+
+    failedQueue = [];
+};
 
 // Create axios instance with default config
 const api = axios.create({
@@ -30,13 +52,91 @@ api.interceptors.request.use(
   },
 );
 
-// Add response interceptor for error handling
+// Add response interceptor for error handling and automatic token refresh
 api.interceptors.response.use(
   (response) => {
     console.log(`✅ API Response: ${response.status} ${response.config.url}`);
     return response;
   },
-  (error) => {
+    async (error) => {
+        const originalRequest = error.config;
+
+        // Check if it's a 401 error and not a login/signup/refresh request
+        if (error.response?.status === 401 &&
+            !originalRequest._retry &&
+            !originalRequest.url?.includes('/auth/login') &&
+            !originalRequest.url?.includes('/auth/signup') &&
+            !originalRequest.url?.includes('/auth/refresh') &&
+            !originalRequest.url?.includes('/auth/google/login') &&
+            !originalRequest.url?.includes('/auth/google/signup')) {
+
+            if (isRefreshing) {
+                // If already refreshing, queue this request
+                return new Promise((resolve, reject) => {
+                    failedQueue.push({resolve, reject});
+                }).then(() => {
+                    // Retry with new token
+                    const token = localStorage.getItem('access_token');
+                    if (token) {
+                        originalRequest.headers.Authorization = `Bearer ${token}`;
+                    }
+                    return api(originalRequest);
+                }).catch(err => {
+                    return Promise.reject(err);
+                });
+            }
+
+            originalRequest._retry = true;
+            isRefreshing = true;
+
+            try {
+                const accessToken = localStorage.getItem('access_token');
+                const refreshToken = localStorage.getItem('refresh_token');
+
+                if (!accessToken || !refreshToken) {
+                    throw new Error('No tokens available');
+                }
+
+                // Try to refresh the token
+                const refreshResponse = await authAPI.refresh({
+                    access_token: accessToken,
+                    refresh_token: refreshToken
+                });
+
+                // Store new tokens
+                localStorage.setItem('access_token', refreshResponse.access_token);
+                localStorage.setItem('refresh_token', refreshResponse.refresh_token);
+
+                // Update the authorization header for the failed request
+                originalRequest.headers.Authorization = `Bearer ${refreshResponse.access_token}`;
+
+                // Process queued requests
+                processQueue(null, refreshResponse.access_token);
+
+                // Retry the original request
+                return api(originalRequest);
+
+            } catch (refreshError) {
+                console.error('Token refresh failed:', refreshError);
+
+                // Clear tokens and redirect to login
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+
+                // Process queued requests with error
+                processQueue(refreshError, null);
+
+                // Redirect to login page
+                if (typeof window !== 'undefined') {
+                    window.location.href = '/login';
+                }
+
+                return Promise.reject(refreshError);
+            } finally {
+                isRefreshing = false;
+            }
+        }
+
     console.error('❌ API Response Error:', error.response?.data || error.message);
     return Promise.reject(error);
   },
@@ -51,9 +151,9 @@ const getAuthHeaders = () => {
 // Auth API functions
 export const authAPI = {
   // Login user
-  login: async (credentials: LoginRequest): Promise<UserInfo> => {
+    login: async (credentials: LoginRequest): Promise<LoginResponse> => {
     try {
-      const response: AxiosResponse<UserInfo> = await api.post('/auth/login', credentials);
+        const response: AxiosResponse<LoginResponse> = await api.post('/auth/login', credentials);
       return response.data;
     } catch (error: any) {
       if (error.response?.data) {
@@ -102,9 +202,9 @@ export const authAPI = {
   },
 
   // Google OAuth login
-  googleLogin: async (googleData: GoogleLoginRequest): Promise<UserInfo> => {
+    googleLogin: async (googleData: GoogleLoginRequest): Promise<LoginResponse> => {
     try {
-      const response: AxiosResponse<UserInfo> = await api.post('/auth/google/login', googleData);
+        const response: AxiosResponse<LoginResponse> = await api.post('/auth/google/login', googleData);
       return response.data;
     } catch (error: any) {
       if (error.response?.data) {
@@ -114,10 +214,10 @@ export const authAPI = {
     }
   },
 
-  // Get current user profile (if we have token-based auth in the future)
+    // Get current user profile
   getProfile: async (): Promise<UserInfo> => {
     try {
-      const response: AxiosResponse<UserInfo> = await api.get('/auth/profile', {
+        const response: AxiosResponse<UserInfo> = await api.get('/user/me', {
         headers: getAuthHeaders(),
       });
       return response.data;
@@ -128,6 +228,19 @@ export const authAPI = {
       throw new Error('Network error occurred');
     }
   },
+
+    // Refresh tokens
+    refresh: async (refreshRequest: RefreshRequest): Promise<RefreshResponse> => {
+        try {
+            const response: AxiosResponse<RefreshResponse> = await api.post('/auth/refresh', refreshRequest);
+            return response.data;
+        } catch (error: any) {
+            if (error.response?.data) {
+                throw new Error(error.response.data.message || 'Token refresh failed');
+            }
+            throw new Error('Network error occurred');
+        }
+    },
 
   // Logout user
   logout: async (): Promise<{ message: string }> => {
