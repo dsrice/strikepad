@@ -67,8 +67,8 @@ jobs:
         ENV: test
         CGO_ENABLED: 1
       run: |
-        # Get list of packages excluding mocks and testutil
-        PACKAGES=$(go list ./... | grep -v -E '/mocks|/testutil' | tr '\n' ' ')
+        # Get list of packages excluding mocks, testutil, and docs
+        PACKAGES=$(go list ./... | grep -v -E '/mocks|/testutil|/docs' | tr '\n' ' ')
         echo "Testing packages: $PACKAGES"
         go test -v -race -coverprofile=coverage.out -covermode=atomic $PACKAGES
 
