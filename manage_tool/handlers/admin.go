@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"strikepad-manage-tool/constants"
 	"strikepad-manage-tool/models"
 	"strikepad-manage-tool/repository"
 
@@ -26,12 +27,15 @@ func NewAdminHandler(userRepo *repository.UserRepository) *AdminHandler {
 func (h *AdminHandler) ShowUsers(c echo.Context) error {
 	// セッションチェック
 	cookie, err := c.Cookie("session")
-	if err != nil || cookie.Value != "authenticated" {
+	if err != nil || cookie.Value != constants.SessionAuthenticated {
 		return c.Redirect(http.StatusFound, "/login")
 	}
 
 	// ページネーション
-	page, _ := strconv.Atoi(c.QueryParam("page"))
+	page, err := strconv.Atoi(c.QueryParam("page"))
+	if err != nil {
+		page = 1
+	}
 	if page < 1 {
 		page = 1
 	}
@@ -56,7 +60,11 @@ func (h *AdminHandler) ShowUsers(c echo.Context) error {
 		})
 	}
 
-	totalCount, _ = h.userRepo.GetTotalUsersCount()
+	totalCount, err = h.userRepo.GetTotalUsersCount()
+	if err != nil {
+		// エラーログ出力して継続（統計情報のエラーで全体が止まらないように）
+		totalCount = 0
+	}
 
 	data := map[string]interface{}{
 		"Username":   "admin",
@@ -77,7 +85,7 @@ func (h *AdminHandler) ShowUsers(c echo.Context) error {
 func (h *AdminHandler) ShowUserDetail(c echo.Context) error {
 	// セッションチェック
 	cookie, err := c.Cookie("session")
-	if err != nil || cookie.Value != "authenticated" {
+	if err != nil || cookie.Value != constants.SessionAuthenticated {
 		return c.Redirect(http.StatusFound, "/login")
 	}
 
@@ -108,7 +116,7 @@ func (h *AdminHandler) ShowUserDetail(c echo.Context) error {
 func (h *AdminHandler) UpdateUserStatus(c echo.Context) error {
 	// セッションチェック
 	cookie, err := c.Cookie("session")
-	if err != nil || cookie.Value != "authenticated" {
+	if err != nil || cookie.Value != constants.SessionAuthenticated {
 		return c.JSON(http.StatusUnauthorized, map[string]string{
 			"error": "認証が必要です",
 		})
@@ -140,7 +148,7 @@ func (h *AdminHandler) UpdateUserStatus(c echo.Context) error {
 func (h *AdminHandler) DeleteUser(c echo.Context) error {
 	// セッションチェック
 	cookie, err := c.Cookie("session")
-	if err != nil || cookie.Value != "authenticated" {
+	if err != nil || cookie.Value != constants.SessionAuthenticated {
 		return c.JSON(http.StatusUnauthorized, map[string]string{
 			"error": "認証が必要です",
 		})

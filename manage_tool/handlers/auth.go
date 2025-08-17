@@ -3,6 +3,8 @@ package handlers
 import (
 	"net/http"
 
+	"strikepad-manage-tool/constants"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -33,7 +35,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		// セッションを設定（簡易版）
 		cookie := &http.Cookie{
 			Name:  "session",
-			Value: "authenticated",
+			Value: constants.SessionAuthenticated,
 			Path:  "/",
 		}
 		c.SetCookie(cookie)
@@ -51,7 +53,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 func (h *AuthHandler) ShowDashboard(c echo.Context) error {
 	// セッションチェック
 	cookie, err := c.Cookie("session")
-	if err != nil || cookie.Value != "authenticated" {
+	if err != nil || cookie.Value != constants.SessionAuthenticated {
 		return c.Redirect(http.StatusFound, "/login")
 	}
 
