@@ -37,7 +37,8 @@
       "Bash(mockery:*)",
       "Bash(./atlas.exe migrate apply --env dev)",
       "Bash(./atlas.exe migrate:*)",
-      "Bash(./manage-tool.exe)"
+      "Bash(./manage-tool.exe)",
+      "Bash(go run:*)"
     ],
     "deny": []
   }
