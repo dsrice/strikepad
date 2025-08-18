@@ -42,7 +42,9 @@
       "WebFetch(domain:echo.labstack.com)",
       "WebSearch",
       "Bash(timeout 10 go run main.go)",
-      "Bash(timeout 5 go run main.go)"
+      "Bash(timeout 5 go run main.go)",
+      "Bash(timeout:*)",
+      "Bash(wmic process where:*)"
     ],
     "deny": [],
     "additionalDirectories": [

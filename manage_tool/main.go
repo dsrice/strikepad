@@ -28,6 +28,8 @@ func main() {
 	userRepo := repository.NewUserRepository(db)
 	adminRepo := repository.NewAdminRepository(db)
 	makerRepo := repository.NewMakerRepository(db)
+	coreRepo := repository.NewCoreRepository(db)
+	coverRepo := repository.NewCoverRepository(db)
 
 	// Echoインスタンス作成
 	e := echo.New()
@@ -53,6 +55,8 @@ func main() {
 	authHandler := handlers.NewAuthHandler(adminRepo)
 	adminHandler := handlers.NewAdminHandler(userRepo)
 	makerHandler := handlers.NewMakerHandler(makerRepo)
+	coreHandler := handlers.NewCoreHandler(coreRepo, makerRepo)
+	coverHandler := handlers.NewCoverHandler(coverRepo, makerRepo)
 
 	// 認証が不要なルート
 	e.GET("/", func(c echo.Context) error {
@@ -89,6 +93,22 @@ func main() {
 	admin.GET("/makers/:id", makerHandler.ShowMakerDetail)
 	admin.DELETE("/makers/:id", makerHandler.DeleteMaker)
 	admin.GET("/makers/stats", makerHandler.GetMakerStats)
+
+	// コア管理
+	admin.GET("/cores", coreHandler.ShowCores)
+	admin.GET("/cores/create", coreHandler.ShowCreateCore)
+	admin.POST("/cores/create", coreHandler.CreateCore)
+	admin.GET("/cores/:id", coreHandler.ShowCoreDetail)
+	admin.DELETE("/cores/:id", coreHandler.DeleteCore)
+	admin.GET("/cores/stats", coreHandler.GetCoreStats)
+
+	// カバー管理
+	admin.GET("/covers", coverHandler.ShowCovers)
+	admin.GET("/covers/create", coverHandler.ShowCreateCover)
+	admin.POST("/covers/create", coverHandler.CreateCover)
+	admin.GET("/covers/:id", coverHandler.ShowCoverDetail)
+	admin.DELETE("/covers/:id", coverHandler.DeleteCover)
+	admin.GET("/covers/stats", coverHandler.GetCoverStats)
 
 	log.Println("Starting Strikepad Management Tool on :8082")
 	// サーバー起動

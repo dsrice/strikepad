@@ -108,7 +108,8 @@ type Cover struct {
 	ID           uint           `gorm:"primarykey" json:"id"`
 	Name         string         `gorm:"size:200;not null" json:"name"`
 	MaterialType int            `gorm:"not null" json:"material_type"`
-	MakerID      uint           `gorm:"not null" json:"maker_id"`
+	MakerID      uint           `gorm:"not null;index" json:"maker_id"`
+	Maker        Maker          `gorm:"foreignKey:MakerID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"maker,omitempty"`
 	Rank         int            `gorm:"not null" json:"rank"`
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
@@ -129,7 +130,8 @@ type Core struct {
 	DeltaRG      float32        `gorm:"not null" json:"delta_rg"`
 	InitDiff     *float32       `json:"init_diff,omitempty"`
 	SymmetryFlag bool           `gorm:"not null" json:"symmetry_flag"`
-	MakerID      uint           `gorm:"not null" json:"maker_id"`
+	MakerID      uint           `gorm:"not null;index" json:"maker_id"`
+	Maker        Maker          `gorm:"foreignKey:MakerID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"maker,omitempty"`
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
 	IsDeleted    bool           `gorm:"default:false" json:"is_deleted"`
