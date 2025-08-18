@@ -27,6 +27,7 @@ func main() {
 	// リポジトリ初期化
 	userRepo := repository.NewUserRepository(db)
 	adminRepo := repository.NewAdminRepository(db)
+	makerRepo := repository.NewMakerRepository(db)
 
 	// Echoインスタンス作成
 	e := echo.New()
@@ -51,6 +52,7 @@ func main() {
 	// ハンドラー初期化
 	authHandler := handlers.NewAuthHandler(adminRepo)
 	adminHandler := handlers.NewAdminHandler(userRepo)
+	makerHandler := handlers.NewMakerHandler(makerRepo)
 
 	// 認証が不要なルート
 	e.GET("/", func(c echo.Context) error {
@@ -73,10 +75,20 @@ func main() {
 
 	// 管理機能ルート（認証必要）
 	admin := protected.Group("/admin")
+
+	// ユーザー管理
 	admin.GET("/users", adminHandler.ShowUsers)
 	admin.GET("/users/:id", adminHandler.ShowUserDetail)
 	admin.POST("/users/:id/status", adminHandler.UpdateUserStatus)
 	admin.DELETE("/users/:id", adminHandler.DeleteUser)
+
+	// メーカー管理
+	admin.GET("/makers", makerHandler.ShowMakers)
+	admin.GET("/makers/create", makerHandler.ShowCreateMaker)
+	admin.POST("/makers/create", makerHandler.CreateMaker)
+	admin.GET("/makers/:id", makerHandler.ShowMakerDetail)
+	admin.DELETE("/makers/:id", makerHandler.DeleteMaker)
+	admin.GET("/makers/stats", makerHandler.GetMakerStats)
 
 	log.Println("Starting Strikepad Management Tool on :8080")
 	// サーバー起動
