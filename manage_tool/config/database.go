@@ -25,8 +25,8 @@ func NewDatabaseConfig() *DatabaseConfig {
 		Host:     getEnv("DB_HOST", "localhost"),
 		Port:     getEnv("DB_PORT", "5432"),
 		User:     getEnv("DB_USER", "postgres"),
-		Password: getEnv("DB_PASSWORD", "postgres"),
-		Name:     getEnv("DB_NAME", "strikepad_test"),
+		Password: getEnv("DB_PASSWORD", "password"),
+		Name:     getEnv("DB_NAME", "strikepad"),
 		SSLMode:  getEnv("DB_SSLMODE", "disable"),
 	}
 }

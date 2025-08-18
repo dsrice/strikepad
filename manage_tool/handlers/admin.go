@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"strikepad-manage-tool/constants"
 	"strikepad-manage-tool/models"
 	"strikepad-manage-tool/repository"
+	"strikepad-manage-tool/utils"
 
 	"github.com/labstack/echo/v4"
 )
@@ -23,11 +23,41 @@ func NewAdminHandler(userRepo *repository.UserRepository) *AdminHandler {
 	}
 }
 
+// ShowDashboard はダッシュボードを表示
+func (h *AdminHandler) ShowDashboard(c echo.Context) error {
+	// セッションから管理者ユーザー情報を取得
+	currentUser := utils.GetCurrentAdminUser(c)
+	if currentUser == nil {
+		return c.Redirect(http.StatusFound, "/login")
+	}
+
+	// 統計情報を取得
+	stats, err := h.userRepo.GetUserStats()
+	if err != nil {
+		// エラーが発生した場合はデフォルト値を設定
+		stats = &models.UserStats{
+			TotalUsers:     0,
+			ActiveUsers:    0,
+			InactiveUsers:  0,
+			TodayLogins:    0,
+			ActiveSessions: 0,
+		}
+	}
+
+	data := map[string]interface{}{
+		"Username": currentUser.Name,
+		"LoginID":  currentUser.LoginID,
+		"Stats":    stats,
+	}
+
+	return c.Render(http.StatusOK, "dashboard.html", data)
+}
+
 // ShowUsers はユーザー一覧画面を表示
 func (h *AdminHandler) ShowUsers(c echo.Context) error {
-	// セッションチェック
-	cookie, err := c.Cookie("session")
-	if err != nil || cookie.Value != constants.SessionAuthenticated {
+	// セッションから管理者ユーザー情報を取得
+	currentUser := utils.GetCurrentAdminUser(c)
+	if currentUser == nil {
 		return c.Redirect(http.StatusFound, "/login")
 	}
 
@@ -67,7 +97,8 @@ func (h *AdminHandler) ShowUsers(c echo.Context) error {
 	}
 
 	data := map[string]interface{}{
-		"Username":   "admin",
+		"Username":   currentUser.Name,
+		"LoginID":    currentUser.LoginID,
 		"Users":      users,
 		"Page":       page,
 		"Search":     search,
@@ -83,9 +114,9 @@ func (h *AdminHandler) ShowUsers(c echo.Context) error {
 
 // ShowUserDetail はユーザー詳細画面を表示
 func (h *AdminHandler) ShowUserDetail(c echo.Context) error {
-	// セッションチェック
-	cookie, err := c.Cookie("session")
-	if err != nil || cookie.Value != constants.SessionAuthenticated {
+	// セッションから管理者ユーザー情報を取得
+	currentUser := utils.GetCurrentAdminUser(c)
+	if currentUser == nil {
 		return c.Redirect(http.StatusFound, "/login")
 	}
 
@@ -105,7 +136,8 @@ func (h *AdminHandler) ShowUserDetail(c echo.Context) error {
 	}
 
 	data := map[string]interface{}{
-		"Username": "admin",
+		"Username": currentUser.Name,
+		"LoginID":  currentUser.LoginID,
 		"User":     user,
 	}
 
@@ -114,9 +146,9 @@ func (h *AdminHandler) ShowUserDetail(c echo.Context) error {
 
 // UpdateUserStatus はユーザーのアクティブ状態を更新
 func (h *AdminHandler) UpdateUserStatus(c echo.Context) error {
-	// セッションチェック
-	cookie, err := c.Cookie("session")
-	if err != nil || cookie.Value != constants.SessionAuthenticated {
+	// セッションから管理者ユーザー情報を取得
+	currentUser := utils.GetCurrentAdminUser(c)
+	if currentUser == nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{
 			"error": "認証が必要です",
 		})
@@ -146,9 +178,9 @@ func (h *AdminHandler) UpdateUserStatus(c echo.Context) error {
 
 // DeleteUser はユーザーを削除
 func (h *AdminHandler) DeleteUser(c echo.Context) error {
-	// セッションチェック
-	cookie, err := c.Cookie("session")
-	if err != nil || cookie.Value != constants.SessionAuthenticated {
+	// セッションから管理者ユーザー情報を取得
+	currentUser := utils.GetCurrentAdminUser(c)
+	if currentUser == nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{
 			"error": "認証が必要です",
 		})

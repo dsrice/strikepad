@@ -1,21 +1,25 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
-
-	"strikepad-manage-tool/constants"
+	"strikepad-manage-tool/repository"
+	"strikepad-manage-tool/utils"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
 
 // AuthHandler は認証関連のハンドラー
 type AuthHandler struct {
-	// 将来的にはデータベースやセッション管理を追加
+	adminRepo *repository.AdminRepository
 }
 
 // NewAuthHandler は新しい認証ハンドラーを作成
-func NewAuthHandler() *AuthHandler {
-	return &AuthHandler{}
+func NewAuthHandler(adminRepo *repository.AdminRepository) *AuthHandler {
+	return &AuthHandler{
+		adminRepo: adminRepo,
+	}
 }
 
 // ShowLogin はログイン画面を表示
@@ -27,59 +31,64 @@ func (h *AuthHandler) ShowLogin(c echo.Context) error {
 
 // Login はログイン処理を実行
 func (h *AuthHandler) Login(c echo.Context) error {
-	username := c.FormValue("username")
-	password := c.FormValue("password")
+	loginID := strings.TrimSpace(c.FormValue("login_id"))
+	password := strings.TrimSpace(c.FormValue("password"))
 
-	// 簡易認証（実際の実装では暗号化されたパスワードやデータベースを使用）
-	if username == "admin" && password == "password" {
-		// セッションを設定（簡易版）
-		cookie := &http.Cookie{
-			Name:  "session",
-			Value: constants.SessionAuthenticated,
-			Path:  "/",
-		}
-		c.SetCookie(cookie)
-
-		return c.Redirect(http.StatusFound, "/dashboard")
+	// 入力値検証
+	if loginID == "" || password == "" {
+		return c.Render(http.StatusOK, "login.html", map[string]interface{}{
+			"Error": "ログインIDとパスワードを入力してください",
+		})
 	}
 
-	// ログイン失敗
-	return c.Render(http.StatusOK, "login.html", map[string]interface{}{
-		"Error": "ユーザー名またはパスワードが正しくありません",
-	})
-}
-
-// ShowDashboard はダッシュボードを表示
-func (h *AuthHandler) ShowDashboard(c echo.Context) error {
-	// セッションチェック
-	cookie, err := c.Cookie("session")
-	if err != nil || cookie.Value != constants.SessionAuthenticated {
-		return c.Redirect(http.StatusFound, "/login")
+	// データベースから管理者ユーザーを取得
+	adminUser, err := h.adminRepo.GetByLoginID(loginID)
+	if err != nil {
+		log.Printf("Database error during login: %v", err)
+		return c.Render(http.StatusOK, "login.html", map[string]interface{}{
+			"Error": "システムエラーが発生しました",
+		})
 	}
 
-	// ダッシュボードデータ（実際の実装ではデータベースから取得）
-	data := map[string]interface{}{
-		"Username": "admin",
-		"Stats": map[string]interface{}{
-			"TotalUsers":     150,
-			"ActiveSessions": 23,
-			"TodayLogins":    45,
-		},
+	// ユーザーが存在しない場合
+	if adminUser == nil {
+		return c.Render(http.StatusOK, "login.html", map[string]interface{}{
+			"Error": "ログインIDまたはパスワードが正しくありません",
+		})
 	}
 
-	return c.Render(http.StatusOK, "dashboard.html", data)
+	// パスワード照合
+	if !utils.CheckPassword(password, adminUser.Password) {
+		return c.Render(http.StatusOK, "login.html", map[string]interface{}{
+			"Error": "ログインIDまたはパスワードが正しくありません",
+		})
+	}
+
+	// セッションを設定
+	err = utils.SetAdminSession(c, adminUser)
+	if err != nil {
+		log.Printf("Session error during login: %v", err)
+		return c.Render(http.StatusOK, "login.html", map[string]interface{}{
+			"Error": "セッションの作成に失敗しました",
+		})
+	}
+
+	log.Printf("Admin user logged in: %s (%s)", adminUser.Name, adminUser.LoginID)
+	return c.Redirect(http.StatusFound, "/dashboard")
 }
 
 // Logout はログアウト処理を実行
 func (h *AuthHandler) Logout(c echo.Context) error {
-	// クッキーを削除
-	cookie := &http.Cookie{
-		Name:   "session",
-		Value:  "",
-		Path:   "/",
-		MaxAge: -1,
+	// セッションをクリア
+	err := utils.ClearAdminSession(c)
+	if err != nil {
+		log.Printf("Session clear error during logout: %v", err)
 	}
-	c.SetCookie(cookie)
+
+	// 現在のユーザー情報をログに記録
+	if currentUser := utils.GetCurrentAdminUser(c); currentUser != nil {
+		log.Printf("Admin user logged out: %s (%s)", currentUser.Name, currentUser.LoginID)
+	}
 
 	return c.Redirect(http.StatusFound, "/login")
 }

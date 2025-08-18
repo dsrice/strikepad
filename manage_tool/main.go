@@ -3,14 +3,17 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"strikepad-manage-tool/config"
 	"strikepad-manage-tool/handlers"
+	"strikepad-manage-tool/middleware"
 	"strikepad-manage-tool/repository"
 	"strikepad-manage-tool/templates"
 
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	echomiddleware "github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
@@ -23,6 +26,7 @@ func main() {
 
 	// リポジトリ初期化
 	userRepo := repository.NewUserRepository(db)
+	adminRepo := repository.NewAdminRepository(db)
 
 	// Echoインスタンス作成
 	e := echo.New()
@@ -30,35 +34,51 @@ func main() {
 	// テンプレートレンダラー設定
 	e.Renderer = templates.NewTemplateRenderer()
 
+	// セッション設定
+	sessionSecret := os.Getenv("SESSION_SECRET")
+	if sessionSecret == "" {
+		sessionSecret = "your-secret-key-change-in-production" // 本番環境では必ず変更
+		log.Println("Warning: Using default session secret. Set SESSION_SECRET environment variable in production.")
+	}
+	sessionStore := middleware.CreateSessionStore(sessionSecret)
+	e.Use(session.Middleware(sessionStore))
+
 	// ミドルウェア設定
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
-	e.Use(middleware.CORS())
+	e.Use(echomiddleware.Logger())
+	e.Use(echomiddleware.Recover())
+	e.Use(echomiddleware.CORS())
 
 	// ハンドラー初期化
-	authHandler := handlers.NewAuthHandler()
+	authHandler := handlers.NewAuthHandler(adminRepo)
 	adminHandler := handlers.NewAdminHandler(userRepo)
 
-	// 認証関連ルート
-	e.GET("/login", authHandler.ShowLogin)
-	e.POST("/login", authHandler.Login)
-	e.GET("/logout", authHandler.Logout)
-	e.GET("/dashboard", authHandler.ShowDashboard)
+	// 認証が不要なルート
 	e.GET("/", func(c echo.Context) error {
 		return c.Redirect(http.StatusFound, "/login")
 	})
+	e.GET("/login", authHandler.ShowLogin)
+	e.POST("/auth/login", authHandler.Login)
 
-	// 管理機能ルート
-	admin := e.Group("/admin")
+	// 管理用API（認証不要）
+	api := e.Group("/api")
+	api.GET("/health", healthCheck)
+
+	// セッション認証が必要なルート
+	protected := e.Group("")
+	protected.Use(middleware.SessionAuth())
+
+	// 認証が必要なルート
+	protected.GET("/dashboard", adminHandler.ShowDashboard)
+	protected.GET("/logout", authHandler.Logout)
+
+	// 管理機能ルート（認証必要）
+	admin := protected.Group("/admin")
 	admin.GET("/users", adminHandler.ShowUsers)
 	admin.GET("/users/:id", adminHandler.ShowUserDetail)
 	admin.POST("/users/:id/status", adminHandler.UpdateUserStatus)
 	admin.DELETE("/users/:id", adminHandler.DeleteUser)
 
-	// 管理用API群
-	api := e.Group("/api")
-	api.GET("/health", healthCheck)
-
+	log.Println("Starting Strikepad Management Tool on :8080")
 	// サーバー起動
 	e.Logger.Fatal(e.Start(":8080"))
 }

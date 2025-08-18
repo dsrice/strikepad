@@ -70,3 +70,20 @@ type UserListItem struct {
 	ID          uint       `json:"id"`
 	IsActive    bool       `json:"is_active"`
 }
+
+// AdminUser は管理者ユーザーモデル
+type AdminUser struct {
+	ID        uint           `gorm:"primarykey" json:"id"`
+	LoginID   string         `gorm:"size:30;not null" json:"login_id"`
+	Password  string         `gorm:"size:200;not null" json:"-"`
+	Name      string         `gorm:"size:30;not null" json:"name"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	IsDeleted bool           `gorm:"default:false" json:"is_deleted"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
+}
+
+// TableName はテーブル名を指定
+func (AdminUser) TableName() string {
+	return "admin_users"
+}
