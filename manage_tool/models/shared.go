@@ -73,14 +73,14 @@ type UserListItem struct {
 
 // AdminUser は管理者ユーザーモデル
 type AdminUser struct {
-	ID        uint           `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 	LoginID   string         `gorm:"size:30;not null" json:"login_id"`
 	Password  string         `gorm:"size:200;not null" json:"-"`
 	Name      string         `gorm:"size:30;not null" json:"name"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
+	ID        uint           `gorm:"primarykey" json:"id"`
 	IsDeleted bool           `gorm:"default:false" json:"is_deleted"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 }
 
 // TableName はテーブル名を指定
@@ -90,12 +90,12 @@ func (AdminUser) TableName() string {
 
 // Maker はメーカーモデル
 type Maker struct {
-	ID        uint           `gorm:"primarykey" json:"id"`
-	Name      string         `gorm:"size:100;not null" json:"name"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
-	IsDeleted bool           `gorm:"default:false" json:"is_deleted"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
+	Name      string         `gorm:"size:100;not null" json:"name"`
+	ID        uint           `gorm:"primarykey" json:"id"`
+	IsDeleted bool           `gorm:"default:false" json:"is_deleted"`
 }
 
 // TableName はテーブル名を指定
@@ -105,16 +105,16 @@ func (Maker) TableName() string {
 
 // Cover はカバーモデル
 type Cover struct {
-	ID           uint           `gorm:"primarykey" json:"id"`
-	Name         string         `gorm:"size:200;not null" json:"name"`
-	MaterialType int            `gorm:"not null" json:"material_type"`
-	MakerID      uint           `gorm:"not null;index" json:"maker_id"`
-	Maker        Maker          `gorm:"foreignKey:MakerID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"maker,omitempty"`
-	Rank         int            `gorm:"not null" json:"rank"`
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
-	IsDeleted    bool           `gorm:"default:false" json:"is_deleted"`
+	Maker        Maker          `gorm:"foreignKey:MakerID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"maker,omitempty"`
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
+	Name         string         `gorm:"size:200;not null" json:"name"`
+	ID           uint           `gorm:"primarykey" json:"id"`
+	MaterialType int            `gorm:"not null" json:"material_type"`
+	MakerID      uint           `gorm:"not null;index" json:"maker_id"`
+	Rank         int            `gorm:"not null" json:"rank"`
+	IsDeleted    bool           `gorm:"default:false" json:"is_deleted"`
 }
 
 // TableName はテーブル名を指定
@@ -124,18 +124,18 @@ func (Cover) TableName() string {
 
 // Core はコアモデル
 type Core struct {
-	ID           uint           `gorm:"primarykey" json:"id"`
-	Name         string         `gorm:"size:200;not null" json:"name"`
-	RG           float32        `gorm:"not null" json:"rg"`
-	DeltaRG      float32        `gorm:"not null" json:"delta_rg"`
-	InitDiff     *float32       `json:"init_diff,omitempty"`
-	SymmetryFlag bool           `gorm:"not null" json:"symmetry_flag"`
-	MakerID      uint           `gorm:"not null;index" json:"maker_id"`
-	Maker        Maker          `gorm:"foreignKey:MakerID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"maker,omitempty"`
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
-	IsDeleted    bool           `gorm:"default:false" json:"is_deleted"`
+	InitDiff     *float32       `json:"init_diff,omitempty"`
+	Maker        Maker          `gorm:"foreignKey:MakerID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"maker,omitempty"`
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
+	Name         string         `gorm:"size:200;not null" json:"name"`
+	ID           uint           `gorm:"primarykey" json:"id"`
+	MakerID      uint           `gorm:"not null;index" json:"maker_id"`
+	RG           float32        `gorm:"not null" json:"rg"`
+	DeltaRG      float32        `gorm:"not null" json:"delta_rg"`
+	SymmetryFlag bool           `gorm:"not null" json:"symmetry_flag"`
+	IsDeleted    bool           `gorm:"default:false" json:"is_deleted"`
 }
 
 // TableName はテーブル名を指定
@@ -145,16 +145,16 @@ func (Core) TableName() string {
 
 // Ball はボールモデル
 type Ball struct {
-	ID        uint           `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 	Name      string         `gorm:"size:100;not null" json:"name"`
+	URL       string         `gorm:"size:200;not null" json:"url"`
+	ID        uint           `gorm:"primarykey" json:"id"`
 	MakerID   uint           `gorm:"not null" json:"maker_id"`
 	CoreID    uint           `gorm:"not null" json:"core_id"`
 	CoverID   uint           `gorm:"not null" json:"cover_id"`
-	URL       string         `gorm:"size:200;not null" json:"url"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
 	IsDeleted bool           `gorm:"default:false" json:"is_deleted"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 }
 
 // TableName はテーブル名を指定
@@ -164,13 +164,13 @@ func (Ball) TableName() string {
 
 // MakerListItem はメーカー一覧表示用の軽量構造体
 type MakerListItem struct {
-	ID         uint      `json:"id"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
 	Name       string    `json:"name"`
+	ID         uint      `json:"id"`
 	BallCount  int64     `json:"ball_count"`
 	CoverCount int64     `json:"cover_count"`
 	CoreCount  int64     `json:"core_count"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
 }
 
 // MakerStats はメーカー統計用構造体

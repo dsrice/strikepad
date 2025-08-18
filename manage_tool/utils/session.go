@@ -2,9 +2,10 @@ package utils
 
 import (
 	"fmt"
+	"time"
+
 	"strikepad-manage-tool/middleware"
 	"strikepad-manage-tool/models"
-	"time"
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -63,7 +64,7 @@ func GetCurrentAdminUser(c echo.Context) *AdminUserSession {
 
 // AdminUserSession はセッション用の管理者ユーザー情報
 type AdminUserSession struct {
-	ID      uint   `json:"id"`
 	Name    string `json:"name"`
 	LoginID string `json:"login_id"`
+	ID      uint   `json:"id"`
 }

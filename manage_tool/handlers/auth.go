@@ -3,9 +3,10 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"strings"
+
 	"strikepad-manage-tool/repository"
 	"strikepad-manage-tool/utils"
-	"strings"
 
 	"github.com/labstack/echo/v4"
 )
