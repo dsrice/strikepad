@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"strikepad-manage-tool/middleware"
 	"strikepad-manage-tool/models"
 	"time"
@@ -13,16 +14,21 @@ import (
 func SetAdminSession(c echo.Context, adminUser *models.AdminUser) error {
 	sess, err := session.Get(middleware.SessionName, c)
 	if err != nil {
-		return err
+		return fmt.Errorf("session.Get failed: %w", err)
 	}
 
 	// セッションデータを設定
 	sess.Values[middleware.SessionKeyUserID] = adminUser.ID
 	sess.Values[middleware.SessionKeyUserName] = adminUser.Name
 	sess.Values[middleware.SessionKeyLoginID] = adminUser.LoginID
-	sess.Values[middleware.SessionKeyLastAccess] = time.Now()
+	sess.Values[middleware.SessionKeyLastAccess] = time.Now().Unix()
 
-	return sess.Save(c.Request(), c.Response())
+	err = sess.Save(c.Request(), c.Response())
+	if err != nil {
+		return fmt.Errorf("session.Save failed: %w", err)
+	}
+
+	return nil
 }
 
 // ClearAdminSession は管理者ユーザーのセッションをクリア

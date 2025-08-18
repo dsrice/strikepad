@@ -65,13 +65,16 @@ func (h *AuthHandler) Login(c echo.Context) error {
 	}
 
 	// セッションを設定
+	log.Printf("Attempting to create session for user: %s (ID: %d)", adminUser.LoginID, adminUser.ID)
 	err = utils.SetAdminSession(c, adminUser)
 	if err != nil {
 		log.Printf("Session error during login: %v", err)
+		log.Printf("Session error type: %T", err)
 		return c.Render(http.StatusOK, "login.html", map[string]interface{}{
 			"Error": "セッションの作成に失敗しました",
 		})
 	}
+	log.Printf("Session created successfully for user: %s", adminUser.LoginID)
 
 	log.Printf("Admin user logged in: %s (%s)", adminUser.Name, adminUser.LoginID)
 	return c.Redirect(http.StatusFound, "/dashboard")

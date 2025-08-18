@@ -38,8 +38,15 @@
       "Bash(./atlas.exe migrate apply --env dev)",
       "Bash(./atlas.exe migrate:*)",
       "Bash(./manage-tool.exe)",
-      "Bash(go run:*)"
+      "Bash(go run:*)",
+      "WebFetch(domain:echo.labstack.com)",
+      "WebSearch",
+      "Bash(timeout 10 go run main.go)",
+      "Bash(timeout 5 go run main.go)"
     ],
-    "deny": []
+    "deny": [],
+    "additionalDirectories": [
+      "C:\\c\\work\\program\\strikepad"
+    ]
   }
 }

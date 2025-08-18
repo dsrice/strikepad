@@ -90,9 +90,9 @@ func main() {
 	admin.DELETE("/makers/:id", makerHandler.DeleteMaker)
 	admin.GET("/makers/stats", makerHandler.GetMakerStats)
 
-	log.Println("Starting Strikepad Management Tool on :8080")
+	log.Println("Starting Strikepad Management Tool on :8082")
 	// サーバー起動
-	e.Logger.Fatal(e.Start(":8080"))
+	e.Logger.Fatal(e.Start(":8082"))
 }
 
 // ヘルスチェックエンドポイント

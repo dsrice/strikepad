@@ -11,8 +11,8 @@ import (
 
 // セッションの設定
 const (
-	SessionName          = "admin_session"
-	SessionMaxAge        = 15 * 60 // 15分（秒単位）
+	SessionName          = "session" // デフォルト名を使用
+	SessionMaxAge        = 15 * 60   // 15分（秒単位）
 	SessionKeyUserID     = "user_id"
 	SessionKeyUserName   = "user_name"
 	SessionKeyLoginID    = "login_id"
@@ -59,10 +59,12 @@ func SessionAuth() echo.MiddlewareFunc {
 				return c.Redirect(http.StatusFound, "/login")
 			}
 
-			lastAccess, ok := lastAccessInterface.(time.Time)
+			lastAccessUnix, ok := lastAccessInterface.(int64)
 			if !ok {
 				return c.Redirect(http.StatusFound, "/login")
 			}
+
+			lastAccess := time.Unix(lastAccessUnix, 0)
 
 			// 15分以上経過している場合はセッションを削除
 			if time.Since(lastAccess) > time.Duration(SessionMaxAge)*time.Second {
@@ -72,7 +74,7 @@ func SessionAuth() echo.MiddlewareFunc {
 			}
 
 			// 最終アクセス時間を更新
-			sess.Values[SessionKeyLastAccess] = time.Now()
+			sess.Values[SessionKeyLastAccess] = time.Now().Unix()
 			sess.Save(c.Request(), c.Response())
 
 			// ユーザー情報をコンテキストに設定
