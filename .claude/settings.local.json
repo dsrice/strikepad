@@ -34,7 +34,9 @@
       "Bash(git push:*)",
       "Bash(npm ci:*)",
       "Bash(find:*)",
-      "Bash(mockery:*)"
+      "Bash(mockery:*)",
+      "Bash(./atlas.exe migrate apply --env dev)",
+      "Bash(./atlas.exe migrate:*)"
     ],
     "deny": []
   }

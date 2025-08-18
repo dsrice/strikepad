@@ -60,3 +60,28 @@ CREATE INDEX idx_user_sessions_refresh_token ON user_sessions (refresh_token);
 CREATE INDEX idx_user_sessions_access_expires_at ON user_sessions (access_token_expires_at);
 CREATE INDEX idx_user_sessions_refresh_expires_at ON user_sessions (refresh_token_expires_at);
 CREATE INDEX idx_user_sessions_is_deleted ON user_sessions(is_deleted);
+
+-- 管理者情報
+-- * RestoreFromTempTable
+create table "admin_users"
+(
+    "id"         serial                              not null,
+    "login_id"   character varying(30)               not null,
+    "password"   character varying(200)              not null,
+    "name"       character varying(30)               not null,
+    "created_at" timestamp default CURRENT_TIMESTAMP not null,
+    "updated_at" timestamp default CURRENT_TIMESTAMP not null,
+    "is_deleted" BOOLEAN   default false             not null,
+    "deleted_at" timestamp,
+    constraint "admin_users_PKC" primary key ("id")
+);
+
+comment on table "admin_users" is '管理者情報';
+comment on column "admin_users"."id" is 'ID';
+comment on column "admin_users"."login_id" is 'ログインID';
+comment on column "admin_users"."password" is 'パスワード';
+comment on column "admin_users"."name" is 'ユーザー名';
+comment on column "admin_users"."created_at" is '作成日';
+comment on column "admin_users"."updated_at" is '更新日';
+comment on column "admin_users"."is_deleted" is '削除フラグ';
+comment on column "admin_users"."deleted_at" is '削除日';
