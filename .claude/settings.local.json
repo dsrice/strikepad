@@ -44,7 +44,10 @@
       "Bash(timeout 10 go run main.go)",
       "Bash(timeout 5 go run main.go)",
       "Bash(timeout:*)",
-      "Bash(wmic process where:*)"
+      "Bash(wmic process where:*)",
+      "Bash(for:*)",
+      "Bash(do sed -i '1i//go:build tools\\n// +build tools\\n' \"$file\")",
+      "Bash(done)"
     ],
     "deny": [],
     "additionalDirectories": [

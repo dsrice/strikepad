@@ -55,10 +55,25 @@ func GetCurrentAdminUser(c echo.Context) *AdminUserSession {
 		return nil
 	}
 
+	id, ok := userID.(uint)
+	if !ok {
+		return nil
+	}
+
+	name, ok := userName.(string)
+	if !ok {
+		return nil
+	}
+
+	login, ok := loginID.(string)
+	if !ok {
+		return nil
+	}
+
 	return &AdminUserSession{
-		ID:      userID.(uint),
-		Name:    userName.(string),
-		LoginID: loginID.(string),
+		ID:      id,
+		Name:    name,
+		LoginID: login,
 	}
 }
 

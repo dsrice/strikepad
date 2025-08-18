@@ -69,13 +69,17 @@ func SessionAuth() echo.MiddlewareFunc {
 			// 15分以上経過している場合はセッションを削除
 			if time.Since(lastAccess) > time.Duration(SessionMaxAge)*time.Second {
 				sess.Values = make(map[interface{}]interface{})
-				sess.Save(c.Request(), c.Response())
+				if err := sess.Save(c.Request(), c.Response()); err != nil {
+					return echo.NewHTTPError(http.StatusInternalServerError, "セッション保存に失敗しました")
+				}
 				return c.Redirect(http.StatusFound, "/login")
 			}
 
 			// 最終アクセス時間を更新
 			sess.Values[SessionKeyLastAccess] = time.Now().Unix()
-			sess.Save(c.Request(), c.Response())
+			if err := sess.Save(c.Request(), c.Response()); err != nil {
+				return echo.NewHTTPError(http.StatusInternalServerError, "セッション保存に失敗しました")
+			}
 
 			// ユーザー情報をコンテキストに設定
 			c.Set("user_id", userID)

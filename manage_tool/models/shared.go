@@ -107,7 +107,7 @@ func (Maker) TableName() string {
 type Cover struct {
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
-	Maker        Maker          `gorm:"foreignKey:MakerID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"maker,omitempty"`
+	Maker        Maker          `gorm:"foreignKey:MakerID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 	Name         string         `gorm:"size:200;not null" json:"name"`
 	ID           uint           `gorm:"primarykey" json:"id"`
@@ -127,7 +127,7 @@ type Core struct {
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
 	InitDiff     *float32       `json:"init_diff,omitempty"`
-	Maker        Maker          `gorm:"foreignKey:MakerID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"maker,omitempty"`
+	Maker        Maker          `gorm:"foreignKey:MakerID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 	Name         string         `gorm:"size:200;not null" json:"name"`
 	ID           uint           `gorm:"primarykey" json:"id"`

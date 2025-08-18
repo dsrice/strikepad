@@ -29,7 +29,10 @@ func NewCoverHandler(coverRepo *repository.CoverRepository, makerRepo *repositor
 // ShowCovers はカバー一覧画面を表示
 func (h *CoverHandler) ShowCovers(c echo.Context) error {
 	// ページネーションパラメータを取得
-	page, _ := strconv.Atoi(c.QueryParam("page"))
+	page, err := strconv.Atoi(c.QueryParam("page"))
+	if err != nil {
+		page = 1
+	}
 	if page <= 0 {
 		page = 1
 	}
@@ -43,7 +46,6 @@ func (h *CoverHandler) ShowCovers(c echo.Context) error {
 
 	var covers []*models.Cover
 	var totalCount int64
-	var err error
 
 	// 検索条件に応じてカバーを取得
 	if search != "" {
@@ -54,8 +56,8 @@ func (h *CoverHandler) ShowCovers(c echo.Context) error {
 		// 検索時の総数は簡易的に現在のページの件数×10とする（実装簡化）
 		totalCount = int64(len(covers) * 10)
 	} else if makerIDParam != "" {
-		makerID, err := strconv.ParseUint(makerIDParam, 10, 32)
-		if err != nil {
+		makerID, parseErr := strconv.ParseUint(makerIDParam, 10, 32)
+		if parseErr != nil {
 			return c.String(http.StatusBadRequest, "無効なメーカーID")
 		}
 		covers, err = h.coverRepo.GetByMakerID(uint(makerID), offset, itemsPerPage)
