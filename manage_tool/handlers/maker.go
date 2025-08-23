@@ -203,7 +203,7 @@ func (h *MakerHandler) CreateMaker(c echo.Context) error {
 	return c.Redirect(http.StatusFound, "/admin/makers")
 }
 
-// uploadLogo はロゴ画像をMinIOにアップロード
+// uploadLogo はロゴ画像をMinIOにアップロードし、DBにファイル名を保存
 func (h *MakerHandler) uploadLogo(makerID uint, fileHeader *multipart.FileHeader) error {
 	// ファイルサイズチェック (5MB)
 	if fileHeader.Size > 5*1024*1024 {
@@ -247,6 +247,12 @@ func (h *MakerHandler) uploadLogo(makerID uint, fileHeader *multipart.FileHeader
 	)
 	if err != nil {
 		return fmt.Errorf("MinIOへのアップロードに失敗しました: %w", err)
+	}
+
+	// データベースにファイル名を保存
+	err = h.makerRepo.UpdateLogoFile(makerID, fileHeader.Filename)
+	if err != nil {
+		return fmt.Errorf("データベースへのファイル名保存に失敗しました: %w", err)
 	}
 
 	return nil
@@ -373,25 +379,14 @@ func (h *MakerHandler) UpdateMaker(c echo.Context) error {
 
 // getLogoURL はメーカーのロゴURLを取得
 func (h *MakerHandler) getLogoURL(makerID uint) string {
-	// MinIOからメーカーのロゴファイルを検索
-	ctx := context.Background()
-	prefix := fmt.Sprintf("maker/%d/", makerID)
-
-	objectCh := h.minioClient.Client.ListObjects(ctx, h.minioClient.BucketName, minio.ListObjectsOptions{
-		Prefix:    prefix,
-		Recursive: true,
-	})
-
-	for object := range objectCh {
-		if object.Err != nil {
-			continue
-		}
-		// 最初に見つかったファイルのURLを返す
-		// 実際の環境では、MinIOのエンドポイントに基づいてURLを構築
-		return fmt.Sprintf("http://localhost:9000/%s/%s", h.minioClient.BucketName, object.Key)
+	// データベースからロゴファイル名を取得
+	maker, err := h.makerRepo.GetByID(makerID)
+	if err != nil || maker == nil || maker.LogoFile == "" {
+		return "" // ロゴファイルが登録されていない場合
 	}
 
-	return "" // ロゴが見つからない場合
+	// 管理ツール内のエンドポイントを使用
+	return fmt.Sprintf("/admin/makers/%d/logo", makerID)
 }
 
 // DeleteMaker はメーカーを削除
@@ -442,4 +437,68 @@ func (h *MakerHandler) GetMakerStats(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, stats)
+}
+
+// ServeLogoImage はメーカーのロゴ画像を配信
+func (h *MakerHandler) ServeLogoImage(c echo.Context) error {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "無効なメーカーIDです",
+		})
+	}
+
+	// データベースからロゴファイル名を取得
+	maker, err := h.makerRepo.GetByID(uint(id))
+	if err != nil || maker == nil || maker.LogoFile == "" {
+		return c.JSON(http.StatusNotFound, map[string]string{
+			"error": "ロゴ画像が見つかりません",
+		})
+	}
+
+	// MinIOからオブジェクトを取得
+	objectName := fmt.Sprintf("maker/%d/%s", id, maker.LogoFile)
+	object, err := h.minioClient.Client.GetObject(
+		context.Background(),
+		h.minioClient.BucketName,
+		objectName,
+		minio.GetObjectOptions{},
+	)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{
+			"error": "画像ファイルが見つかりません",
+		})
+	}
+	defer object.Close()
+
+	// オブジェクト情報を取得
+	objInfo, err := object.Stat()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "画像情報の取得に失敗しました",
+		})
+	}
+
+	// ファイル拡張子からContent-Typeを決定
+	ext := strings.ToLower(filepath.Ext(maker.LogoFile))
+	contentType := "application/octet-stream"
+	switch ext {
+	case ".jpg", ".jpeg":
+		contentType = "image/jpeg"
+	case ".png":
+		contentType = "image/png"
+	case ".gif":
+		contentType = "image/gif"
+	case ".webp":
+		contentType = "image/webp"
+	}
+
+	// レスポンスヘッダーを設定
+	c.Response().Header().Set("Content-Type", contentType)
+	c.Response().Header().Set("Content-Length", fmt.Sprintf("%d", objInfo.Size))
+	c.Response().Header().Set("Cache-Control", "public, max-age=3600")
+
+	// オブジェクトの内容をレスポンスにストリーミング
+	return c.Stream(http.StatusOK, contentType, object)
 }

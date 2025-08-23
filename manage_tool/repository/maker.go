@@ -113,6 +113,13 @@ func (r *MakerRepository) Update(maker *models.Maker) error {
 	return r.db.Save(maker).Error
 }
 
+// UpdateLogoFile はメーカーのロゴファイル名を更新
+func (r *MakerRepository) UpdateLogoFile(makerID uint, filename string) error {
+	return r.db.Model(&models.Maker{}).
+		Where("id = ? AND is_deleted = ?", makerID, false).
+		Update("logo_file", filename).Error
+}
+
 // Delete はメーカーを論理削除
 func (r *MakerRepository) Delete(id uint) error {
 	return r.db.Model(&models.Maker{}).Where("id = ?", id).Updates(map[string]interface{}{

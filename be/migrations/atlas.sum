@@ -1,4 +1,4 @@
-h1:UfhjH2pVZRlR4AJ5DHqeJsDyAn/l3TbDSaSe0O8oSFg=
+h1:8VCKPVGj5ucD61pTsCudWmo457NP9KJo3ta1OuKfk04=
 20250127000001_initial.sql h1:Dp41KeCd4jl8F02l/6Zta0uz4o5lafnA3kcTiA1xpE8=
 20250127000002_add_user_sessions.sql h1:iZHk7Ofa9GRD9VpjBIcD7FSRoOIq0pXWl34Vs4cRCEc=
 20250127000003_fix_user_sessions_jwt_support.sql h1:fEMGAwmioswUI1XT3jXhCC0APdjY6d7LpH3UHf27D0w=
@@ -9,4 +9,5 @@ h1:UfhjH2pVZRlR4AJ5DHqeJsDyAn/l3TbDSaSe0O8oSFg=
 20250818000004_add_covers_table.sql h1:a592YsnIF/nUo/hJzPWPaomAywZjQlUxuiChVQssekk=
 20250818000005_add_cores_table.sql h1:xbs0HmbKKCsn1KeW+aedTS/OZicrYXpzNr8LfoR6q70=
 20250818000006_add_balls_table.sql h1:s3MpKMOQS3VwBumC/maPBIXNyUac3PRl46Hsgvkjrec=
-20250818000007_add_foreign_keys.sql h1:vA+7TFoe1U8LeRCynqJTo6+x2JAOV7FRj1mP6AfU2O8=
+20250818000007_add_foreign_keys.sql h1:+fMZwPR+vIp7Rmqmea2HovJ2+mWRaY6/Vqr70284K9M=
+20250823000001_add_logo_file_to_makers.sql h1:ReQaZJqWX3DQNFN/3I1yU36f0+3QEYfjk2n7MHY6svw=

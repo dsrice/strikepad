@@ -61,6 +61,26 @@ func (m *MinIOClient) EnsureBucket() error {
 			return fmt.Errorf("バケット作成に失敗しました: %w", err)
 		}
 		log.Printf("バケット %s を作成しました", m.BucketName)
+
+		// バケットポリシーを設定（読み取り専用でパブリックアクセスを許可）
+		policy := fmt.Sprintf(`{
+			"Version": "2012-10-17",
+			"Statement": [
+				{
+					"Effect": "Allow",
+					"Principal": {"AWS": "*"},
+					"Action": ["s3:GetObject"],
+					"Resource": ["arn:aws:s3:::%s/*"]
+				}
+			]
+		}`, m.BucketName)
+
+		err = m.Client.SetBucketPolicy(ctx, m.BucketName, policy)
+		if err != nil {
+			log.Printf("バケットポリシーの設定に失敗しました: %v", err)
+		} else {
+			log.Printf("バケット %s にパブリック読み取りポリシーを設定しました", m.BucketName)
+		}
 	}
 
 	return nil

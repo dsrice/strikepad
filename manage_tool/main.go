@@ -101,6 +101,7 @@ func main() {
 	admin.POST("/makers/:id/edit", makerHandler.UpdateMaker)
 	admin.DELETE("/makers/:id", makerHandler.DeleteMaker)
 	admin.GET("/makers/stats", makerHandler.GetMakerStats)
+	admin.GET("/makers/:id/logo", makerHandler.ServeLogoImage)
 
 	// コア管理
 	admin.GET("/cores", coreHandler.ShowCores)
