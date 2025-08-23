@@ -1,26 +1,35 @@
 package handlers
 
 import (
+	"context"
+	"fmt"
+	"mime/multipart"
 	"net/http"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
+	"strikepad-manage-tool/config"
 	"strikepad-manage-tool/models"
 	"strikepad-manage-tool/repository"
 	"strikepad-manage-tool/utils"
 
 	"github.com/labstack/echo/v4"
+	"github.com/minio/minio-go/v7"
 )
 
 // MakerHandler はメーカー管理のハンドラー
 type MakerHandler struct {
-	makerRepo *repository.MakerRepository
+	makerRepo   *repository.MakerRepository
+	minioClient *config.MinIOClient
 }
 
 // NewMakerHandler は新しいメーカーハンドラーを作成
-func NewMakerHandler(makerRepo *repository.MakerRepository) *MakerHandler {
+func NewMakerHandler(makerRepo *repository.MakerRepository, minioClient *config.MinIOClient) *MakerHandler {
 	return &MakerHandler{
-		makerRepo: makerRepo,
+		makerRepo:   makerRepo,
+		minioClient: minioClient,
 	}
 }
 
@@ -181,7 +190,66 @@ func (h *MakerHandler) CreateMaker(c echo.Context) error {
 		})
 	}
 
+	// ロゴ画像のアップロード処理
+	file, err := c.FormFile("logo")
+	if err == nil && file != nil {
+		err = h.uploadLogo(maker.ID, file)
+		if err != nil {
+			// ログ出力はするが、メーカー作成自体は成功とする
+			fmt.Printf("ロゴアップロードに失敗しました: %v\n", err)
+		}
+	}
+
 	return c.Redirect(http.StatusFound, "/admin/makers")
+}
+
+// uploadLogo はロゴ画像をMinIOにアップロード
+func (h *MakerHandler) uploadLogo(makerID uint, fileHeader *multipart.FileHeader) error {
+	// ファイルサイズチェック (5MB)
+	if fileHeader.Size > 5*1024*1024 {
+		return fmt.Errorf("ファイルサイズが大きすぎます: %d bytes", fileHeader.Size)
+	}
+
+	// ファイル形式チェック
+	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
+	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" {
+		return fmt.Errorf("サポートされていないファイル形式です: %s", ext)
+	}
+
+	// ファイルを開く
+	src, err := fileHeader.Open()
+	if err != nil {
+		return fmt.Errorf("ファイルを開けませんでした: %w", err)
+	}
+	defer src.Close()
+
+	// MinIOにアップロード
+	objectName := fmt.Sprintf("maker/%d/%s", makerID, fileHeader.Filename)
+	contentType := fileHeader.Header.Get("Content-Type")
+	if contentType == "" {
+		switch ext {
+		case ".jpg", ".jpeg":
+			contentType = "image/jpeg"
+		case ".png":
+			contentType = "image/png"
+		default:
+			contentType = "application/octet-stream"
+		}
+	}
+
+	_, err = h.minioClient.Client.PutObject(
+		context.Background(),
+		h.minioClient.BucketName,
+		objectName,
+		src,
+		fileHeader.Size,
+		minio.PutObjectOptions{ContentType: contentType},
+	)
+	if err != nil {
+		return fmt.Errorf("MinIOへのアップロードに失敗しました: %w", err)
+	}
+
+	return nil
 }
 
 // DeleteMaker はメーカーを削除

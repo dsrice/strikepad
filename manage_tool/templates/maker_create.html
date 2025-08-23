@@ -124,7 +124,8 @@
                             {{end}}
 
                             <!-- メーカー作成フォーム -->
-                            <form method="POST" action="/admin/makers/create" id="createForm">
+                            <form method="POST" action="/admin/makers/create" id="createForm"
+                                  enctype="multipart/form-data">
                                 <div class="mb-3">
                                     <label for="name" class="form-label">
                                         <i class="bi bi-building me-1"></i>メーカー名 <span class="text-danger">*</span>
@@ -133,6 +134,23 @@
                                            placeholder="メーカー名を入力してください">
                                     <div class="form-text">
                                         メーカーの正式名称を入力してください（重複不可）
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="logo" class="form-label">
+                                        <i class="bi bi-image me-1"></i>ロゴ画像
+                                    </label>
+                                    <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
+                                    <div class="form-text">
+                                        JPEGまたはPNG形式の画像ファイルをアップロードできます（最大5MB）
+                                    </div>
+                                    <div id="imagePreview" class="mt-2" style="display: none;">
+                                        <img id="previewImg" src="" alt="プレビュー" class="img-thumbnail"
+                                             style="max-width: 200px; max-height: 200px;">
+                                        <div class="mt-1">
+                                            <small id="fileInfo" class="text-muted"></small>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -170,6 +188,43 @@
         const submitButtonText = document.getElementById('submitButtonText');
         const submitButtonSpinner = document.getElementById('submitButtonSpinner');
         const nameInput = document.getElementById('name');
+        const logoInput = document.getElementById('logo');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewImg = document.getElementById('previewImg');
+        const fileInfo = document.getElementById('fileInfo');
+
+        // 画像プレビュー機能
+        logoInput.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                // ファイルサイズチェック（5MB）
+                if (file.size > 5 * 1024 * 1024) {
+                    showError('ファイルサイズは5MB以下にしてください');
+                    logoInput.value = '';
+                    imagePreview.style.display = 'none';
+                    return;
+                }
+
+                // ファイル形式チェック
+                if (!file.type.match('image.*')) {
+                    showError('画像ファイルを選択してください');
+                    logoInput.value = '';
+                    imagePreview.style.display = 'none';
+                    return;
+                }
+
+                // プレビュー表示
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    previewImg.src = e.target.result;
+                    fileInfo.textContent = `${file.name} (${formatFileSize(file.size)})`;
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                imagePreview.style.display = 'none';
+            }
+        });
 
         // フォーム送信処理
         createForm.addEventListener('submit', function (e) {
@@ -178,6 +233,13 @@
             if (!name) {
                 e.preventDefault();
                 showError('メーカー名を入力してください');
+                return;
+            }
+
+            // ファイルサイズ再チェック
+            if (logoInput.files[0] && logoInput.files[0].size > 5 * 1024 * 1024) {
+                e.preventDefault();
+                showError('ファイルサイズは5MB以下にしてください');
                 return;
             }
 
@@ -216,6 +278,15 @@
             submitButton.disabled = false;
             submitButtonText.classList.remove('d-none');
             submitButtonSpinner.classList.add('d-none');
+        }
+
+        // ファイルサイズフォーマット関数
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
         // ページロード時にメーカー名フィールドにフォーカス

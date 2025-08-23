@@ -24,6 +24,12 @@ func main() {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
+	// MinIO接続
+	minioClient, err := config.NewMinIOClient()
+	if err != nil {
+		log.Fatal("Failed to connect to MinIO:", err)
+	}
+
 	// リポジトリ初期化
 	userRepo := repository.NewUserRepository(db)
 	adminRepo := repository.NewAdminRepository(db)
@@ -54,7 +60,7 @@ func main() {
 	// ハンドラー初期化
 	authHandler := handlers.NewAuthHandler(adminRepo)
 	adminHandler := handlers.NewAdminHandler(userRepo)
-	makerHandler := handlers.NewMakerHandler(makerRepo)
+	makerHandler := handlers.NewMakerHandler(makerRepo, minioClient)
 	coreHandler := handlers.NewCoreHandler(coreRepo, makerRepo)
 	coverHandler := handlers.NewCoverHandler(coverRepo, makerRepo)
 
