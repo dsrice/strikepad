@@ -1,6 +1,6 @@
 run:
   timeout: 10m
-  go: "1.24"
+  go: "1.23"
   issues-exit-code: 0
   tests: true
 
@@ -129,11 +129,9 @@ linters-settings:
     local-prefixes: strikepad-manage-tool
   
   gomnd:
-    settings:
-      mnd:
-        checks: argument,case,condition,operation,return,assign
-        ignored-numbers: 0,1,2,3
-        ignored-functions: strings.SplitN
+    checks: argument,case,condition,operation,return,assign
+    ignored-numbers: 0,1,2,3
+    ignored-functions: strings.SplitN
 
 issues:
   exclude-files:
