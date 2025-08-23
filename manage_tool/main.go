@@ -97,6 +97,8 @@ func main() {
 	admin.GET("/makers/create", makerHandler.ShowCreateMaker)
 	admin.POST("/makers/create", makerHandler.CreateMaker)
 	admin.GET("/makers/:id", makerHandler.ShowMakerDetail)
+	admin.GET("/makers/:id/edit", makerHandler.ShowEditMaker)
+	admin.POST("/makers/:id/edit", makerHandler.UpdateMaker)
 	admin.DELETE("/makers/:id", makerHandler.DeleteMaker)
 	admin.GET("/makers/stats", makerHandler.GetMakerStats)
 
