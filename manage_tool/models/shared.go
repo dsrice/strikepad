@@ -94,6 +94,7 @@ type Maker struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 	Name      string         `gorm:"size:100;not null" json:"name"`
+	LogoFile  string         `gorm:"size:255" json:"logo_file,omitempty"`
 	ID        uint           `gorm:"primarykey" json:"id"`
 	IsDeleted bool           `gorm:"default:false" json:"is_deleted"`
 }

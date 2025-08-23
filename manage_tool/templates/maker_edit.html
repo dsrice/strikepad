@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>メーカー追加 - Strikepad 管理ツール</title>
+    <title>メーカー編集 - Strikepad 管理ツール</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -48,6 +48,13 @@
         .btn-primary:hover {
             background: linear-gradient(135deg, #5a32a3 0%, #d63384 100%);
         }
+
+        .current-logo {
+            max-width: 200px;
+            max-height: 200px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
@@ -79,6 +86,16 @@
                             <i class="bi bi-building me-2"></i>メーカー管理
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/cores">
+                            <i class="bi bi-circle me-2"></i>コア管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/covers">
+                            <i class="bi bi-square me-2"></i>カバー管理
+                        </a>
+                    </li>
                 </ul>
 
                 <hr class="text-white-50">
@@ -97,7 +114,7 @@
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2">
-                    <i class="bi bi-plus-circle me-2"></i>メーカー追加
+                    <i class="bi bi-pencil me-2"></i>メーカー編集
                 </h1>
                 <div class="btn-toolbar mb-2 mb-md-0">
                     <a href="/admin/makers" class="btn btn-outline-secondary">
@@ -111,7 +128,7 @@
                     <div class="card">
                         <div class="card-header">
                             <h5 class="card-title mb-0">
-                                <i class="bi bi-building me-2"></i>新規メーカー情報
+                                <i class="bi bi-building me-2"></i>メーカー情報編集
                             </h5>
                         </div>
                         <div class="card-body">
@@ -123,33 +140,65 @@
                             </div>
                             {{end}}
 
-                            <!-- メーカー作成フォーム -->
-                            <form method="POST" action="/admin/makers/create" id="createForm"
+                            <!-- メーカー編集フォーム -->
+                            <form method="POST" action="/admin/makers/{{.Maker.ID}}/edit" id="editForm"
                                   enctype="multipart/form-data">
                                 <div class="mb-3">
                                     <label for="name" class="form-label">
                                         <i class="bi bi-building me-1"></i>メーカー名 <span class="text-danger">*</span>
                                     </label>
                                     <input type="text" class="form-control" id="name" name="name" required
-                                           placeholder="メーカー名を入力してください">
+                                           placeholder="メーカー名を入力してください" value="{{.Maker.Name}}">
                                     <div class="form-text">
                                         メーカーの正式名称を入力してください（重複不可）
                                     </div>
                                 </div>
 
+                                <!-- 現在のロゴ表示 -->
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="bi bi-image me-1"></i>現在のロゴ
+                                    </label>
+                                    <div id="currentLogo">
+                                        {{if .LogoURL}}
+                                        <div class="text-center">
+                                            <img src="{{.LogoURL}}" alt="{{.Maker.Name}} ロゴ"
+                                                 class="current-logo img-thumbnail">
+                                            <div class="mt-2">
+                                                <small class="text-muted">現在のロゴ画像</small>
+                                            </div>
+                                        </div>
+                                        {{else}}
+                                        <div class="text-center text-muted py-4">
+                                            <i class="bi bi-image display-4"></i>
+                                            <div class="mt-2">
+                                                <small>ロゴ画像が登録されていません</small>
+                                            </div>
+                                        </div>
+                                        {{end}}
+                                    </div>
+                                </div>
+
+                                <!-- 新しいロゴアップロード -->
                                 <div class="mb-3">
                                     <label for="logo" class="form-label">
-                                        <i class="bi bi-image me-1"></i>ロゴ画像
+                                        <i class="bi bi-upload me-1"></i>新しいロゴ画像
                                     </label>
                                     <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
                                     <div class="form-text">
-                                        JPEGまたはPNG形式の画像ファイルをアップロードできます（最大5MB）
+                                        JPEGまたはPNG形式の画像ファイル（最大5MB）。選択しない場合は現在のロゴを維持します。
                                     </div>
                                     <div id="imagePreview" class="mt-2" style="display: none;">
-                                        <img id="previewImg" src="" alt="プレビュー" class="img-thumbnail"
-                                             style="max-width: 200px; max-height: 200px;">
-                                        <div class="mt-1">
-                                            <small id="fileInfo" class="text-muted"></small>
+                                        <div class="text-center">
+                                            <img id="previewImg" src="" alt="プレビュー" class="img-thumbnail"
+                                                 style="max-width: 200px; max-height: 200px;">
+                                            <div class="mt-1">
+                                                <small id="fileInfo" class="text-muted"></small>
+                                                <div class="mt-1">
+                                                    <small class="text-info">※
+                                                        この画像で現在のロゴを置き換えます</small>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -160,7 +209,7 @@
                                     </a>
                                     <button type="submit" class="btn btn-primary" id="submitButton">
                                         <span id="submitButtonText">
-                                            <i class="bi bi-plus-circle me-2"></i>メーカーを追加
+                                            <i class="bi bi-check-circle me-2"></i>変更を保存
                                         </span>
                                         <span id="submitButtonSpinner" class="d-none">
                                             <span class="spinner-border spinner-border-sm me-2" role="status"
@@ -183,7 +232,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const createForm = document.getElementById('createForm');
+        const editForm = document.getElementById('editForm');
         const submitButton = document.getElementById('submitButton');
         const submitButtonText = document.getElementById('submitButtonText');
         const submitButtonSpinner = document.getElementById('submitButtonSpinner');
@@ -227,7 +276,7 @@
         });
 
         // フォーム送信処理
-        createForm.addEventListener('submit', function (e) {
+        editForm.addEventListener('submit', function (e) {
             const name = nameInput.value.trim();
 
             if (!name) {
@@ -267,7 +316,7 @@
         `;
 
             // フォームの前に挿入
-            createForm.parentNode.insertBefore(errorAlert, createForm);
+            editForm.parentNode.insertBefore(errorAlert, editForm);
 
             // ボタンの状態をリセット
             resetButton();
@@ -291,6 +340,7 @@
 
         // ページロード時にメーカー名フィールドにフォーカス
         nameInput.focus();
+        nameInput.setSelectionRange(nameInput.value.length, nameInput.value.length);
     });
 </script>
 </body>

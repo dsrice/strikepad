@@ -24,6 +24,12 @@ func main() {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
+	// MinIO接続
+	minioClient, err := config.NewMinIOClient()
+	if err != nil {
+		log.Fatal("Failed to connect to MinIO:", err)
+	}
+
 	// リポジトリ初期化
 	userRepo := repository.NewUserRepository(db)
 	adminRepo := repository.NewAdminRepository(db)
@@ -54,7 +60,7 @@ func main() {
 	// ハンドラー初期化
 	authHandler := handlers.NewAuthHandler(adminRepo)
 	adminHandler := handlers.NewAdminHandler(userRepo)
-	makerHandler := handlers.NewMakerHandler(makerRepo)
+	makerHandler := handlers.NewMakerHandler(makerRepo, minioClient)
 	coreHandler := handlers.NewCoreHandler(coreRepo, makerRepo)
 	coverHandler := handlers.NewCoverHandler(coverRepo, makerRepo)
 
@@ -91,8 +97,11 @@ func main() {
 	admin.GET("/makers/create", makerHandler.ShowCreateMaker)
 	admin.POST("/makers/create", makerHandler.CreateMaker)
 	admin.GET("/makers/:id", makerHandler.ShowMakerDetail)
+	admin.GET("/makers/:id/edit", makerHandler.ShowEditMaker)
+	admin.POST("/makers/:id/edit", makerHandler.UpdateMaker)
 	admin.DELETE("/makers/:id", makerHandler.DeleteMaker)
 	admin.GET("/makers/stats", makerHandler.GetMakerStats)
+	admin.GET("/makers/:id/logo", makerHandler.ServeLogoImage)
 
 	// コア管理
 	admin.GET("/cores", coreHandler.ShowCores)
