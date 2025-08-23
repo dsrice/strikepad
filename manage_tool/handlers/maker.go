@@ -12,7 +12,6 @@ import (
 
 	"strikepad-manage-tool/config"
 	"strikepad-manage-tool/models"
-	"strikepad-manage-tool/repository"
 	"strikepad-manage-tool/utils"
 
 	"github.com/labstack/echo/v4"
@@ -21,12 +20,12 @@ import (
 
 // MakerHandler はメーカー管理のハンドラー
 type MakerHandler struct {
-	makerRepo   *repository.MakerRepository
+	makerRepo   MakerRepositoryInterface
 	minioClient *config.MinIOClient
 }
 
 // NewMakerHandler は新しいメーカーハンドラーを作成
-func NewMakerHandler(makerRepo *repository.MakerRepository, minioClient *config.MinIOClient) *MakerHandler {
+func NewMakerHandler(makerRepo MakerRepositoryInterface, minioClient *config.MinIOClient) *MakerHandler {
 	return &MakerHandler{
 		makerRepo:   makerRepo,
 		minioClient: minioClient,
