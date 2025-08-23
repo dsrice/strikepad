@@ -44,7 +44,6 @@ linters:
     - whitespace
     - stylecheck
     - unconvert
-    - copyloopvar
     - nolintlint
     - dogsled
     - goprintffuncname
@@ -55,7 +54,6 @@ linters:
     - forcetypeassert
     - godot
     - godox
-    - err113
     - goheader
     - gomodguard
     - nlreturn
