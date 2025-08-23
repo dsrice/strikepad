@@ -54,18 +54,25 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify API Key
+      - name: Verify Authentication
         run: |
-          if [ -z "${{ secrets.ANTHROPIC_API_KEY }}" ]; then
-            echo "❌ ANTHROPIC_API_KEY is not set"
-            exit 1
+          if [ -n "${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}" ]; then
+            echo "✅ CLAUDE_CODE_OAUTH_TOKEN is configured (preferred)"
+          elif [ -n "${{ secrets.ANTHROPIC_API_KEY }}" ]; then
+            echo "✅ ANTHROPIC_API_KEY is configured (fallback)"
           else
-            echo "✅ ANTHROPIC_API_KEY is configured"
+            echo "❌ Neither CLAUDE_CODE_OAUTH_TOKEN nor ANTHROPIC_API_KEY is set"
+            echo "Please configure one of these secrets:"
+            echo "1. CLAUDE_CODE_OAUTH_TOKEN (recommended)"
+            echo "2. ANTHROPIC_API_KEY (fallback)"
+            exit 1
           fi
 
       - name: Run Claude PR Action
         uses: anthropics/claude-code-action@beta
         with:
+          # 優先順位: OAuth Token > API Key
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           timeout_minutes: "60"
           github_token: ${{ secrets.GITHUB_TOKEN }}

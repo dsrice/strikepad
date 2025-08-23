@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}} - Strikepad 管理ツール</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .core-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: none;
+            border-radius: 10px;
+        }
+
+        .core-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .maker-badge {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+        }
+
+        .search-form {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .action-btn {
+            border-radius: 50px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .sidebar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            box-shadow: 3px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin: 0.25rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .main-content {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <!-- サイドバー -->
+        <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+            <div class="position-sticky pt-3">
+                <div class="text-center pb-3">
+                    <h4 class="text-white">
+                        <i class="bi bi-gear-fill me-2"></i>管理ツール
+                    </h4>
+                    <small class="text-white-50">管理者 さん</small>
+                </div>
+
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">
+                            <i class="bi bi-speedometer2 me-2"></i>ダッシュボード
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/users">
+                            <i class="bi bi-people me-2"></i>ユーザー管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/makers">
+                            <i class="bi bi-building me-2"></i>メーカー管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/admin/cores">
+                            <i class="bi bi-circle me-2"></i>コア管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/covers">
+                            <i class="bi bi-square me-2"></i>カバー管理
+                        </a>
+                    </li>
+                </ul>
+
+                <hr class="text-white-50">
+
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">
+                            <i class="bi bi-box-arrow-right me-2"></i>ログアウト
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- メインコンテンツ -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+            <div class="pt-3">
+                <!-- ページヘッダー -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h2 class="mb-1">
+                                    <i class="bi bi-circle text-warning me-2"></i>{{.Title}}
+                                </h2>
+                                <nav aria-label="breadcrumb">
+                                    <ol class="breadcrumb">
+                                        <li class="breadcrumb-item"><a href="/dashboard">ダッシュボード</a></li>
+                                        <li class="breadcrumb-item active">コア管理</li>
+                                    </ol>
+                                </nav>
+                            </div>
+                            <div>
+                                <a href="/admin/cores/create" class="btn btn-primary action-btn">
+                                    <i class="bi bi-plus-lg me-2"></i>新しいコア
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 検索・フィルター -->
+                <div class="search-form">
+                    <form method="GET" action="/admin/cores">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-4">
+                                <label for="search" class="form-label">コア名検索</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="text" class="form-control" id="search" name="search"
+                                           value="{{.Search}}" placeholder="コア名を入力...">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="maker_id" class="form-label">メーカーフィルター</label>
+                                <select class="form-select" id="maker_id" name="maker_id">
+                                    <option value="">全てのメーカー</option>
+                                    {{range .Makers}}
+                                    <option value="{{.ID}}" {{if eq $.MakerID (printf
+                                    "%d" .ID)}}selected{{end}}>
+                                    {{.Name}}
+                                    </option>
+                                    {{end}}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-outline-primary me-2">
+                                    <i class="bi bi-funnel me-1"></i>検索
+                                </button>
+                                <a href="/admin/cores" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-clockwise me-1"></i>リセット
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 統計情報 -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted mb-1">総コア数</h6>
+                                        <h3 class="mb-0 text-primary">{{.TotalCount}}</h3>
+                                    </div>
+                                    <div class="text-primary">
+                                        <i class="bi bi-circle fs-1"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- コア一覧 -->
+                <div class="row">
+                    {{if .Cores}}
+                    {{range .Cores}}
+                    <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+                        <div class="card core-card h-100">
+                            <div class="card-body d-flex flex-column">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="card-title mb-0">{{.Name}}</h5>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary" type="button"
+                                                data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="/admin/cores/{{.ID}}">
+                                                <i class="bi bi-eye me-2"></i>詳細
+                                            </a></li>
+                                            <li>
+                                                <hr class="dropdown-divider">
+                                            </li>
+                                            <li><a class="dropdown-item text-danger" href="#"
+                                                   onclick="deleteCore({{.ID}}, '{{.Name}}')">
+                                                <i class="bi bi-trash me-2"></i>削除
+                                            </a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div class="mb-2">
+                            <span class="badge bg-info maker-badge">
+                                <i class="bi bi-building me-1"></i>{{.Maker.Name}}
+                            </span>
+                                </div>
+
+                                {{if .Description}}
+                                <p class="card-text text-muted small mb-3">{{.Description}}</p>
+                                {{end}}
+
+                                <div class="mt-auto">
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar me-1"></i>
+                                        {{.CreatedAt.Format "2006/01/02"}}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {{end}}
+                    {{else}}
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body text-center py-5">
+                                <i class="bi bi-circle text-muted" style="font-size: 4rem;"></i>
+                                <h4 class="mt-3 text-muted">コアが見つかりません</h4>
+                                <p class="text-muted">検索条件を変更するか、新しいコアを作成してください。</p>
+                                <a href="/admin/cores/create" class="btn btn-primary">
+                                    <i class="bi bi-plus-lg me-2"></i>新しいコアを作成
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {{end}}
+                </div>
+
+                <!-- ページネーション -->
+                {{if gt .TotalPages 1}}
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <nav aria-label="コア一覧ページネーション">
+                            <ul class="pagination justify-content-center">
+                                {{if .HasPrevPage}}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="/admin/cores?page={{.PrevPage}}&search={{.Search}}&maker_id={{.MakerID}}">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                                {{else}}
+                                <li class="page-item disabled">
+                        <span class="page-link">
+                            <i class="bi bi-chevron-left"></i>
+                        </span>
+                                </li>
+                                {{end}}
+
+                                {{range $page := .Pages}}
+                                <li class="page-item {{if eq $page $.CurrentPage}}active{{end}}">
+                                    <a class="page-link"
+                                       href="/admin/cores?page={{$page}}&search={{$.Search}}&maker_id={{$.MakerID}}">
+                                        {{$page}}
+                                    </a>
+                                </li>
+                                {{end}}
+
+                                {{if .HasNextPage}}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="/admin/cores?page={{.NextPage}}&search={{.Search}}&maker_id={{.MakerID}}">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                                {{else}}
+                                <li class="page-item disabled">
+                        <span class="page-link">
+                            <i class="bi bi-chevron-right"></i>
+                        </span>
+                                </li>
+                                {{end}}
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                {{end}}
+            </div>
+    </div>
+    </main>
+</div>
+</div>
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // コア削除関数
+    function deleteCore(coreId, coreName) {
+        if (confirm(`コア「${coreName}」を削除してもよろしいですか？`)) {
+            fetch(`/admin/cores/${coreId}`, {
+                method: 'DELETE',
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('エラー: ' + data.error);
+                    } else {
+                        alert(data.message);
+                        location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('削除中にエラーが発生しました');
+                });
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+name: Management Tool Linter
+
+on:
+  pull_request:
+    paths:
+      - 'manage_tool/**'
+    branches:
+      - main
+      - develop
+
+jobs:
+  lint-manage-tool:
+    name: Lint Management Tool
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache-dependency-path: manage_tool/go.sum
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('manage_tool/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Install golangci-lint
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.61.0
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
+      - name: Download dependencies
+        working-directory: manage_tool
+        run: go mod download
+
+      - name: Run linter
+        working-directory: manage_tool
+        run: make lint
+
+      - name: Generate lint report
+        working-directory: manage_tool
+        run: make lint-ci
+        continue-on-error: true
+
+      - name: Upload lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: manage-tool-lint-report
+          path: manage_tool/golangci-lint-report.json
+          retention-days: 7
