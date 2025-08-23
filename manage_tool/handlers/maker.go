@@ -252,6 +252,148 @@ func (h *MakerHandler) uploadLogo(makerID uint, fileHeader *multipart.FileHeader
 	return nil
 }
 
+// ShowEditMaker はメーカー編集画面を表示
+func (h *MakerHandler) ShowEditMaker(c echo.Context) error {
+	// セッションから管理者ユーザー情報を取得
+	currentUser := utils.GetCurrentAdminUser(c)
+	if currentUser == nil {
+		return c.Redirect(http.StatusFound, "/login")
+	}
+
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "無効なメーカーIDです",
+		})
+	}
+
+	maker, err := h.makerRepo.GetByID(uint(id))
+	if err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{
+			"error": "メーカーが見つかりません",
+		})
+	}
+
+	// ロゴURLを生成
+	logoURL := h.getLogoURL(uint(id))
+
+	data := map[string]interface{}{
+		"Username": currentUser.Name,
+		"LoginID":  currentUser.LoginID,
+		"Maker":    maker,
+		"LogoURL":  logoURL,
+		"Error":    "",
+	}
+
+	return c.Render(http.StatusOK, "maker_edit.html", data)
+}
+
+// UpdateMaker はメーカー情報を更新
+func (h *MakerHandler) UpdateMaker(c echo.Context) error {
+	// セッションから管理者ユーザー情報を取得
+	currentUser := utils.GetCurrentAdminUser(c)
+	if currentUser == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{
+			"error": "認証が必要です",
+		})
+	}
+
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "無効なメーカーIDです",
+		})
+	}
+
+	// 既存のメーカー取得
+	existingMaker, err := h.makerRepo.GetByID(uint(id))
+	if err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{
+			"error": "メーカーが見つかりません",
+		})
+	}
+
+	name := c.FormValue("name")
+	if name == "" {
+		logoURL := h.getLogoURL(uint(id))
+		return c.Render(http.StatusOK, "maker_edit.html", map[string]interface{}{
+			"Username": currentUser.Name,
+			"LoginID":  currentUser.LoginID,
+			"Maker":    existingMaker,
+			"LogoURL":  logoURL,
+			"Error":    "メーカー名は必須です",
+		})
+	}
+
+	// 同名チェック（自分以外で同じ名前がないか確認）
+	if name != existingMaker.Name {
+		duplicateMaker, err := h.makerRepo.GetByName(name)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{
+				"error": "データベースエラーが発生しました",
+			})
+		}
+		if duplicateMaker != nil {
+			logoURL := h.getLogoURL(uint(id))
+			return c.Render(http.StatusOK, "maker_edit.html", map[string]interface{}{
+				"Username": currentUser.Name,
+				"LoginID":  currentUser.LoginID,
+				"Maker":    existingMaker,
+				"LogoURL":  logoURL,
+				"Error":    "このメーカー名は既に存在します",
+			})
+		}
+	}
+
+	// メーカー情報を更新
+	existingMaker.Name = name
+	existingMaker.UpdatedAt = time.Now()
+
+	err = h.makerRepo.Update(existingMaker)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "メーカーの更新に失敗しました",
+		})
+	}
+
+	// ロゴ画像のアップロード処理（ファイルが選択されている場合のみ）
+	file, err := c.FormFile("logo")
+	if err == nil && file != nil {
+		err = h.uploadLogo(uint(id), file)
+		if err != nil {
+			// ログ出力はするが、メーカー更新自体は成功とする
+			fmt.Printf("ロゴアップロードに失敗しました: %v\n", err)
+		}
+	}
+
+	return c.Redirect(http.StatusFound, "/admin/makers")
+}
+
+// getLogoURL はメーカーのロゴURLを取得
+func (h *MakerHandler) getLogoURL(makerID uint) string {
+	// MinIOからメーカーのロゴファイルを検索
+	ctx := context.Background()
+	prefix := fmt.Sprintf("maker/%d/", makerID)
+
+	objectCh := h.minioClient.Client.ListObjects(ctx, h.minioClient.BucketName, minio.ListObjectsOptions{
+		Prefix:    prefix,
+		Recursive: true,
+	})
+
+	for object := range objectCh {
+		if object.Err != nil {
+			continue
+		}
+		// 最初に見つかったファイルのURLを返す
+		// 実際の環境では、MinIOのエンドポイントに基づいてURLを構築
+		return fmt.Sprintf("http://localhost:9000/%s/%s", h.minioClient.BucketName, object.Key)
+	}
+
+	return "" // ロゴが見つからない場合
+}
+
 // DeleteMaker はメーカーを削除
 func (h *MakerHandler) DeleteMaker(c echo.Context) error {
 	// セッションから管理者ユーザー情報を取得
