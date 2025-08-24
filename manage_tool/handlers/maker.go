@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"path/filepath"
@@ -14,21 +15,28 @@ import (
 	"strikepad-manage-tool/models"
 	"strikepad-manage-tool/utils"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/labstack/echo/v4"
-	"github.com/minio/minio-go/v7"
+)
+
+const (
+	jpgExt  = ".jpg"
+	jpegExt = ".jpeg"
+	pngExt  = ".png"
 )
 
 // MakerHandler はメーカー管理のハンドラー
 type MakerHandler struct {
-	makerRepo   MakerRepositoryInterface
-	minioClient *config.MinIOClient
+	makerRepo MakerRepositoryInterface
+	s3Client  *config.S3Client
 }
 
 // NewMakerHandler は新しいメーカーハンドラーを作成
-func NewMakerHandler(makerRepo MakerRepositoryInterface, minioClient *config.MinIOClient) *MakerHandler {
+func NewMakerHandler(makerRepo MakerRepositoryInterface, s3Client *config.S3Client) *MakerHandler {
 	return &MakerHandler{
-		makerRepo:   makerRepo,
-		minioClient: minioClient,
+		makerRepo: makerRepo,
+		s3Client:  s3Client,
 	}
 }
 
@@ -204,6 +212,8 @@ func (h *MakerHandler) CreateMaker(c echo.Context) error {
 
 // uploadLogo はロゴ画像をMinIOにアップロードし、DBにファイル名を保存
 func (h *MakerHandler) uploadLogo(makerID uint, fileHeader *multipart.FileHeader) error {
+	log.Printf("uploadLogo開始: メーカーID=%d, ファイル名=%s", makerID, fileHeader.Filename)
+
 	// ファイルサイズチェック (5MB)
 	if fileHeader.Size > 5*1024*1024 {
 		return fmt.Errorf("ファイルサイズが大きすぎます: %d bytes", fileHeader.Size)
@@ -211,9 +221,10 @@ func (h *MakerHandler) uploadLogo(makerID uint, fileHeader *multipart.FileHeader
 
 	// ファイル形式チェック
 	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
-	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" {
+	if ext != jpgExt && ext != jpegExt && ext != pngExt {
 		return fmt.Errorf("サポートされていないファイル形式です: %s", ext)
 	}
+	log.Printf("ファイル検証OK: 拡張子=%s, サイズ=%d bytes", ext, fileHeader.Size)
 
 	// ファイルを開く
 	src, err := fileHeader.Open()
@@ -227,7 +238,7 @@ func (h *MakerHandler) uploadLogo(makerID uint, fileHeader *multipart.FileHeader
 	contentType := fileHeader.Header.Get("Content-Type")
 	if contentType == "" {
 		switch ext {
-		case ".jpg", ".jpeg":
+		case jpgExt, jpegExt:
 			contentType = "image/jpeg"
 		case ".png":
 			contentType = "image/png"
@@ -236,23 +247,29 @@ func (h *MakerHandler) uploadLogo(makerID uint, fileHeader *multipart.FileHeader
 		}
 	}
 
-	_, err = h.minioClient.Client.PutObject(
+	log.Printf("S3アップロード開始: バケット=%s, キー=%s", h.s3Client.BucketName, objectName)
+	_, err = h.s3Client.Client.PutObject(
 		context.Background(),
-		h.minioClient.BucketName,
-		objectName,
-		src,
-		fileHeader.Size,
-		minio.PutObjectOptions{ContentType: contentType},
+		&s3.PutObjectInput{
+			Bucket:        aws.String(h.s3Client.BucketName),
+			Key:           aws.String(objectName),
+			Body:          src,
+			ContentLength: aws.Int64(fileHeader.Size),
+			ContentType:   aws.String(contentType),
+		},
 	)
 	if err != nil {
-		return fmt.Errorf("MinIOへのアップロードに失敗しました: %w", err)
+		return fmt.Errorf("S3へのアップロードに失敗しました: %w", err)
 	}
+	log.Printf("S3アップロード成功")
 
 	// データベースにファイル名を保存
+	log.Printf("データベース更新開始: メーカーID=%d, ファイル名=%s", makerID, fileHeader.Filename)
 	err = h.makerRepo.UpdateLogoFile(makerID, fileHeader.Filename)
 	if err != nil {
 		return fmt.Errorf("データベースへのファイル名保存に失敗しました: %w", err)
 	}
+	log.Printf("データベース更新成功")
 
 	return nil
 }
@@ -334,8 +351,8 @@ func (h *MakerHandler) UpdateMaker(c echo.Context) error {
 
 	// 同名チェック（自分以外で同じ名前がないか確認）
 	if name != existingMaker.Name {
-		duplicateMaker, err := h.makerRepo.GetByName(name)
-		if err != nil {
+		duplicateMaker, duplicateErr := h.makerRepo.GetByName(name)
+		if duplicateErr != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{
 				"error": "データベースエラーが発生しました",
 			})
@@ -366,11 +383,18 @@ func (h *MakerHandler) UpdateMaker(c echo.Context) error {
 	// ロゴ画像のアップロード処理（ファイルが選択されている場合のみ）
 	file, err := c.FormFile("logo")
 	if err == nil && file != nil {
+		log.Printf("ロゴファイルが検出されました: %s, サイズ: %d bytes", file.Filename, file.Size)
 		err = h.uploadLogo(uint(id), file)
 		if err != nil {
 			// ログ出力はするが、メーカー更新自体は成功とする
-			fmt.Printf("ロゴアップロードに失敗しました: %v\n", err)
+			log.Printf("ロゴアップロードに失敗しました: %v", err)
+		} else {
+			log.Printf("ロゴアップロードが成功しました: %s", file.Filename)
 		}
+	} else if err != nil {
+		log.Printf("FormFileの取得でエラー: %v", err)
+	} else {
+		log.Printf("ロゴファイルが選択されていません")
 	}
 
 	return c.Redirect(http.StatusFound, "/admin/makers")
@@ -384,8 +408,15 @@ func (h *MakerHandler) getLogoURL(makerID uint) string {
 		return "" // ロゴファイルが登録されていない場合
 	}
 
-	// 管理ツール内のエンドポイントを使用
-	return fmt.Sprintf("/admin/makers/%d/logo", makerID)
+	// 署名付きURLを生成（24時間有効）
+	objectName := fmt.Sprintf("maker/%d/%s", makerID, maker.LogoFile)
+	signedURL, err := h.s3Client.GeneratePresignedURL(objectName, 24*time.Hour)
+	if err != nil {
+		// エラーの場合は空文字を返す
+		return ""
+	}
+
+	return signedURL
 }
 
 // DeleteMaker はメーカーを削除
@@ -438,8 +469,8 @@ func (h *MakerHandler) GetMakerStats(c echo.Context) error {
 	return c.JSON(http.StatusOK, stats)
 }
 
-// ServeLogoImage はメーカーのロゴ画像を配信
-func (h *MakerHandler) ServeLogoImage(c echo.Context) error {
+// GetLogoPresignedURL はメーカーのロゴ画像の署名付きURLを取得
+func (h *MakerHandler) GetLogoPresignedURL(c echo.Context) error {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
@@ -456,48 +487,96 @@ func (h *MakerHandler) ServeLogoImage(c echo.Context) error {
 		})
 	}
 
-	// MinIOからオブジェクトを取得
+	// 署名付きURLを生成（1時間有効）
 	objectName := fmt.Sprintf("maker/%d/%s", id, maker.LogoFile)
-	object, err := h.minioClient.Client.GetObject(
-		context.Background(),
-		h.minioClient.BucketName,
-		objectName,
-		minio.GetObjectOptions{},
-	)
-	if err != nil {
-		return c.JSON(http.StatusNotFound, map[string]string{
-			"error": "画像ファイルが見つかりません",
-		})
-	}
-	defer object.Close()
-
-	// オブジェクト情報を取得
-	objInfo, err := object.Stat()
+	signedURL, err := h.s3Client.GeneratePresignedURL(objectName, time.Hour)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "画像情報の取得に失敗しました",
+			"error": "署名付きURLの生成に失敗しました",
 		})
 	}
 
-	// ファイル拡張子からContent-Typeを決定
-	ext := strings.ToLower(filepath.Ext(maker.LogoFile))
-	contentType := "application/octet-stream"
-	switch ext {
-	case ".jpg", ".jpeg":
-		contentType = "image/jpeg"
-	case ".png":
-		contentType = "image/png"
-	case ".gif":
-		contentType = "image/gif"
-	case ".webp":
-		contentType = "image/webp"
+	return c.JSON(http.StatusOK, map[string]string{
+		"url": signedURL,
+	})
+}
+
+// GetUploadPresignedURL はロゴアップロード用の署名付きURLを取得
+func (h *MakerHandler) GetUploadPresignedURL(c echo.Context) error {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "無効なメーカーIDです",
+		})
 	}
 
-	// レスポンスヘッダーを設定
-	c.Response().Header().Set("Content-Type", contentType)
-	c.Response().Header().Set("Content-Length", fmt.Sprintf("%d", objInfo.Size))
-	c.Response().Header().Set("Cache-Control", "public, max-age=3600")
+	// リクエストボディからファイル情報を取得
+	var req struct {
+		FileName    string `json:"fileName"`
+		ContentType string `json:"contentType"`
+	}
 
-	// オブジェクトの内容をレスポンスにストリーミング
-	return c.Stream(http.StatusOK, contentType, object)
+	if bindErr := c.Bind(&req); bindErr != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "リクエストが無効です",
+		})
+	}
+
+	// ファイル拡張子の検証
+	ext := strings.ToLower(filepath.Ext(req.FileName))
+	if ext != jpgExt && ext != jpegExt && ext != pngExt {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "サポートされていないファイル形式です",
+		})
+	}
+
+	// アップロード用署名付きURLを生成（15分有効）
+	objectName := fmt.Sprintf("maker/%d/%s", id, req.FileName)
+	signedURL, err := h.s3Client.GenerateUploadPresignedURL(objectName, req.ContentType, 15*time.Minute)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "アップロード用署名付きURLの生成に失敗しました",
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"uploadUrl": signedURL,
+		"objectKey": objectName,
+		"fileName":  req.FileName,
+	})
+}
+
+// ConfirmLogoUpload はロゴアップロード完了をデータベースに記録
+func (h *MakerHandler) ConfirmLogoUpload(c echo.Context) error {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "無効なメーカーIDです",
+		})
+	}
+
+	// リクエストボディからファイル情報を取得
+	var req struct {
+		FileName string `json:"fileName"`
+	}
+
+	if bindErr := c.Bind(&req); bindErr != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "リクエストが無効です",
+		})
+	}
+
+	// データベースにファイル名を保存
+	err = h.makerRepo.UpdateLogoFile(uint(id), req.FileName)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "データベースの更新に失敗しました",
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{
+		"message": "ロゴファイルが正常にアップロードされました",
+	})
 }
