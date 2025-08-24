@@ -103,9 +103,10 @@ func (h *CoverHandler) ShowCovers(c echo.Context) error {
 	// テンプレートデータを準備
 	data := map[string]interface{}{
 		"Title":       "カバー管理",
+		"CurrentPage": "covers",
 		"Covers":      covers,
 		"Makers":      makers,
-		"CurrentPage": page,
+		"Page":        page,
 		"TotalPages":  totalPages,
 		"TotalCount":  totalCount,
 		"Search":      search,
@@ -116,7 +117,7 @@ func (h *CoverHandler) ShowCovers(c echo.Context) error {
 		"NextPage":    page + 1,
 	}
 
-	return c.Render(http.StatusOK, "covers.html", data)
+	return c.Render(http.StatusOK, "covers_new.html", data)
 }
 
 // ShowCreateCover はカバー作成画面を表示
@@ -136,12 +137,13 @@ func (h *CoverHandler) ShowCreateCover(c echo.Context) error {
 	}
 
 	data := map[string]interface{}{
-		"Title":  "カバー作成",
-		"Makers": makers,
-		"IsEdit": false,
+		"Title":       "カバー作成",
+		"CurrentPage": "covers",
+		"Makers":      makers,
+		"IsEdit":      false,
 	}
 
-	return c.Render(http.StatusOK, "cover_form.html", data)
+	return c.Render(http.StatusOK, "cover_form_new.html", data)
 }
 
 // ShowEditCover はカバー編集画面を表示
@@ -177,13 +179,14 @@ func (h *CoverHandler) ShowEditCover(c echo.Context) error {
 	}
 
 	data := map[string]interface{}{
-		"Title":  "カバー編集",
-		"Cover":  cover,
-		"Makers": makers,
-		"IsEdit": true,
+		"Title":       "カバー編集",
+		"CurrentPage": "covers",
+		"Cover":       cover,
+		"Makers":      makers,
+		"IsEdit":      true,
 	}
 
-	return c.Render(http.StatusOK, "cover_form.html", data)
+	return c.Render(http.StatusOK, "cover_form_new.html", data)
 }
 
 // CreateCover は新しいカバーを作成
