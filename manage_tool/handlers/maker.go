@@ -517,7 +517,7 @@ func (h *MakerHandler) GetUploadPresignedURL(c echo.Context) error {
 		ContentType string `json:"contentType"`
 	}
 
-	if err := c.Bind(&req); err != nil {
+	if bindErr := c.Bind(&req); bindErr != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "リクエストが無効です",
 		})
@@ -562,7 +562,7 @@ func (h *MakerHandler) ConfirmLogoUpload(c echo.Context) error {
 		FileName string `json:"fileName"`
 	}
 
-	if err := c.Bind(&req); err != nil {
+	if bindErr := c.Bind(&req); bindErr != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "リクエストが無効です",
 		})

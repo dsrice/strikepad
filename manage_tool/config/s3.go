@@ -16,11 +16,16 @@ import (
 
 // S3ClientInterface はS3クライアントのインターフェース
 type S3ClientInterface interface {
-	PutObject(ctx context.Context, input *s3.PutObjectInput, optFns ...func(*s3.Options)) (*s3.PutObjectOutput, error)
-	GetObject(ctx context.Context, input *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error)
-	HeadBucket(ctx context.Context, input *s3.HeadBucketInput, optFns ...func(*s3.Options)) (*s3.HeadBucketOutput, error)
-	CreateBucket(ctx context.Context, input *s3.CreateBucketInput, optFns ...func(*s3.Options)) (*s3.CreateBucketOutput, error)
-	PutBucketPolicy(ctx context.Context, input *s3.PutBucketPolicyInput, optFns ...func(*s3.Options)) (*s3.PutBucketPolicyOutput, error)
+	PutObject(ctx context.Context, input *s3.PutObjectInput,
+		optFns ...func(*s3.Options)) (*s3.PutObjectOutput, error)
+	GetObject(ctx context.Context, input *s3.GetObjectInput,
+		optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error)
+	HeadBucket(ctx context.Context, input *s3.HeadBucketInput,
+		optFns ...func(*s3.Options)) (*s3.HeadBucketOutput, error)
+	CreateBucket(ctx context.Context, input *s3.CreateBucketInput,
+		optFns ...func(*s3.Options)) (*s3.CreateBucketOutput, error)
+	PutBucketPolicy(ctx context.Context, input *s3.PutBucketPolicyInput,
+		optFns ...func(*s3.Options)) (*s3.PutBucketPolicyOutput, error)
 }
 
 // S3Client はAWS S3クライアントのラッパー
@@ -92,33 +97,41 @@ func (s *S3Client) EnsureBucket() error {
 	})
 
 	if err != nil {
-		// バケットが存在しない場合は作成
-		log.Printf("バケット %s が存在しないため作成します", s.BucketName)
+		return s.createBucketWithPolicy()
+	}
 
-		createBucketInput := &s3.CreateBucketInput{
-			Bucket: aws.String(s.BucketName),
-		}
+	return nil
+}
 
-		// us-east-1以外の場合はLocationConstraintが必要
-		if s.Region != "us-east-1" {
-			createBucketInput.CreateBucketConfiguration = &types.CreateBucketConfiguration{
-				LocationConstraint: types.BucketLocationConstraint(s.Region),
-			}
-		}
+// createBucketWithPolicy はバケットを作成しポリシーを設定する
+func (s *S3Client) createBucketWithPolicy() error {
+	ctx := context.Background()
 
-		_, err = s.Client.CreateBucket(ctx, createBucketInput)
-		if err != nil {
-			return fmt.Errorf("バケット作成に失敗しました: %w", err)
-		}
-		log.Printf("バケット %s を作成しました", s.BucketName)
+	log.Printf("バケット %s が存在しないため作成します", s.BucketName)
 
-		// パブリック読み取りポリシーを設定
-		err = s.setPublicReadPolicy()
-		if err != nil {
-			log.Printf("バケットポリシーの設定に失敗しました: %v", err)
-		} else {
-			log.Printf("バケット %s にパブリック読み取りポリシーを設定しました", s.BucketName)
+	createBucketInput := &s3.CreateBucketInput{
+		Bucket: aws.String(s.BucketName),
+	}
+
+	// us-east-1以外の場合はLocationConstraintが必要
+	if s.Region != "us-east-1" {
+		createBucketInput.CreateBucketConfiguration = &types.CreateBucketConfiguration{
+			LocationConstraint: types.BucketLocationConstraint(s.Region),
 		}
+	}
+
+	_, err := s.Client.CreateBucket(ctx, createBucketInput)
+	if err != nil {
+		return fmt.Errorf("バケット作成に失敗しました: %w", err)
+	}
+	log.Printf("バケット %s を作成しました", s.BucketName)
+
+	// パブリック読み取りポリシーを設定
+	err = s.setPublicReadPolicy()
+	if err != nil {
+		log.Printf("バケットポリシーの設定に失敗しました: %v", err)
+	} else {
+		log.Printf("バケット %s にパブリック読み取りポリシーを設定しました", s.BucketName)
 	}
 
 	return nil
@@ -167,7 +180,7 @@ func (s *S3Client) GeneratePresignedURL(objectKey string, expires time.Duration)
 }
 
 // GenerateUploadPresignedURL はアップロード用署名付きURLを生成する
-func (s *S3Client) GenerateUploadPresignedURL(objectKey string, contentType string, expires time.Duration) (string, error) {
+func (s *S3Client) GenerateUploadPresignedURL(objectKey, contentType string, expires time.Duration) (string, error) {
 	ctx := context.Background()
 
 	request, err := s.PreSignClient.PresignPutObject(ctx, &s3.PutObjectInput{

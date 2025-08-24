@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"mime/multipart"
@@ -23,20 +22,23 @@ import (
 
 type MakerHandlerTestSuite struct {
 	suite.Suite
-	mockRepo        *mocks.MockMakerRepository
-	mockMinioClient *config.MinIOClient
-	handler         *MakerHandler
-	echo            *echo.Echo
+	mockRepo     *mocks.MockMakerRepository
+	mockS3Client *mocks.MockS3Client
+	handler      *MakerHandler
+	echo         *echo.Echo
 }
 
 func (suite *MakerHandlerTestSuite) SetupTest() {
 	suite.mockRepo = &mocks.MockMakerRepository{}
-	suite.mockMinioClient = &config.MinIOClient{
+	suite.mockS3Client = &mocks.MockS3Client{}
+	s3Client := &config.S3Client{
+		Client:     suite.mockS3Client,
 		BucketName: "test-bucket",
+		Region:     "us-east-1",
 	}
 	suite.handler = &MakerHandler{
-		makerRepo:   suite.mockRepo,
-		minioClient: suite.mockMinioClient,
+		makerRepo: suite.mockRepo,
+		s3Client:  s3Client,
 	}
 	suite.echo = echo.New()
 }
@@ -396,8 +398,8 @@ func (suite *MakerHandlerTestSuite) TestGetMakerStats() {
 	}
 }
 
-// ServeLogoImageのテスト
-func (suite *MakerHandlerTestSuite) TestServeLogoImage() {
+// GetLogoPresignedURLのテスト
+func (suite *MakerHandlerTestSuite) TestGetLogoPresignedURL() {
 	testCases := []struct {
 		mockSetup          func()
 		name               string
@@ -454,7 +456,7 @@ func (suite *MakerHandlerTestSuite) TestServeLogoImage() {
 			c.SetParamValues(tc.makerID)
 
 			// テスト実行
-			err := suite.handler.ServeLogoImage(c)
+			err := suite.handler.GetLogoPresignedURL(c)
 
 			// アサーション
 			if tc.expectedStatusCode < 400 {
