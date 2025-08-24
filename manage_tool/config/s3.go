@@ -39,32 +39,26 @@ func NewS3Client() (*S3Client, error) {
 	accessKeyID := getS3Env("AWS_ACCESS_KEY_ID", "minioadmin")
 	secretAccessKey := getS3Env("AWS_SECRET_ACCESS_KEY", "minioadmin")
 
-	var cfg aws.Config
-	var err error
-
-	if endpoint != "" {
-		// MinIO互換エンドポイントを使用（開発環境用）
-		cfg, err = config.LoadDefaultConfig(
-			context.TODO(),
-			config.WithRegion(region),
-			config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(accessKeyID, secretAccessKey, "")),
-			config.WithBaseEndpoint(endpoint),
-		)
-	} else {
-		// 通常のAWS S3を使用（本番環境用）
-		cfg, err = config.LoadDefaultConfig(
-			context.TODO(),
-			config.WithRegion(region),
-		)
-	}
-
+	// AWS設定を読み込み
+	cfg, err := config.LoadDefaultConfig(
+		context.TODO(),
+		config.WithRegion(region),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("AWS設定の読み込みに失敗しました: %w", err)
 	}
 
-	// Path-style addressingを有効にする（MinIO互換性のため）
+	// MinIO互換エンドポイントまたは認証情報を設定
+	if endpoint != "" {
+		// MinIO互換エンドポイントを使用（開発環境用）
+		cfg.Credentials = credentials.NewStaticCredentialsProvider(accessKeyID, secretAccessKey, "")
+	}
+
+	// S3クライアントを作成
 	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
 		if endpoint != "" {
+			// カスタムエンドポイントとPath-style addressingを設定
+			o.BaseEndpoint = aws.String(endpoint)
 			o.UsePathStyle = true
 		}
 	})
