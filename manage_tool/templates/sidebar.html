@@ -1,0 +1,50 @@
+{{define "sidebar"}}
+<nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+    <div class="position-sticky pt-3">
+        <div class="text-center pb-3">
+            <h4 class="text-white">
+                <i class="bi bi-gear-fill me-2"></i>管理ツール
+            </h4>
+            <small class="text-white-50">管理者 さん</small>
+        </div>
+
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link {{if eq .CurrentPage " dashboard"}}active{{end}}" href="/dashboard">
+                <i class="bi bi-speedometer2 me-2"></i>ダッシュボード
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{if eq .CurrentPage " users"}}active{{end}}" href="/admin/users">
+                <i class="bi bi-people me-2"></i>ユーザー管理
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{if eq .CurrentPage " makers"}}active{{end}}" href="/admin/makers">
+                <i class="bi bi-building me-2"></i>メーカー管理
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{if eq .CurrentPage " cores"}}active{{end}}" href="/admin/cores">
+                <i class="bi bi-circle me-2"></i>コア管理
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{if eq .CurrentPage " covers"}}active{{end}}" href="/admin/covers">
+                <i class="bi bi-square me-2"></i>カバー管理
+                </a>
+            </li>
+        </ul>
+
+        <hr class="text-white-50">
+
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="/logout">
+                    <i class="bi bi-box-arrow-right me-2"></i>ログアウト
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+{{end}}
