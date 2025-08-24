@@ -119,9 +119,9 @@ func main() {
 	admin.DELETE("/covers/:id", coverHandler.DeleteCover)
 	admin.GET("/covers/stats", coverHandler.GetCoverStats)
 
-	log.Println("Starting Strikepad Management Tool on :8082")
+	log.Println("Starting Strikepad Management Tool on :8081")
 	// サーバー起動
-	e.Logger.Fatal(e.Start(":8082"))
+	e.Logger.Fatal(e.Start(":8081"))
 }
 
 // ヘルスチェックエンドポイント

@@ -107,7 +107,7 @@ func (suite *MakerHandlerTestSuite) TestShowMakers() {
 
 			// セッション設定
 			adminUser := &models.AdminUser{ID: 1, Name: "Test Admin", LoginID: "admin"}
-			utils.SetCurrentAdminUser(c, adminUser)
+			utils.SetAdminSession(c, adminUser)
 
 			// テスト実行
 			err := suite.handler.ShowMakers(c)
@@ -181,7 +181,7 @@ func (suite *MakerHandlerTestSuite) TestCreateMaker() {
 
 			// セッション設定
 			adminUser := &models.AdminUser{ID: 1, Name: "Test Admin", LoginID: "admin"}
-			utils.SetCurrentAdminUser(c, adminUser)
+			utils.SetAdminSession(c, adminUser)
 
 			// テスト実行
 			err := suite.handler.CreateMaker(c)
@@ -259,7 +259,7 @@ func (suite *MakerHandlerTestSuite) TestUpdateMaker() {
 
 			// セッション設定
 			adminUser := &models.AdminUser{ID: 1, Name: "Test Admin", LoginID: "admin"}
-			utils.SetCurrentAdminUser(c, adminUser)
+			utils.SetAdminSession(c, adminUser)
 
 			// テスト実行
 			err := suite.handler.UpdateMaker(c)
@@ -327,7 +327,7 @@ func (suite *MakerHandlerTestSuite) TestDeleteMaker() {
 
 			// セッション設定
 			adminUser := &models.AdminUser{ID: 1, Name: "Test Admin", LoginID: "admin"}
-			utils.SetCurrentAdminUser(c, adminUser)
+			utils.SetAdminSession(c, adminUser)
 
 			// テスト実行
 			err := suite.handler.DeleteMaker(c)
@@ -382,7 +382,7 @@ func (suite *MakerHandlerTestSuite) TestGetMakerStats() {
 
 			// セッション設定
 			adminUser := &models.AdminUser{ID: 1, Name: "Test Admin", LoginID: "admin"}
-			utils.SetCurrentAdminUser(c, adminUser)
+			utils.SetAdminSession(c, adminUser)
 
 			// テスト実行
 			err := suite.handler.GetMakerStats(c)

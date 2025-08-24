@@ -37,7 +37,7 @@ func (r *MakerRepository) GetAllMakers(offset, limit int) ([]models.MakerListIte
 		LEFT JOIN cores cr ON m.id = cr.maker_id AND cr.is_deleted = false
 		WHERE m.is_deleted = false
 		GROUP BY m.id, m.name, m.created_at, m.updated_at
-		ORDER BY m.created_at DESC
+		ORDER BY m.id ASC
 		LIMIT ? OFFSET ?
 	`
 
@@ -64,7 +64,7 @@ func (r *MakerRepository) SearchMakers(searchQuery string, offset, limit int) ([
 		LEFT JOIN cores cr ON m.id = cr.maker_id AND cr.is_deleted = false
 		WHERE m.is_deleted = false AND m.name ILIKE ?
 		GROUP BY m.id, m.name, m.created_at, m.updated_at
-		ORDER BY m.created_at DESC
+		ORDER BY m.id ASC
 		LIMIT ? OFFSET ?
 	`
 
