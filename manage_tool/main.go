@@ -114,10 +114,12 @@ func main() {
 	// カバー管理
 	admin.GET("/covers", coverHandler.ShowCovers)
 	admin.GET("/covers/create", coverHandler.ShowCreateCover)
-	admin.POST("/covers/create", coverHandler.CreateCover)
-	admin.GET("/covers/:id", coverHandler.ShowCoverDetail)
-	admin.DELETE("/covers/:id", coverHandler.DeleteCover)
+	admin.POST("/covers", coverHandler.CreateCover)
 	admin.GET("/covers/stats", coverHandler.GetCoverStats)
+	admin.GET("/covers/:id", coverHandler.ShowCoverDetail)
+	admin.GET("/covers/:id/edit", coverHandler.ShowEditCover)
+	admin.POST("/covers/:id/update", coverHandler.UpdateCover)
+	admin.DELETE("/covers/:id", coverHandler.DeleteCover)
 
 	log.Println("Starting Strikepad Management Tool on :8081")
 	// サーバー起動

@@ -226,6 +226,9 @@
                                             <li><a class="dropdown-item" href="/admin/covers/{{.ID}}">
                                                 <i class="bi bi-eye me-2"></i>詳細
                                             </a></li>
+                                            <li><a class="dropdown-item" href="/admin/covers/{{.ID}}/edit">
+                                                <i class="bi bi-pencil me-2"></i>編集
+                                            </a></li>
                                             <li>
                                                 <hr class="dropdown-divider">
                                             </li>
@@ -241,11 +244,14 @@
                             <span class="badge bg-success maker-badge">
                                 <i class="bi bi-building me-1"></i>{{.Maker.Name}}
                             </span>
+                                    <span class="badge bg-info maker-badge ms-1">
+                                強さ: {{.Rank}}
+                            </span>
+                                    <span class="badge bg-warning maker-badge ms-1">
+                                {{if eq .MaterialType 1}}ソリッド{{else if eq .MaterialType 2}}パール{{else if eq .MaterialType 3}}ハイブリッド{{else if eq .MaterialType 4}}ウレタン{{else if eq .MaterialType 5}}ポリエステル{{else}}不明{{end}}
+                            </span>
                                 </div>
 
-                                {{if .Description}}
-                                <p class="card-text text-muted small mb-3">{{.Description}}</p>
-                                {{end}}
 
                                 <div class="mt-auto">
                                     <small class="text-muted">

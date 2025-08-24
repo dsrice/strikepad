@@ -144,6 +144,48 @@ func (h *CoverHandler) ShowCreateCover(c echo.Context) error {
 	return c.Render(http.StatusOK, "cover_form.html", data)
 }
 
+// ShowEditCover はカバー編集画面を表示
+func (h *CoverHandler) ShowEditCover(c echo.Context) error {
+	// カバーIDを取得
+	idParam := c.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "無効なカバーIDです")
+	}
+
+	// カバー情報を取得
+	cover, err := h.coverRepo.GetByID(uint(id))
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "カバー取得エラー: "+err.Error())
+	}
+	if cover == nil {
+		return c.String(http.StatusNotFound, "カバーが見つかりません")
+	}
+
+	// メーカー一覧を取得
+	makerList, err := h.makerRepo.GetAllMakers(0, 1000)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "メーカー取得エラー: "+err.Error())
+	}
+
+	makers := make([]*models.Maker, len(makerList))
+	for i, m := range makerList {
+		makers[i] = &models.Maker{
+			ID:   m.ID,
+			Name: m.Name,
+		}
+	}
+
+	data := map[string]interface{}{
+		"Title":  "カバー編集",
+		"Cover":  cover,
+		"Makers": makers,
+		"IsEdit": true,
+	}
+
+	return c.Render(http.StatusOK, "cover_form.html", data)
+}
+
 // CreateCover は新しいカバーを作成
 func (h *CoverHandler) CreateCover(c echo.Context) error {
 	// フォームデータを取得
@@ -189,11 +231,82 @@ func (h *CoverHandler) CreateCover(c echo.Context) error {
 		MakerID:      uint(makerID),
 		MaterialType: int(materialType),
 		Rank:         int(rank),
+		IsDeleted:    false,
 	}
 
 	err = h.coverRepo.Create(cover)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "カバー作成エラー: "+err.Error())
+	}
+
+	// カバー一覧にリダイレクト
+	return c.Redirect(http.StatusSeeOther, "/admin/covers")
+}
+
+// UpdateCover はカバー情報を更新
+func (h *CoverHandler) UpdateCover(c echo.Context) error {
+	// カバーIDを取得
+	idParam := c.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "無効なカバーIDです")
+	}
+
+	// 既存のカバーが存在するかチェック
+	existingCover, err := h.coverRepo.GetByID(uint(id))
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "カバー確認エラー: "+err.Error())
+	}
+	if existingCover == nil {
+		return c.String(http.StatusNotFound, "カバーが見つかりません")
+	}
+
+	// フォームデータを取得
+	name := strings.TrimSpace(c.FormValue("name"))
+	makerIDStr := strings.TrimSpace(c.FormValue("maker_id"))
+	materialTypeStr := strings.TrimSpace(c.FormValue("material_type"))
+	rankStr := strings.TrimSpace(c.FormValue("rank"))
+
+	// バリデーション
+	if name == "" {
+		return c.String(http.StatusBadRequest, "カバー名は必須です")
+	}
+
+	makerID, err := strconv.ParseUint(makerIDStr, 10, 32)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "無効なメーカーIDです")
+	}
+
+	// 材質種別のバリデーション
+	materialType, err := strconv.ParseUint(materialTypeStr, 10, 32)
+	if err != nil || materialType < 1 || materialType > 5 {
+		return c.String(http.StatusBadRequest, "無効な材質種別です（1-5の範囲で選択してください）")
+	}
+
+	// カバーの強さ（Rank）のバリデーション
+	rank, err := strconv.ParseUint(rankStr, 10, 32)
+	if err != nil || rank < 1 || rank > 99 {
+		return c.String(http.StatusBadRequest, "無効なカバーの強さです（1-99の範囲で入力してください）")
+	}
+
+	// メーカーが存在するかチェック
+	maker, err := h.makerRepo.GetByID(uint(makerID))
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "メーカー確認エラー: "+err.Error())
+	}
+	if maker == nil {
+		return c.String(http.StatusBadRequest, "指定されたメーカーが見つかりません")
+	}
+
+	// カバー情報を更新
+	existingCover.Name = name
+	existingCover.MakerID = uint(makerID)
+	existingCover.MaterialType = int(materialType)
+	existingCover.Rank = int(rank)
+
+	err = h.coverRepo.Update(existingCover)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "カバー更新エラー: "+err.Error())
 	}
 
 	// カバー一覧にリダイレクト
