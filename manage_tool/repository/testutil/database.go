@@ -1,13 +1,15 @@
 package testutil
 
 import (
-	"database/sql"
+	"log"
+	"os"
 	"testing"
 
 	"strikepad-manage-tool/models"
 
-	"github.com/stretchr/testify/mock"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 // SetupTestDB はテスト用のインメモリSQLiteデータベースを設定

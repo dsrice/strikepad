@@ -48,11 +48,11 @@ func TestMakerHandlerSuite(t *testing.T) {
 // ShowMakersのテスト
 func (suite *MakerHandlerTestSuite) TestShowMakers() {
 	testCases := []struct {
-		name               string
 		queryParams        map[string]string
 		mockSetup          func()
-		expectedStatusCode int
+		name               string
 		expectedError      string
+		expectedStatusCode int
 	}{
 		{
 			name:        "正常ケース - ページネーション付き",
@@ -93,7 +93,7 @@ func (suite *MakerHandlerTestSuite) TestShowMakers() {
 			tc.mockSetup()
 
 			// リクエスト作成
-			req := httptest.NewRequest(http.MethodGet, "/admin/makers", nil)
+			req := httptest.NewRequest(http.MethodGet, "/admin/makers", http.NoBody)
 			if len(tc.queryParams) > 0 {
 				q := url.Values{}
 				for k, v := range tc.queryParams {
@@ -127,12 +127,12 @@ func (suite *MakerHandlerTestSuite) TestShowMakers() {
 // CreateMakerのテスト
 func (suite *MakerHandlerTestSuite) TestCreateMaker() {
 	testCases := []struct {
-		name               string
 		formData           map[string]string
-		fileUpload         bool
 		mockSetup          func()
-		expectedStatusCode int
+		name               string
 		expectedRedirect   string
+		expectedStatusCode int
+		fileUpload         bool
 	}{
 		{
 			name:     "正常ケース - ファイルなし",
@@ -201,10 +201,10 @@ func (suite *MakerHandlerTestSuite) TestCreateMaker() {
 // UpdateMakerのテスト
 func (suite *MakerHandlerTestSuite) TestUpdateMaker() {
 	testCases := []struct {
-		name               string
-		makerID            string
 		formData           map[string]string
 		mockSetup          func()
+		name               string
+		makerID            string
 		expectedStatusCode int
 	}{
 		{
@@ -279,11 +279,11 @@ func (suite *MakerHandlerTestSuite) TestUpdateMaker() {
 // DeleteMakerのテスト
 func (suite *MakerHandlerTestSuite) TestDeleteMaker() {
 	testCases := []struct {
+		mockSetup          func()
+		expectedResponse   map[string]interface{}
 		name               string
 		makerID            string
-		mockSetup          func()
 		expectedStatusCode int
-		expectedResponse   map[string]interface{}
 	}{
 		{
 			name:    "正常ケース",
@@ -319,7 +319,7 @@ func (suite *MakerHandlerTestSuite) TestDeleteMaker() {
 			suite.SetupTest()
 			tc.mockSetup()
 
-			req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/admin/makers/%s", tc.makerID), nil)
+			req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/admin/makers/%s", tc.makerID), http.NoBody)
 			rec := httptest.NewRecorder()
 			c := suite.echo.NewContext(req, rec)
 			c.SetParamNames("id")
@@ -344,8 +344,8 @@ func (suite *MakerHandlerTestSuite) TestDeleteMaker() {
 // GetMakerStatsのテスト
 func (suite *MakerHandlerTestSuite) TestGetMakerStats() {
 	testCases := []struct {
-		name               string
 		mockSetup          func()
+		name               string
 		expectedStatusCode int
 	}{
 		{
@@ -376,7 +376,7 @@ func (suite *MakerHandlerTestSuite) TestGetMakerStats() {
 			suite.SetupTest()
 			tc.mockSetup()
 
-			req := httptest.NewRequest(http.MethodGet, "/admin/makers/stats", nil)
+			req := httptest.NewRequest(http.MethodGet, "/admin/makers/stats", http.NoBody)
 			rec := httptest.NewRecorder()
 			c := suite.echo.NewContext(req, rec)
 
@@ -399,9 +399,9 @@ func (suite *MakerHandlerTestSuite) TestGetMakerStats() {
 // ServeLogoImageのテスト
 func (suite *MakerHandlerTestSuite) TestServeLogoImage() {
 	testCases := []struct {
+		mockSetup          func()
 		name               string
 		makerID            string
-		mockSetup          func()
 		expectedStatusCode int
 	}{
 		{
@@ -447,7 +447,7 @@ func (suite *MakerHandlerTestSuite) TestServeLogoImage() {
 			suite.SetupTest()
 			tc.mockSetup()
 
-			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/admin/makers/%s/logo", tc.makerID), nil)
+			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/admin/makers/%s/logo", tc.makerID), http.NoBody)
 			rec := httptest.NewRecorder()
 			c := suite.echo.NewContext(req, rec)
 			c.SetParamNames("id")
@@ -472,10 +472,10 @@ func (suite *MakerHandlerTestSuite) TestServeLogoImage() {
 // getLogoURLのテスト
 func (suite *MakerHandlerTestSuite) TestGetLogoURL() {
 	testCases := []struct {
-		name        string
-		makerID     uint
 		mockSetup   func()
+		name        string
 		expectedURL string
+		makerID     uint
 	}{
 		{
 			name:    "正常ケース",
@@ -523,13 +523,13 @@ func (suite *MakerHandlerTestSuite) TestGetLogoURL() {
 // uploadLogoのテスト（ファイルアップロードテスト）
 func (suite *MakerHandlerTestSuite) TestUploadLogo() {
 	testCases := []struct {
+		mockSetup    func()
 		name         string
 		fileName     string
-		fileSize     int64
 		fileContent  string
-		mockSetup    func()
-		expectError  bool
 		errorMessage string
+		fileSize     int64
+		expectError  bool
 	}{
 		{
 			name:         "ファイルサイズが大きすぎる",
@@ -576,36 +576,4 @@ func (suite *MakerHandlerTestSuite) TestUploadLogo() {
 			suite.mockRepo.AssertExpectations(suite.T())
 		})
 	}
-}
-
-// uploadLogoのテスト用ヘルパー関数
-func createTestMultipartFile(fieldName, fileName, content string) (*multipart.FileHeader, *bytes.Buffer, error) {
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-
-	part, err := writer.CreateFormFile(fieldName, fileName)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	_, err = part.Write([]byte(content))
-	if err != nil {
-		return nil, nil, err
-	}
-
-	writer.Close()
-
-	// Parse the multipart form to get FileHeader
-	reader := multipart.NewReader(body, writer.Boundary())
-	form, err := reader.ReadForm(10 << 20) // 10MB max
-	if err != nil {
-		return nil, nil, err
-	}
-
-	files := form.File[fieldName]
-	if len(files) == 0 {
-		return nil, nil, errors.New("no file found")
-	}
-
-	return files[0], body, nil
 }

@@ -24,10 +24,10 @@ func main() {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
-	// MinIO接続
-	minioClient, err := config.NewMinIOClient()
+	// S3クライアント接続
+	s3Client, err := config.NewS3Client()
 	if err != nil {
-		log.Fatal("Failed to connect to MinIO:", err)
+		log.Fatal("Failed to connect to S3:", err)
 	}
 
 	// リポジトリ初期化
@@ -60,7 +60,7 @@ func main() {
 	// ハンドラー初期化
 	authHandler := handlers.NewAuthHandler(adminRepo)
 	adminHandler := handlers.NewAdminHandler(userRepo)
-	makerHandler := handlers.NewMakerHandler(makerRepo, minioClient)
+	makerHandler := handlers.NewMakerHandler(makerRepo, s3Client)
 	coreHandler := handlers.NewCoreHandler(coreRepo, makerRepo)
 	coverHandler := handlers.NewCoverHandler(coverRepo, makerRepo)
 
@@ -101,7 +101,9 @@ func main() {
 	admin.POST("/makers/:id/edit", makerHandler.UpdateMaker)
 	admin.DELETE("/makers/:id", makerHandler.DeleteMaker)
 	admin.GET("/makers/stats", makerHandler.GetMakerStats)
-	admin.GET("/makers/:id/logo", makerHandler.ServeLogoImage)
+	admin.GET("/makers/:id/logo-url", makerHandler.GetLogoPresignedURL)
+	admin.POST("/makers/:id/upload-url", makerHandler.GetUploadPresignedURL)
+	admin.POST("/makers/:id/confirm-upload", makerHandler.ConfirmLogoUpload)
 
 	// コア管理
 	admin.GET("/cores", coreHandler.ShowCores)

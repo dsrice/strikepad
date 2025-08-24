@@ -38,10 +38,10 @@ func (suite *MakerRepositoryTestSuite) TestGetAllMakers() {
 
 	testCases := []struct {
 		name          string
+		expectedFirst string
 		offset        int
 		limit         int
 		expectedCount int
-		expectedFirst string
 		expectedError bool
 	}{
 		{
@@ -102,10 +102,10 @@ func (suite *MakerRepositoryTestSuite) TestSearchMakers() {
 	testCases := []struct {
 		name          string
 		searchQuery   string
+		expectedNames []string
 		offset        int
 		limit         int
 		expectedCount int
-		expectedNames []string
 		expectedError bool
 	}{
 		{
@@ -173,9 +173,9 @@ func (suite *MakerRepositoryTestSuite) TestGetByID() {
 	makers := testutil.SeedMakersData(suite.db)
 
 	testCases := []struct {
+		expectedMaker *models.Maker
 		name          string
 		id            uint
-		expectedMaker *models.Maker
 		expectedError bool
 	}{
 		{
@@ -225,9 +225,9 @@ func (suite *MakerRepositoryTestSuite) TestGetByName() {
 	makers := testutil.SeedMakersData(suite.db)
 
 	testCases := []struct {
+		expectedMaker *models.Maker
 		name          string
 		makerName     string
-		expectedMaker *models.Maker
 		expectedError bool
 	}{
 		{
@@ -274,10 +274,10 @@ func (suite *MakerRepositoryTestSuite) TestGetByName() {
 // Createのテスト
 func (suite *MakerRepositoryTestSuite) TestCreate() {
 	testCases := []struct {
-		name          string
 		maker         *models.Maker
-		expectedError bool
+		name          string
 		errorContains string
+		expectedError bool
 	}{
 		{
 			name: "正常ケース",
@@ -335,8 +335,8 @@ func (suite *MakerRepositoryTestSuite) TestUpdate() {
 	makers := testutil.SeedMakersData(suite.db)
 
 	testCases := []struct {
-		name          string
 		updateMaker   *models.Maker
+		name          string
 		expectedError bool
 	}{
 		{
@@ -394,8 +394,8 @@ func (suite *MakerRepositoryTestSuite) TestUpdateLogoFile() {
 
 	testCases := []struct {
 		name          string
-		makerID       uint
 		filename      string
+		makerID       uint
 		expectedError bool
 	}{
 		{
@@ -490,8 +490,8 @@ func (suite *MakerRepositoryTestSuite) TestDelete() {
 func (suite *MakerRepositoryTestSuite) TestGetTotalMakersCount() {
 	testCases := []struct {
 		name          string
-		seedData      bool
 		expectedCount int64
+		seedData      bool
 		expectedError bool
 	}{
 		{
@@ -532,9 +532,9 @@ func (suite *MakerRepositoryTestSuite) TestGetTotalMakersCount() {
 // GetMakerStatsのテスト
 func (suite *MakerRepositoryTestSuite) TestGetMakerStats() {
 	testCases := []struct {
+		expectedStats *models.MakerStats
 		name          string
 		seedData      bool
-		expectedStats *models.MakerStats
 		expectedError bool
 	}{
 		{
