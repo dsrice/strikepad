@@ -18,7 +18,7 @@ func TestMakerRepository_GetAllSimple(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := repository.NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepositoryInterface(gormDB)
 
 	now := time.Now()
 
@@ -46,7 +46,7 @@ func TestMakerRepository_GetAllSimple_Empty(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := repository.NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepositoryInterface(gormDB)
 
 	// 空の結果を返すモック
 	mock.ExpectQuery(`SELECT \* FROM "makers"`).
@@ -66,7 +66,7 @@ func TestMakerRepository_Create_SqlMock(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := repository.NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepositoryInterface(gormDB)
 
 	maker := &models.Maker{
 		Name:     "Test Maker",
@@ -98,13 +98,13 @@ func TestMakerRepository_GetByID_SqlMock(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := repository.NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepositoryInterface(gormDB)
 
 	now := time.Now()
 
 	// GetByID用のモック
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "makers"`)).
-		WithArgs(uint(1), false).
+		WithArgs(uint(1), false, 1).
 		WillReturnRows(sqlmock.NewRows([]string{
 			"id", "name", "logo_file", "created_at", "updated_at", "is_deleted",
 		}).AddRow(
@@ -125,11 +125,11 @@ func TestMakerRepository_GetByID_NotFound_SqlMock(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := repository.NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepositoryInterface(gormDB)
 
 	// レコードが見つからない場合のモック
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "makers"`)).
-		WithArgs(uint(999), false).
+		WithArgs(uint(999), false, 1).
 		WillReturnError(gorm.ErrRecordNotFound)
 
 	maker, err := repo.GetByID(999)
@@ -143,13 +143,13 @@ func TestMakerRepository_GetByName_SqlMock(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := repository.NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepositoryInterface(gormDB)
 
 	now := time.Now()
 
 	// GetByName用のモック
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "makers"`)).
-		WithArgs("Test Maker", false).
+		WithArgs("Test Maker", false, 1).
 		WillReturnRows(sqlmock.NewRows([]string{
 			"id", "name", "logo_file", "created_at", "updated_at", "is_deleted",
 		}).AddRow(
@@ -168,7 +168,7 @@ func TestMakerRepository_Update_SqlMock(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := repository.NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepositoryInterface(gormDB)
 
 	maker := &models.Maker{
 		ID:       1,
@@ -178,8 +178,9 @@ func TestMakerRepository_Update_SqlMock(t *testing.T) {
 
 	// Update用のモック
 	mock.ExpectBegin()
-	mock.ExpectQuery(regexp.QuoteMeta(`UPDATE "makers"`)).
+	mock.ExpectExec(regexp.QuoteMeta(`UPDATE "makers" SET`)).
 		WithArgs(
+			sqlmock.AnyArg(),   // created_at
 			sqlmock.AnyArg(),   // updated_at
 			sqlmock.AnyArg(),   // deleted_at
 			"Updated Maker",    // name
@@ -187,7 +188,7 @@ func TestMakerRepository_Update_SqlMock(t *testing.T) {
 			false,              // is_deleted
 			uint(1),            // id (WHERE condition)
 		).
-		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
+		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
 	err := repo.Update(maker)
@@ -200,12 +201,12 @@ func TestMakerRepository_UpdateLogoFile_SqlMock(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := repository.NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepositoryInterface(gormDB)
 
 	// UpdateLogoFile用のモック
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta(`UPDATE "makers"`)).
-		WithArgs("new_logo.png", uint(1), false).
+	mock.ExpectExec(regexp.QuoteMeta(`UPDATE "makers" SET`)).
+		WithArgs("new_logo.png", sqlmock.AnyArg(), uint(1), false).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
@@ -219,12 +220,12 @@ func TestMakerRepository_Delete_SqlMock(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := repository.NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepositoryInterface(gormDB)
 
 	// Delete用のモック（論理削除）
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta(`UPDATE "makers"`)).
-		WithArgs(true, sqlmock.AnyArg(), uint(1)).
+	mock.ExpectExec(regexp.QuoteMeta(`UPDATE "makers" SET`)).
+		WithArgs(sqlmock.AnyArg(), true, sqlmock.AnyArg(), uint(1)).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
@@ -238,7 +239,7 @@ func TestMakerRepository_GetTotalMakersCount_SqlMock(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := repository.NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepositoryInterface(gormDB)
 
 	// GetTotalMakersCount用のモック
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "makers"`)).
@@ -256,7 +257,7 @@ func TestMakerRepository_GetMakerStats_SqlMock(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := repository.NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepositoryInterface(gormDB)
 
 	// TotalMakers用のモック
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "makers"`)).
@@ -264,8 +265,8 @@ func TestMakerRepository_GetMakerStats_SqlMock(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(3))
 
 	// ActiveMakers用のモック
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(DISTINCT "makers"."id") FROM "makers"`)).
-		WithArgs(false, false).
+	mock.ExpectQuery(`SELECT COUNT\(DISTINCT\("makers"\."id"\)\) FROM "makers" INNER JOIN balls`).
+		WithArgs(false).
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(2))
 
 	// TotalBalls用のモック
@@ -299,30 +300,12 @@ func TestMakerRepository_SearchMakers_SqlMock(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := repository.NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepositoryInterface(gormDB)
 
 	now := time.Now()
 
 	// SearchMakers用のRawクエリモック
-	expectedQuery := `
-		SELECT 
-			m.id,
-			m.name,
-			m.created_at,
-			m.updated_at,
-			COUNT(DISTINCT b.id) as ball_count,
-			COUNT(DISTINCT c.id) as cover_count,
-			COUNT(DISTINCT cr.id) as core_count
-		FROM makers m
-		LEFT JOIN balls b ON m.id = b.maker_id AND b.is_deleted = false
-		LEFT JOIN covers c ON m.id = c.maker_id AND c.is_deleted = false
-		LEFT JOIN cores cr ON m.id = cr.maker_id AND cr.is_deleted = false
-		WHERE m.is_deleted = false AND m.name ILIKE ?
-		GROUP BY m.id, m.name, m.created_at, m.updated_at
-		ORDER BY m.id ASC
-		LIMIT ? OFFSET ?`
-
-	mock.ExpectQuery(regexp.QuoteMeta(expectedQuery)).
+	mock.ExpectQuery(`SELECT m\.id, m\.name, m\.created_at, m\.updated_at, COUNT\(DISTINCT b\.id\) as ball_count, COUNT\(DISTINCT c\.id\) as cover_count, COUNT\(DISTINCT cr\.id\) as core_count FROM makers m LEFT JOIN balls b ON m\.id = b\.maker_id AND b\.is_deleted = .+ LEFT JOIN covers c ON m\.id = c\.maker_id AND c\.is_deleted = .+ LEFT JOIN cores cr ON m\.id = cr\.maker_id AND cr\.is_deleted = .+ WHERE m\.is_deleted = .+ AND m\.name ILIKE .+ GROUP BY m\.id, m\.name, m\.created_at, m\.updated_at ORDER BY m\.id ASC LIMIT .+ OFFSET .+`).
 		WithArgs("%storm%", 10, 0).
 		WillReturnRows(sqlmock.NewRows([]string{
 			"id", "name", "created_at", "updated_at", "ball_count", "cover_count", "core_count",
@@ -345,30 +328,12 @@ func TestMakerRepository_GetAllMakers_SqlMock(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := repository.NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepositoryInterface(gormDB)
 
 	now := time.Now()
 
 	// GetAllMakers用のRawクエリモック
-	expectedQuery := `
-		SELECT 
-			m.id,
-			m.name,
-			m.created_at,
-			m.updated_at,
-			COUNT(DISTINCT b.id) as ball_count,
-			COUNT(DISTINCT c.id) as cover_count,
-			COUNT(DISTINCT cr.id) as core_count
-		FROM makers m
-		LEFT JOIN balls b ON m.id = b.maker_id AND b.is_deleted = false
-		LEFT JOIN covers c ON m.id = c.maker_id AND c.is_deleted = false
-		LEFT JOIN cores cr ON m.id = cr.maker_id AND cr.is_deleted = false
-		WHERE m.is_deleted = false
-		GROUP BY m.id, m.name, m.created_at, m.updated_at
-		ORDER BY m.id ASC
-		LIMIT ? OFFSET ?`
-
-	mock.ExpectQuery(regexp.QuoteMeta(expectedQuery)).
+	mock.ExpectQuery(`SELECT m\.id, m\.name, m\.created_at, m\.updated_at, COUNT\(DISTINCT b\.id\) as ball_count, COUNT\(DISTINCT c\.id\) as cover_count, COUNT\(DISTINCT cr\.id\) as core_count FROM makers m LEFT JOIN balls b ON m\.id = b\.maker_id AND b\.is_deleted = .+ LEFT JOIN covers c ON m\.id = c\.maker_id AND c\.is_deleted = .+ LEFT JOIN cores cr ON m\.id = cr\.maker_id AND cr\.is_deleted = .+ WHERE m\.is_deleted = .+ GROUP BY m\.id, m\.name, m\.created_at, m\.updated_at ORDER BY m\.id ASC LIMIT .+ OFFSET .+`).
 		WithArgs(10, 0).
 		WillReturnRows(sqlmock.NewRows([]string{
 			"id", "name", "created_at", "updated_at", "ball_count", "cover_count", "core_count",
@@ -391,7 +356,7 @@ func TestMakerRepository_GetAllSimple_Error(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := repository.NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepositoryInterface(gormDB)
 
 	// データベースエラーを返すモック
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "makers"`)).
@@ -410,7 +375,7 @@ func TestMakerRepository_Create_Error_SqlMock(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := repository.NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepositoryInterface(gormDB)
 
 	maker := &models.Maker{
 		Name:     "Test Maker",
