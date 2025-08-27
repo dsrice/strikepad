@@ -135,6 +135,17 @@ func (r *MakerRepository) GetTotalMakersCount() (int64, error) {
 	return count, err
 }
 
+// GetAllSimple はシンプルなメーカー一覧を取得（セレクトボックス用）
+func (r *MakerRepository) GetAllSimple() ([]*models.Maker, error) {
+	var makers []*models.Maker
+
+	result := r.db.Where("is_deleted = ?", false).
+		Order("name ASC").
+		Find(&makers)
+
+	return makers, result.Error
+}
+
 // GetMakerStats はメーカー統計を取得
 func (r *MakerRepository) GetMakerStats() (*models.MakerStats, error) {
 	stats := &models.MakerStats{}

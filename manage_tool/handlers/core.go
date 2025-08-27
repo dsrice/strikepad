@@ -80,14 +80,7 @@ func (h *CoreHandler) ShowCores(c echo.Context) error {
 	}
 
 	// メーカー一覧を取得（フィルター用）
-	makerList, err := h.makerRepo.GetAllMakers(0, 0) // 全件取得
-	makers := make([]*models.Maker, len(makerList))
-	for i, m := range makerList {
-		makers[i] = &models.Maker{
-			ID:   m.ID,
-			Name: m.Name,
-		}
-	}
+	makers, err := h.makerRepo.GetAllSimple()
 	if err != nil {
 		makers = []*models.Maker{} // エラー時は空配列
 	}
@@ -120,14 +113,7 @@ func (h *CoreHandler) ShowCores(c echo.Context) error {
 // ShowCreateCore はコア作成画面を表示
 func (h *CoreHandler) ShowCreateCore(c echo.Context) error {
 	// メーカー一覧を取得
-	makerList, err := h.makerRepo.GetAllMakers(0, 0)
-	makers := make([]*models.Maker, len(makerList))
-	for i, m := range makerList {
-		makers[i] = &models.Maker{
-			ID:   m.ID,
-			Name: m.Name,
-		}
-	}
+	makers, err := h.makerRepo.GetAllSimple()
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "メーカー取得エラー: "+err.Error())
 	}
