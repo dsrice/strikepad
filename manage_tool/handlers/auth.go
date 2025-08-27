@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strings"
 
-	"strikepad-manage-tool/repository"
 	"strikepad-manage-tool/utils"
 
 	"github.com/labstack/echo/v4"
@@ -13,11 +12,11 @@ import (
 
 // AuthHandler は認証関連のハンドラー
 type AuthHandler struct {
-	adminRepo *repository.AdminRepository
+	adminRepo AdminRepositoryInterface
 }
 
 // NewAuthHandler は新しい認証ハンドラーを作成
-func NewAuthHandler(adminRepo *repository.AdminRepository) *AuthHandler {
+func NewAuthHandler(adminRepo AdminRepositoryInterface) *AuthHandler {
 	return &AuthHandler{
 		adminRepo: adminRepo,
 	}

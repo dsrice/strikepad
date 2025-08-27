@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"strikepad-manage-tool/models"
-	"strikepad-manage-tool/repository"
 	"strikepad-manage-tool/utils"
 
 	"github.com/labstack/echo/v4"
@@ -13,11 +12,11 @@ import (
 
 // AdminHandler は管理機能のハンドラー
 type AdminHandler struct {
-	userRepo *repository.UserRepository
+	userRepo UserRepositoryInterface
 }
 
 // NewAdminHandler は新しい管理ハンドラーを作成
-func NewAdminHandler(userRepo *repository.UserRepository) *AdminHandler {
+func NewAdminHandler(userRepo UserRepositoryInterface) *AdminHandler {
 	return &AdminHandler{
 		userRepo: userRepo,
 	}

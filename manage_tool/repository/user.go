@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"strikepad-manage-tool/models"
+	"strikepad-manage-tool/repository/ri"
 
 	"gorm.io/gorm"
 )
@@ -16,6 +17,11 @@ type UserRepository struct {
 // NewUserRepository は新しいUserRepositoryを作成
 func NewUserRepository(db *gorm.DB) *UserRepository {
 	return &UserRepository{db: db}
+}
+
+// NewUserRepositoryInterface はDI用のUserRepositoryInterfaceを返す
+func NewUserRepositoryInterface(db *gorm.DB) ri.UserRepositoryInterface {
+	return NewUserRepository(db)
 }
 
 // GetAllUsers は全ユーザーを取得

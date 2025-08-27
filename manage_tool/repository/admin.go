@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"strikepad-manage-tool/models"
+	"strikepad-manage-tool/repository/ri"
 
 	"gorm.io/gorm"
 )
@@ -16,6 +17,11 @@ type AdminRepository struct {
 // NewAdminRepository は新しい管理者リポジトリを作成
 func NewAdminRepository(db *gorm.DB) *AdminRepository {
 	return &AdminRepository{db: db}
+}
+
+// NewAdminRepositoryInterface はDI用のAdminRepositoryInterfaceを返す
+func NewAdminRepositoryInterface(db *gorm.DB) ri.AdminRepositoryInterface {
+	return NewAdminRepository(db)
 }
 
 // GetByLoginID はログインIDで管理者ユーザーを取得

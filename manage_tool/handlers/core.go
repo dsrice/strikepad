@@ -7,19 +7,18 @@ import (
 	"strings"
 
 	"strikepad-manage-tool/models"
-	"strikepad-manage-tool/repository"
 
 	"github.com/labstack/echo/v4"
 )
 
 // CoreHandler はコア関連のHTTPハンドラー
 type CoreHandler struct {
-	coreRepo  *repository.CoreRepository
-	makerRepo *repository.MakerRepository
+	coreRepo  CoreRepositoryInterface
+	makerRepo MakerRepositoryInterface
 }
 
 // NewCoreHandler は新しいコアハンドラーを作成
-func NewCoreHandler(coreRepo *repository.CoreRepository, makerRepo *repository.MakerRepository) *CoreHandler {
+func NewCoreHandler(coreRepo CoreRepositoryInterface, makerRepo MakerRepositoryInterface) *CoreHandler {
 	return &CoreHandler{
 		coreRepo:  coreRepo,
 		makerRepo: makerRepo,

@@ -4,6 +4,7 @@ import (
 	"strikepad-manage-tool/config"
 	"strikepad-manage-tool/handlers"
 	"strikepad-manage-tool/repository"
+	"strikepad-manage-tool/repository/ri"
 	"strikepad-manage-tool/templates"
 
 	"go.uber.org/dig"
@@ -96,64 +97,64 @@ func BuildContainer() (*Container, error) {
 
 // リポジトリ層のコンストラクター関数
 
-func NewUserRepository(db *gorm.DB) *repository.UserRepository {
+func NewUserRepository(db *gorm.DB) ri.UserRepositoryInterface {
 	return repository.NewUserRepository(db)
 }
 
-func NewAdminRepository(db *gorm.DB) *repository.AdminRepository {
+func NewAdminRepository(db *gorm.DB) ri.AdminRepositoryInterface {
 	return repository.NewAdminRepository(db)
 }
 
-func NewMakerRepository(db *gorm.DB) *repository.MakerRepository {
+func NewMakerRepository(db *gorm.DB) ri.MakerRepositoryInterface {
 	return repository.NewMakerRepository(db)
 }
 
-func NewCoreRepository(db *gorm.DB) *repository.CoreRepository {
+func NewCoreRepository(db *gorm.DB) ri.CoreRepositoryInterface {
 	return repository.NewCoreRepository(db)
 }
 
-func NewCoverRepository(db *gorm.DB) *repository.CoverRepository {
+func NewCoverRepository(db *gorm.DB) ri.CoverRepositoryInterface {
 	return repository.NewCoverRepository(db)
 }
 
 // ハンドラー層のコンストラクター関数
 
-func NewAuthHandler(adminRepo *repository.AdminRepository) *handlers.AuthHandler {
+func NewAuthHandler(adminRepo ri.AdminRepositoryInterface) handlers.AuthHandlerInterface {
 	return handlers.NewAuthHandler(adminRepo)
 }
 
-func NewAdminHandler(userRepo *repository.UserRepository) *handlers.AdminHandler {
+func NewAdminHandler(userRepo ri.UserRepositoryInterface) handlers.AdminHandlerInterface {
 	return handlers.NewAdminHandler(userRepo)
 }
 
-func NewMakerHandler(makerRepo *repository.MakerRepository, s3Client *config.S3Client) *handlers.MakerHandler {
+func NewMakerHandler(makerRepo ri.MakerRepositoryInterface, s3Client *config.S3Client) handlers.MakerHandlerInterface {
 	return handlers.NewMakerHandler(makerRepo, s3Client)
 }
 
-func NewCoreHandler(coreRepo *repository.CoreRepository, makerRepo *repository.MakerRepository) *handlers.CoreHandler {
+func NewCoreHandler(coreRepo ri.CoreRepositoryInterface, makerRepo ri.MakerRepositoryInterface) handlers.CoreHandlerInterface {
 	return handlers.NewCoreHandler(coreRepo, makerRepo)
 }
 
-func NewCoverHandler(coverRepo *repository.CoverRepository, makerRepo *repository.MakerRepository) *handlers.CoverHandler {
+func NewCoverHandler(coverRepo ri.CoverRepositoryInterface, makerRepo ri.MakerRepositoryInterface) handlers.CoverHandlerInterface {
 	return handlers.NewCoverHandler(coverRepo, makerRepo)
 }
 
 // HandlersContainer は全てのハンドラーを格納する構造体
 type HandlersContainer struct {
-	AuthHandler  *handlers.AuthHandler
-	AdminHandler *handlers.AdminHandler
-	MakerHandler *handlers.MakerHandler
-	CoreHandler  *handlers.CoreHandler
-	CoverHandler *handlers.CoverHandler
+	AuthHandler  handlers.AuthHandlerInterface
+	AdminHandler handlers.AdminHandlerInterface
+	MakerHandler handlers.MakerHandlerInterface
+	CoreHandler  handlers.CoreHandlerInterface
+	CoverHandler handlers.CoverHandlerInterface
 }
 
 // NewHandlersContainer は全てのハンドラーを含むコンテナーを作成
 func NewHandlersContainer(
-	authHandler *handlers.AuthHandler,
-	adminHandler *handlers.AdminHandler,
-	makerHandler *handlers.MakerHandler,
-	coreHandler *handlers.CoreHandler,
-	coverHandler *handlers.CoverHandler,
+	authHandler handlers.AuthHandlerInterface,
+	adminHandler handlers.AdminHandlerInterface,
+	makerHandler handlers.MakerHandlerInterface,
+	coreHandler handlers.CoreHandlerInterface,
+	coverHandler handlers.CoverHandlerInterface,
 ) *HandlersContainer {
 	return &HandlersContainer{
 		AuthHandler:  authHandler,

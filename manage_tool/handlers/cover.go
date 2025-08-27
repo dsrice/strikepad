@@ -7,19 +7,18 @@ import (
 	"strings"
 
 	"strikepad-manage-tool/models"
-	"strikepad-manage-tool/repository"
 
 	"github.com/labstack/echo/v4"
 )
 
 // CoverHandler はカバー関連のHTTPハンドラー
 type CoverHandler struct {
-	coverRepo *repository.CoverRepository
-	makerRepo *repository.MakerRepository
+	coverRepo CoverRepositoryInterface
+	makerRepo MakerRepositoryInterface
 }
 
 // NewCoverHandler は新しいカバーハンドラーを作成
-func NewCoverHandler(coverRepo *repository.CoverRepository, makerRepo *repository.MakerRepository) *CoverHandler {
+func NewCoverHandler(coverRepo CoverRepositoryInterface, makerRepo MakerRepositoryInterface) *CoverHandler {
 	return &CoverHandler{
 		coverRepo: coverRepo,
 		makerRepo: makerRepo,
