@@ -4,22 +4,25 @@ import (
 	"errors"
 
 	"strikepad-manage-tool/models"
+	"strikepad-manage-tool/repository/ri"
 
 	"gorm.io/gorm"
 )
 
 // MakerRepository はメーカー関連のデータベース操作を行う
-type MakerRepository struct {
+type makerRepository struct {
 	db *gorm.DB
 }
 
-// NewMakerRepository は新しいメーカーリポジトリを作成
-func NewMakerRepository(db *gorm.DB) *MakerRepository {
-	return &MakerRepository{db: db}
+// NewMakerRepositoryInterface はDI用のMakerRepositoryInterfaceを返す
+func NewMakerRepositoryInterface(db *gorm.DB) ri.MakerRepositoryInterface {
+	return &makerRepository{
+		db: db,
+	}
 }
 
 // GetAllMakers は全メーカーを取得（ページネーション対応）
-func (r *MakerRepository) GetAllMakers(offset, limit int) ([]models.MakerListItem, error) {
+func (r *makerRepository) GetAllMakers(offset, limit int) ([]models.MakerListItem, error) {
 	var makers []models.MakerListItem
 
 	query := `
@@ -46,7 +49,7 @@ func (r *MakerRepository) GetAllMakers(offset, limit int) ([]models.MakerListIte
 }
 
 // SearchMakers はメーカーを検索
-func (r *MakerRepository) SearchMakers(searchQuery string, offset, limit int) ([]models.MakerListItem, error) {
+func (r *makerRepository) SearchMakers(searchQuery string, offset, limit int) ([]models.MakerListItem, error) {
 	var makers []models.MakerListItem
 
 	query := `
@@ -74,7 +77,7 @@ func (r *MakerRepository) SearchMakers(searchQuery string, offset, limit int) ([
 }
 
 // GetByID はIDでメーカーを取得
-func (r *MakerRepository) GetByID(id uint) (*models.Maker, error) {
+func (r *makerRepository) GetByID(id uint) (*models.Maker, error) {
 	var maker models.Maker
 
 	result := r.db.Where("id = ? AND is_deleted = ?", id, false).First(&maker)
@@ -89,7 +92,7 @@ func (r *MakerRepository) GetByID(id uint) (*models.Maker, error) {
 }
 
 // GetByName は名前でメーカーを取得
-func (r *MakerRepository) GetByName(name string) (*models.Maker, error) {
+func (r *makerRepository) GetByName(name string) (*models.Maker, error) {
 	var maker models.Maker
 
 	result := r.db.Where("name = ? AND is_deleted = ?", name, false).First(&maker)
@@ -104,24 +107,24 @@ func (r *MakerRepository) GetByName(name string) (*models.Maker, error) {
 }
 
 // Create は新しいメーカーを作成
-func (r *MakerRepository) Create(maker *models.Maker) error {
+func (r *makerRepository) Create(maker *models.Maker) error {
 	return r.db.Create(maker).Error
 }
 
 // Update はメーカー情報を更新
-func (r *MakerRepository) Update(maker *models.Maker) error {
+func (r *makerRepository) Update(maker *models.Maker) error {
 	return r.db.Save(maker).Error
 }
 
 // UpdateLogoFile はメーカーのロゴファイル名を更新
-func (r *MakerRepository) UpdateLogoFile(makerID uint, filename string) error {
+func (r *makerRepository) UpdateLogoFile(makerID uint, filename string) error {
 	return r.db.Model(&models.Maker{}).
 		Where("id = ? AND is_deleted = ?", makerID, false).
 		Update("logo_file", filename).Error
 }
 
 // Delete はメーカーを論理削除
-func (r *MakerRepository) Delete(id uint) error {
+func (r *makerRepository) Delete(id uint) error {
 	return r.db.Model(&models.Maker{}).Where("id = ?", id).Updates(map[string]interface{}{
 		"is_deleted": true,
 		"deleted_at": gorm.DeletedAt{},
@@ -129,14 +132,14 @@ func (r *MakerRepository) Delete(id uint) error {
 }
 
 // GetTotalMakersCount は総メーカー数を取得
-func (r *MakerRepository) GetTotalMakersCount() (int64, error) {
+func (r *makerRepository) GetTotalMakersCount() (int64, error) {
 	var count int64
 	err := r.db.Model(&models.Maker{}).Where("is_deleted = ?", false).Count(&count).Error
 	return count, err
 }
 
 // GetAllSimple はシンプルなメーカー一覧を取得（セレクトボックス用）
-func (r *MakerRepository) GetAllSimple() ([]*models.Maker, error) {
+func (r *makerRepository) GetAllSimple() ([]*models.Maker, error) {
 	var makers []*models.Maker
 
 	result := r.db.Where("is_deleted = ?", false).
@@ -147,7 +150,7 @@ func (r *MakerRepository) GetAllSimple() ([]*models.Maker, error) {
 }
 
 // GetMakerStats はメーカー統計を取得
-func (r *MakerRepository) GetMakerStats() (*models.MakerStats, error) {
+func (r *makerRepository) GetMakerStats() (*models.MakerStats, error) {
 	stats := &models.MakerStats{}
 
 	// 総メーカー数

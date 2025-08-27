@@ -12,7 +12,9 @@ import (
 	"time"
 
 	"strikepad-manage-tool/config"
+	"strikepad-manage-tool/handlers/hi"
 	"strikepad-manage-tool/models"
+	"strikepad-manage-tool/repository/ri"
 	"strikepad-manage-tool/utils"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -26,22 +28,22 @@ const (
 	pngExt  = ".png"
 )
 
-// MakerHandler はメーカー管理のハンドラー
-type MakerHandler struct {
+// makerHandler はメーカー管理のハンドラー
+type makerHandler struct {
 	makerRepo MakerRepositoryInterface
 	s3Client  *config.S3Client
 }
 
-// NewMakerHandler は新しいメーカーハンドラーを作成
-func NewMakerHandler(makerRepo MakerRepositoryInterface, s3Client *config.S3Client) *MakerHandler {
-	return &MakerHandler{
+// NewMakerHandlerInterface はDI用のMakerHandlerInterfaceを返す
+func NewMakerHandlerInterface(makerRepo ri.MakerRepositoryInterface, s3Client *config.S3Client) hi.MakerHandlerInterface {
+	return &makerHandler{
 		makerRepo: makerRepo,
 		s3Client:  s3Client,
 	}
 }
 
 // ShowMakers はメーカー一覧画面を表示
-func (h *MakerHandler) ShowMakers(c echo.Context) error {
+func (h *makerHandler) ShowMakers(c echo.Context) error {
 	// セッションから管理者ユーザー情報を取得
 	currentUser := utils.GetCurrentAdminUser(c)
 	if currentUser == nil {
@@ -100,7 +102,7 @@ func (h *MakerHandler) ShowMakers(c echo.Context) error {
 }
 
 // ShowMakerDetail はメーカー詳細画面を表示
-func (h *MakerHandler) ShowMakerDetail(c echo.Context) error {
+func (h *makerHandler) ShowMakerDetail(c echo.Context) error {
 	// セッションから管理者ユーザー情報を取得
 	currentUser := utils.GetCurrentAdminUser(c)
 	if currentUser == nil {
@@ -132,7 +134,7 @@ func (h *MakerHandler) ShowMakerDetail(c echo.Context) error {
 }
 
 // ShowCreateMaker はメーカー作成画面を表示
-func (h *MakerHandler) ShowCreateMaker(c echo.Context) error {
+func (h *makerHandler) ShowCreateMaker(c echo.Context) error {
 	// セッションから管理者ユーザー情報を取得
 	currentUser := utils.GetCurrentAdminUser(c)
 	if currentUser == nil {
@@ -149,7 +151,7 @@ func (h *MakerHandler) ShowCreateMaker(c echo.Context) error {
 }
 
 // CreateMaker はメーカーを作成
-func (h *MakerHandler) CreateMaker(c echo.Context) error {
+func (h *makerHandler) CreateMaker(c echo.Context) error {
 	// セッションから管理者ユーザー情報を取得
 	currentUser := utils.GetCurrentAdminUser(c)
 	if currentUser == nil {
@@ -211,7 +213,7 @@ func (h *MakerHandler) CreateMaker(c echo.Context) error {
 }
 
 // uploadLogo はロゴ画像をMinIOにアップロードし、DBにファイル名を保存
-func (h *MakerHandler) uploadLogo(makerID uint, fileHeader *multipart.FileHeader) error {
+func (h *makerHandler) uploadLogo(makerID uint, fileHeader *multipart.FileHeader) error {
 	log.Printf("uploadLogo開始: メーカーID=%d, ファイル名=%s", makerID, fileHeader.Filename)
 
 	// ファイルサイズチェック (5MB)
@@ -275,7 +277,7 @@ func (h *MakerHandler) uploadLogo(makerID uint, fileHeader *multipart.FileHeader
 }
 
 // ShowEditMaker はメーカー編集画面を表示
-func (h *MakerHandler) ShowEditMaker(c echo.Context) error {
+func (h *makerHandler) ShowEditMaker(c echo.Context) error {
 	// セッションから管理者ユーザー情報を取得
 	currentUser := utils.GetCurrentAdminUser(c)
 	if currentUser == nil {
@@ -312,7 +314,7 @@ func (h *MakerHandler) ShowEditMaker(c echo.Context) error {
 }
 
 // UpdateMaker はメーカー情報を更新
-func (h *MakerHandler) UpdateMaker(c echo.Context) error {
+func (h *makerHandler) UpdateMaker(c echo.Context) error {
 	// セッションから管理者ユーザー情報を取得
 	currentUser := utils.GetCurrentAdminUser(c)
 	if currentUser == nil {
@@ -401,7 +403,7 @@ func (h *MakerHandler) UpdateMaker(c echo.Context) error {
 }
 
 // getLogoURL はメーカーのロゴURLを取得
-func (h *MakerHandler) getLogoURL(makerID uint) string {
+func (h *makerHandler) getLogoURL(makerID uint) string {
 	// データベースからロゴファイル名を取得
 	maker, err := h.makerRepo.GetByID(makerID)
 	if err != nil || maker == nil || maker.LogoFile == "" {
@@ -420,7 +422,7 @@ func (h *MakerHandler) getLogoURL(makerID uint) string {
 }
 
 // DeleteMaker はメーカーを削除
-func (h *MakerHandler) DeleteMaker(c echo.Context) error {
+func (h *makerHandler) DeleteMaker(c echo.Context) error {
 	// セッションから管理者ユーザー情報を取得
 	currentUser := utils.GetCurrentAdminUser(c)
 	if currentUser == nil {
@@ -450,7 +452,7 @@ func (h *MakerHandler) DeleteMaker(c echo.Context) error {
 }
 
 // GetMakerStats はメーカー統計を取得
-func (h *MakerHandler) GetMakerStats(c echo.Context) error {
+func (h *makerHandler) GetMakerStats(c echo.Context) error {
 	// セッションから管理者ユーザー情報を取得
 	currentUser := utils.GetCurrentAdminUser(c)
 	if currentUser == nil {
@@ -470,7 +472,7 @@ func (h *MakerHandler) GetMakerStats(c echo.Context) error {
 }
 
 // GetLogoPresignedURL はメーカーのロゴ画像の署名付きURLを取得
-func (h *MakerHandler) GetLogoPresignedURL(c echo.Context) error {
+func (h *makerHandler) GetLogoPresignedURL(c echo.Context) error {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
@@ -502,7 +504,7 @@ func (h *MakerHandler) GetLogoPresignedURL(c echo.Context) error {
 }
 
 // GetUploadPresignedURL はロゴアップロード用の署名付きURLを取得
-func (h *MakerHandler) GetUploadPresignedURL(c echo.Context) error {
+func (h *makerHandler) GetUploadPresignedURL(c echo.Context) error {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
@@ -548,7 +550,7 @@ func (h *MakerHandler) GetUploadPresignedURL(c echo.Context) error {
 }
 
 // ConfirmLogoUpload はロゴアップロード完了をデータベースに記録
-func (h *MakerHandler) ConfirmLogoUpload(c echo.Context) error {
+func (h *makerHandler) ConfirmLogoUpload(c echo.Context) error {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {

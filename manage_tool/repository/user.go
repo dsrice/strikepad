@@ -9,23 +9,20 @@ import (
 	"gorm.io/gorm"
 )
 
-// UserRepository はユーザー操作のリポジトリ
-type UserRepository struct {
+// userRepository はユーザー操作のリポジトリ
+type userRepository struct {
 	db *gorm.DB
-}
-
-// NewUserRepository は新しいUserRepositoryを作成
-func NewUserRepository(db *gorm.DB) *UserRepository {
-	return &UserRepository{db: db}
 }
 
 // NewUserRepositoryInterface はDI用のUserRepositoryInterfaceを返す
 func NewUserRepositoryInterface(db *gorm.DB) ri.UserRepositoryInterface {
-	return NewUserRepository(db)
+	return &userRepository{
+		db: db,
+	}
 }
 
 // GetAllUsers は全ユーザーを取得
-func (r *UserRepository) GetAllUsers(offset, limit int) ([]models.UserListItem, error) {
+func (r *userRepository) GetAllUsers(offset, limit int) ([]models.UserListItem, error) {
 	var users []models.UserListItem
 
 	err := r.db.Table("users").
@@ -40,7 +37,7 @@ func (r *UserRepository) GetAllUsers(offset, limit int) ([]models.UserListItem, 
 }
 
 // GetUserByID はIDでユーザーを取得
-func (r *UserRepository) GetUserByID(id uint) (*models.User, error) {
+func (r *userRepository) GetUserByID(id uint) (*models.User, error) {
 	var user models.User
 	err := r.db.First(&user, id).Error
 	if err != nil {
@@ -50,19 +47,19 @@ func (r *UserRepository) GetUserByID(id uint) (*models.User, error) {
 }
 
 // UpdateUserStatus はユーザーのアクティブ状態を更新
-func (r *UserRepository) UpdateUserStatus(id uint, isActive bool) error {
+func (r *userRepository) UpdateUserStatus(id uint, isActive bool) error {
 	return r.db.Model(&models.User{}).
 		Where("id = ?", id).
 		Update("is_active", isActive).Error
 }
 
 // DeleteUser はユーザーを論理削除
-func (r *UserRepository) DeleteUser(id uint) error {
+func (r *userRepository) DeleteUser(id uint) error {
 	return r.db.Delete(&models.User{}, id).Error
 }
 
 // GetUserStats はユーザー統計を取得
-func (r *UserRepository) GetUserStats() (*models.UserStats, error) {
+func (r *userRepository) GetUserStats() (*models.UserStats, error) {
 	stats := &models.UserStats{}
 
 	// 総ユーザー数
@@ -109,7 +106,7 @@ func (r *UserRepository) GetUserStats() (*models.UserStats, error) {
 }
 
 // SearchUsers はユーザーを検索
-func (r *UserRepository) SearchUsers(query string, offset, limit int) ([]models.UserListItem, error) {
+func (r *userRepository) SearchUsers(query string, offset, limit int) ([]models.UserListItem, error) {
 	var users []models.UserListItem
 
 	searchPattern := "%" + query + "%"
@@ -127,7 +124,7 @@ func (r *UserRepository) SearchUsers(query string, offset, limit int) ([]models.
 }
 
 // GetTotalUsersCount は総ユーザー数を取得
-func (r *UserRepository) GetTotalUsersCount() (int64, error) {
+func (r *userRepository) GetTotalUsersCount() (int64, error) {
 	var count int64
 	err := r.db.Model(&models.User{}).Count(&count).Error
 	return count, err

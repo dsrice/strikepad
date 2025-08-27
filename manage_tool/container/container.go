@@ -3,12 +3,11 @@ package container
 import (
 	"strikepad-manage-tool/config"
 	"strikepad-manage-tool/handlers"
+	"strikepad-manage-tool/handlers/hi"
 	"strikepad-manage-tool/repository"
-	"strikepad-manage-tool/repository/ri"
 	"strikepad-manage-tool/templates"
 
 	"go.uber.org/dig"
-	"gorm.io/gorm"
 )
 
 // Container はDI用のコンテナー
@@ -46,44 +45,44 @@ func BuildContainer() (*Container, error) {
 	}
 
 	// リポジトリ層
-	if err := container.Provide(NewUserRepository); err != nil {
+	if err := container.Provide(repository.NewUserRepositoryInterface); err != nil {
 		return nil, err
 	}
 
-	if err := container.Provide(NewAdminRepository); err != nil {
+	if err := container.Provide(repository.NewAdminRepositoryInterface); err != nil {
 		return nil, err
 	}
 
-	if err := container.Provide(NewMakerRepository); err != nil {
+	if err := container.Provide(repository.NewMakerRepositoryInterface); err != nil {
 		return nil, err
 	}
 
-	if err := container.Provide(NewCoreRepository); err != nil {
+	if err := container.Provide(repository.NewCoreRepositoryInterface); err != nil {
 		return nil, err
 	}
 
-	if err := container.Provide(NewCoverRepository); err != nil {
+	if err := container.Provide(repository.NewCoverRepositoryInterface); err != nil {
 		return nil, err
 	}
 
 	// ハンドラー層
-	if err := container.Provide(NewAuthHandler); err != nil {
+	if err := container.Provide(handlers.NewAuthHandlerInterface); err != nil {
 		return nil, err
 	}
 
-	if err := container.Provide(NewAdminHandler); err != nil {
+	if err := container.Provide(handlers.NewAdminHandlerInterface); err != nil {
 		return nil, err
 	}
 
-	if err := container.Provide(NewMakerHandler); err != nil {
+	if err := container.Provide(handlers.NewMakerHandlerInterface); err != nil {
 		return nil, err
 	}
 
-	if err := container.Provide(NewCoreHandler); err != nil {
+	if err := container.Provide(handlers.NewCoreHandlerInterface); err != nil {
 		return nil, err
 	}
 
-	if err := container.Provide(NewCoverHandler); err != nil {
+	if err := container.Provide(handlers.NewCoverHandlerInterface); err != nil {
 		return nil, err
 	}
 
@@ -95,66 +94,23 @@ func BuildContainer() (*Container, error) {
 	return container, nil
 }
 
-// リポジトリ層のコンストラクター関数
-
-func NewUserRepository(db *gorm.DB) ri.UserRepositoryInterface {
-	return repository.NewUserRepository(db)
-}
-
-func NewAdminRepository(db *gorm.DB) ri.AdminRepositoryInterface {
-	return repository.NewAdminRepository(db)
-}
-
-func NewMakerRepository(db *gorm.DB) ri.MakerRepositoryInterface {
-	return repository.NewMakerRepository(db)
-}
-
-func NewCoreRepository(db *gorm.DB) ri.CoreRepositoryInterface {
-	return repository.NewCoreRepository(db)
-}
-
-func NewCoverRepository(db *gorm.DB) ri.CoverRepositoryInterface {
-	return repository.NewCoverRepository(db)
-}
-
-// ハンドラー層のコンストラクター関数
-
-func NewAuthHandler(adminRepo ri.AdminRepositoryInterface) handlers.AuthHandlerInterface {
-	return handlers.NewAuthHandler(adminRepo)
-}
-
-func NewAdminHandler(userRepo ri.UserRepositoryInterface) handlers.AdminHandlerInterface {
-	return handlers.NewAdminHandler(userRepo)
-}
-
-func NewMakerHandler(makerRepo ri.MakerRepositoryInterface, s3Client *config.S3Client) handlers.MakerHandlerInterface {
-	return handlers.NewMakerHandler(makerRepo, s3Client)
-}
-
-func NewCoreHandler(coreRepo ri.CoreRepositoryInterface, makerRepo ri.MakerRepositoryInterface) handlers.CoreHandlerInterface {
-	return handlers.NewCoreHandler(coreRepo, makerRepo)
-}
-
-func NewCoverHandler(coverRepo ri.CoverRepositoryInterface, makerRepo ri.MakerRepositoryInterface) handlers.CoverHandlerInterface {
-	return handlers.NewCoverHandler(coverRepo, makerRepo)
-}
 
 // HandlersContainer は全てのハンドラーを格納する構造体
 type HandlersContainer struct {
-	AuthHandler  handlers.AuthHandlerInterface
-	AdminHandler handlers.AdminHandlerInterface
-	MakerHandler handlers.MakerHandlerInterface
-	CoreHandler  handlers.CoreHandlerInterface
-	CoverHandler handlers.CoverHandlerInterface
+	AuthHandler  hi.AuthHandlerInterface
+	AdminHandler hi.AdminHandlerInterface
+	MakerHandler hi.MakerHandlerInterface
+	CoreHandler  hi.CoreHandlerInterface
+	CoverHandler hi.CoverHandlerInterface
 }
 
 // NewHandlersContainer は全てのハンドラーを含むコンテナーを作成
 func NewHandlersContainer(
-	authHandler handlers.AuthHandlerInterface,
-	adminHandler handlers.AdminHandlerInterface,
-	makerHandler handlers.MakerHandlerInterface,
-	coreHandler handlers.CoreHandlerInterface,
-	coverHandler handlers.CoverHandlerInterface,
+	authHandler hi.AuthHandlerInterface,
+	adminHandler hi.AdminHandlerInterface,
+	makerHandler hi.MakerHandlerInterface,
+	coreHandler hi.CoreHandlerInterface,
+	coverHandler hi.CoverHandlerInterface,
 ) *HandlersContainer {
 	return &HandlersContainer{
 		AuthHandler:  authHandler,

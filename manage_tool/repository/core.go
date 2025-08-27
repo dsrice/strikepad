@@ -4,22 +4,25 @@ import (
 	"errors"
 
 	"strikepad-manage-tool/models"
+	"strikepad-manage-tool/repository/ri"
 
 	"gorm.io/gorm"
 )
 
-// CoreRepository はコア関連のデータベース操作を行う
-type CoreRepository struct {
+// coreRepository はコア関連のデータベース操作を行う
+type coreRepository struct {
 	db *gorm.DB
 }
 
-// NewCoreRepository は新しいコアリポジトリを作成
-func NewCoreRepository(db *gorm.DB) *CoreRepository {
-	return &CoreRepository{db: db}
+// NewCoreRepositoryInterface はDI用のCoreRepositoryInterfaceを返す
+func NewCoreRepositoryInterface(db *gorm.DB) ri.CoreRepositoryInterface {
+	return &coreRepository{
+		db: db,
+	}
 }
 
 // GetAll は全てのコアを取得
-func (r *CoreRepository) GetAll(offset, limit int) ([]*models.Core, error) {
+func (r *coreRepository) GetAll(offset, limit int) ([]*models.Core, error) {
 	var cores []*models.Core
 
 	query := r.db.Where("is_deleted = ?", false).
@@ -39,7 +42,7 @@ func (r *CoreRepository) GetAll(offset, limit int) ([]*models.Core, error) {
 }
 
 // GetByID はIDでコアを取得
-func (r *CoreRepository) GetByID(id uint) (*models.Core, error) {
+func (r *coreRepository) GetByID(id uint) (*models.Core, error) {
 	var core models.Core
 
 	result := r.db.Where("id = ? AND is_deleted = ?", id, false).
@@ -56,7 +59,7 @@ func (r *CoreRepository) GetByID(id uint) (*models.Core, error) {
 }
 
 // GetByMakerID はメーカーIDでコアを取得
-func (r *CoreRepository) GetByMakerID(makerID uint, offset, limit int) ([]*models.Core, error) {
+func (r *coreRepository) GetByMakerID(makerID uint, offset, limit int) ([]*models.Core, error) {
 	var cores []*models.Core
 
 	query := r.db.Where("maker_id = ? AND is_deleted = ?", makerID, false).
@@ -76,7 +79,7 @@ func (r *CoreRepository) GetByMakerID(makerID uint, offset, limit int) ([]*model
 }
 
 // Search は名前でコアを検索
-func (r *CoreRepository) Search(keyword string, offset, limit int) ([]*models.Core, error) {
+func (r *coreRepository) Search(keyword string, offset, limit int) ([]*models.Core, error) {
 	var cores []*models.Core
 
 	query := r.db.Where("name ILIKE ? AND is_deleted = ?", "%"+keyword+"%", false).
@@ -96,14 +99,14 @@ func (r *CoreRepository) Search(keyword string, offset, limit int) ([]*models.Co
 }
 
 // Count は総コア数を取得
-func (r *CoreRepository) Count() (int64, error) {
+func (r *coreRepository) Count() (int64, error) {
 	var count int64
 	result := r.db.Model(&models.Core{}).Where("is_deleted = ?", false).Count(&count)
 	return count, result.Error
 }
 
 // CountByMaker はメーカー別のコア数を取得
-func (r *CoreRepository) CountByMaker(makerID uint) (int64, error) {
+func (r *coreRepository) CountByMaker(makerID uint) (int64, error) {
 	var count int64
 	result := r.db.Model(&models.Core{}).
 		Where("maker_id = ? AND is_deleted = ?", makerID, false).
@@ -112,17 +115,17 @@ func (r *CoreRepository) CountByMaker(makerID uint) (int64, error) {
 }
 
 // Create は新しいコアを作成
-func (r *CoreRepository) Create(core *models.Core) error {
+func (r *coreRepository) Create(core *models.Core) error {
 	return r.db.Create(core).Error
 }
 
 // Update はコア情報を更新
-func (r *CoreRepository) Update(core *models.Core) error {
+func (r *coreRepository) Update(core *models.Core) error {
 	return r.db.Save(core).Error
 }
 
 // Delete はコアを論理削除
-func (r *CoreRepository) Delete(id uint) error {
+func (r *coreRepository) Delete(id uint) error {
 	return r.db.Model(&models.Core{}).
 		Where("id = ?", id).
 		Updates(map[string]interface{}{

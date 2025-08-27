@@ -6,27 +6,29 @@ import (
 	"strconv"
 	"strings"
 
+	"strikepad-manage-tool/handlers/hi"
 	"strikepad-manage-tool/models"
+	"strikepad-manage-tool/repository/ri"
 
 	"github.com/labstack/echo/v4"
 )
 
-// CoreHandler はコア関連のHTTPハンドラー
-type CoreHandler struct {
+// coreHandler はコア関連のHTTPハンドラー
+type coreHandler struct {
 	coreRepo  CoreRepositoryInterface
 	makerRepo MakerRepositoryInterface
 }
 
-// NewCoreHandler は新しいコアハンドラーを作成
-func NewCoreHandler(coreRepo CoreRepositoryInterface, makerRepo MakerRepositoryInterface) *CoreHandler {
-	return &CoreHandler{
+// NewCoreHandlerInterface はDI用のCoreHandlerInterfaceを返す
+func NewCoreHandlerInterface(coreRepo ri.CoreRepositoryInterface, makerRepo ri.MakerRepositoryInterface) hi.CoreHandlerInterface {
+	return &coreHandler{
 		coreRepo:  coreRepo,
 		makerRepo: makerRepo,
 	}
 }
 
 // ShowCores はコア一覧画面を表示
-func (h *CoreHandler) ShowCores(c echo.Context) error {
+func (h *coreHandler) ShowCores(c echo.Context) error {
 	// ページネーションパラメータを取得
 	page, err := strconv.Atoi(c.QueryParam("page"))
 	if err != nil {
@@ -110,7 +112,7 @@ func (h *CoreHandler) ShowCores(c echo.Context) error {
 }
 
 // ShowCreateCore はコア作成画面を表示
-func (h *CoreHandler) ShowCreateCore(c echo.Context) error {
+func (h *coreHandler) ShowCreateCore(c echo.Context) error {
 	// メーカー一覧を取得
 	makers, err := h.makerRepo.GetAllSimple()
 	if err != nil {
@@ -127,7 +129,7 @@ func (h *CoreHandler) ShowCreateCore(c echo.Context) error {
 }
 
 // CreateCore は新しいコアを作成
-func (h *CoreHandler) CreateCore(c echo.Context) error {
+func (h *coreHandler) CreateCore(c echo.Context) error {
 	// フォームデータを取得
 	name := strings.TrimSpace(c.FormValue("name"))
 	makerIDStr := strings.TrimSpace(c.FormValue("maker_id"))
@@ -170,7 +172,7 @@ func (h *CoreHandler) CreateCore(c echo.Context) error {
 }
 
 // ShowCoreDetail はコア詳細画面を表示
-func (h *CoreHandler) ShowCoreDetail(c echo.Context) error {
+func (h *coreHandler) ShowCoreDetail(c echo.Context) error {
 	idParam := c.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if err != nil {
@@ -194,7 +196,7 @@ func (h *CoreHandler) ShowCoreDetail(c echo.Context) error {
 }
 
 // DeleteCore はコアを論理削除
-func (h *CoreHandler) DeleteCore(c echo.Context) error {
+func (h *coreHandler) DeleteCore(c echo.Context) error {
 	idParam := c.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if err != nil {
@@ -220,7 +222,7 @@ func (h *CoreHandler) DeleteCore(c echo.Context) error {
 }
 
 // GetCoreStats はコア統計情報を取得
-func (h *CoreHandler) GetCoreStats(c echo.Context) error {
+func (h *coreHandler) GetCoreStats(c echo.Context) error {
 	totalCount, err := h.coreRepo.Count()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "統計取得エラー"})
