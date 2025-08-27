@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"strikepad-manage-tool/models"
+	"strikepad-manage-tool/repository"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
@@ -17,7 +18,7 @@ func TestCoreRepository_Create(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewCoreRepository(gormDB)
+	repo := repository.NewCoreRepository(gormDB)
 
 	core := &models.Core{
 		Name:         "Test Core",
@@ -33,13 +34,13 @@ func TestCoreRepository_Create(t *testing.T) {
 		WithArgs(
 			sqlmock.AnyArg(), // created_at
 			sqlmock.AnyArg(), // updated_at
+			sqlmock.AnyArg(), // init_diff
 			sqlmock.AnyArg(), // deleted_at
 			"Test Core",      // name
+			uint(1),          // maker_id
 			float32(2.5),     // rg
 			float32(0.05),    // delta_rg
-			sqlmock.AnyArg(), // init_diff
 			true,             // symmetry_flag
-			uint(1),          // maker_id
 			false,            // is_deleted
 		).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
@@ -56,7 +57,7 @@ func TestCoreRepository_GetByID(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewCoreRepository(gormDB)
+	repo := repository.NewCoreRepository(gormDB)
 
 	now := time.Now()
 	expectedCore := &models.Core{
@@ -73,7 +74,7 @@ func TestCoreRepository_GetByID(t *testing.T) {
 
 	// コア取得用のモック
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "cores"`)).
-		WithArgs(uint(1), false).
+		WithArgs(uint(1), false, 1).
 		WillReturnRows(sqlmock.NewRows([]string{
 			"id", "name", "rg", "delta_rg", "init_diff", "symmetry_flag",
 			"maker_id", "created_at", "updated_at", "is_deleted",
@@ -107,7 +108,7 @@ func TestCoreRepository_GetByID_NotFound(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewCoreRepository(gormDB)
+	repo := repository.NewCoreRepository(gormDB)
 
 	// レコードが見つからない場合のモック
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "cores"`)).
@@ -125,7 +126,7 @@ func TestCoreRepository_GetAll(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewCoreRepository(gormDB)
+	repo := repository.NewCoreRepository(gormDB)
 
 	now := time.Now()
 
@@ -161,7 +162,7 @@ func TestCoreRepository_GetByMakerID(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewCoreRepository(gormDB)
+	repo := repository.NewCoreRepository(gormDB)
 
 	now := time.Now()
 
@@ -195,7 +196,7 @@ func TestCoreRepository_Search(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewCoreRepository(gormDB)
+	repo := repository.NewCoreRepository(gormDB)
 
 	now := time.Now()
 
@@ -228,7 +229,7 @@ func TestCoreRepository_Count(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewCoreRepository(gormDB)
+	repo := repository.NewCoreRepository(gormDB)
 
 	// Count用のモック
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "cores"`)).
@@ -246,7 +247,7 @@ func TestCoreRepository_CountByMaker(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewCoreRepository(gormDB)
+	repo := repository.NewCoreRepository(gormDB)
 
 	// CountByMaker用のモック
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "cores"`)).
@@ -264,7 +265,7 @@ func TestCoreRepository_Update(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewCoreRepository(gormDB)
+	repo := repository.NewCoreRepository(gormDB)
 
 	core := &models.Core{
 		ID:           1,
@@ -303,7 +304,7 @@ func TestCoreRepository_Delete(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewCoreRepository(gormDB)
+	repo := repository.NewCoreRepository(gormDB)
 
 	// Delete用のモック（論理削除）
 	mock.ExpectBegin()
@@ -322,7 +323,7 @@ func TestCoreRepository_Create_Error(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewCoreRepository(gormDB)
+	repo := repository.NewCoreRepository(gormDB)
 
 	core := &models.Core{
 		Name:         "Test Core",
@@ -349,7 +350,7 @@ func TestCoreRepository_GetByID_Error(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewCoreRepository(gormDB)
+	repo := repository.NewCoreRepository(gormDB)
 
 	// データベースエラーの場合のモック
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "cores"`)).

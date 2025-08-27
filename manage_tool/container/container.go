@@ -6,7 +6,6 @@ import (
 	"strikepad-manage-tool/repository"
 	"strikepad-manage-tool/templates"
 
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"go.uber.org/dig"
 	"gorm.io/gorm"
 )
@@ -127,7 +126,7 @@ func NewAdminHandler(userRepo *repository.UserRepository) *handlers.AdminHandler
 	return handlers.NewAdminHandler(userRepo)
 }
 
-func NewMakerHandler(makerRepo *repository.MakerRepository, s3Client *s3.Client) *handlers.MakerHandler {
+func NewMakerHandler(makerRepo *repository.MakerRepository, s3Client *config.S3Client) *handlers.MakerHandler {
 	return handlers.NewMakerHandler(makerRepo, s3Client)
 }
 

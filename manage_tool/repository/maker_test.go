@@ -1,4 +1,4 @@
-package repository
+package repository_test
 
 import (
 	"errors"
@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"strikepad-manage-tool/models"
+	"strikepad-manage-tool/repository"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
@@ -17,7 +18,7 @@ func TestMakerRepository_GetAllSimple(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepository(gormDB)
 
 	now := time.Now()
 
@@ -45,7 +46,7 @@ func TestMakerRepository_GetAllSimple_Empty(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepository(gormDB)
 
 	// 空の結果を返すモック
 	mock.ExpectQuery(`SELECT \* FROM "makers"`).
@@ -65,7 +66,7 @@ func TestMakerRepository_Create_SqlMock(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepository(gormDB)
 
 	maker := &models.Maker{
 		Name:     "Test Maker",
@@ -97,7 +98,7 @@ func TestMakerRepository_GetByID_SqlMock(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepository(gormDB)
 
 	now := time.Now()
 
@@ -124,7 +125,7 @@ func TestMakerRepository_GetByID_NotFound_SqlMock(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepository(gormDB)
 
 	// レコードが見つからない場合のモック
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "makers"`)).
@@ -142,7 +143,7 @@ func TestMakerRepository_GetByName_SqlMock(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepository(gormDB)
 
 	now := time.Now()
 
@@ -167,7 +168,7 @@ func TestMakerRepository_Update_SqlMock(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepository(gormDB)
 
 	maker := &models.Maker{
 		ID:       1,
@@ -199,7 +200,7 @@ func TestMakerRepository_UpdateLogoFile_SqlMock(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepository(gormDB)
 
 	// UpdateLogoFile用のモック
 	mock.ExpectBegin()
@@ -218,7 +219,7 @@ func TestMakerRepository_Delete_SqlMock(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepository(gormDB)
 
 	// Delete用のモック（論理削除）
 	mock.ExpectBegin()
@@ -237,7 +238,7 @@ func TestMakerRepository_GetTotalMakersCount_SqlMock(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepository(gormDB)
 
 	// GetTotalMakersCount用のモック
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "makers"`)).
@@ -255,7 +256,7 @@ func TestMakerRepository_GetMakerStats_SqlMock(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepository(gormDB)
 
 	// TotalMakers用のモック
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "makers"`)).
@@ -298,7 +299,7 @@ func TestMakerRepository_SearchMakers_SqlMock(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepository(gormDB)
 
 	now := time.Now()
 
@@ -344,7 +345,7 @@ func TestMakerRepository_GetAllMakers_SqlMock(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepository(gormDB)
 
 	now := time.Now()
 
@@ -390,7 +391,7 @@ func TestMakerRepository_GetAllSimple_Error(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepository(gormDB)
 
 	// データベースエラーを返すモック
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "makers"`)).
@@ -409,7 +410,7 @@ func TestMakerRepository_Create_Error_SqlMock(t *testing.T) {
 	db, mock, gormDB := setupMockDB(t)
 	defer db.Close()
 
-	repo := NewMakerRepository(gormDB)
+	repo := repository.NewMakerRepository(gormDB)
 
 	maker := &models.Maker{
 		Name:     "Test Maker",
