@@ -24,7 +24,7 @@ type MakerHandlerTestSuite struct {
 	suite.Suite
 	mockRepo     *mocks.MockMakerRepository
 	mockS3Client *mocks.MockS3Client
-	handler      *MakerHandler
+	handler      *makerHandler
 	echo         *echo.Echo
 }
 
@@ -36,10 +36,12 @@ func (suite *MakerHandlerTestSuite) SetupTest() {
 		BucketName: "test-bucket",
 		Region:     "us-east-1",
 	}
-	suite.handler = &MakerHandler{
+	// テスト用にプライベート構造体として初期化
+	handler := &makerHandler{
 		makerRepo: suite.mockRepo,
 		s3Client:  s3Client,
 	}
+	suite.handler = handler
 	suite.echo = echo.New()
 }
 
