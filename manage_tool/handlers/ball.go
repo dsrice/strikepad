@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"math"
 	"net/http"
 	"strconv"
@@ -450,6 +451,51 @@ func (h *ballHandler) GetBallStats(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, stats)
+}
+
+// GetCoresAndCoversByMaker は指定されたメーカーのコアとカバーを取得するAPI
+func (h *ballHandler) GetCoresAndCoversByMaker(c echo.Context) error {
+	makerIDStr := c.Param("id")
+	makerID, err := strconv.ParseUint(makerIDStr, 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "無効なメーカーIDです"})
+	}
+
+	// メーカーが存在するかチェック
+	maker, err := h.makerRepo.GetByID(uint(makerID))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "メーカー確認エラー"})
+	}
+	if maker == nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "メーカーが見つかりません"})
+	}
+
+	// コア一覧を取得
+	cores, err := h.coreRepo.GetByMakerID(uint(makerID), 0, 1000)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "コア取得エラー"})
+	}
+
+	// カバー一覧を取得
+	covers, err := h.coverRepo.GetByMakerID(uint(makerID), 0, 1000)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "カバー取得エラー"})
+	}
+
+	// nilチェック
+	if cores == nil {
+		cores = []*models.Core{}
+	}
+	if covers == nil {
+		covers = []*models.Cover{}
+	}
+
+	response := map[string]interface{}{
+		"cores":  cores,
+		"covers": covers,
+	}
+
+	return c.JSON(http.StatusOK, response)
 }
 
 // showFormWithError はエラーメッセージ付きでフォームを表示するヘルパーメソッド

@@ -130,6 +130,9 @@ func setupRoutes(e *echo.Echo) interface{} {
 		admin.DELETE("/balls/:id", handlers.BallHandler.DeleteBall)
 		admin.GET("/balls/stats", handlers.BallHandler.GetBallStats)
 
+		// API エンドポイント
+		e.GET("/admin/api/makers/:id/cores-and-covers", handlers.BallHandler.GetCoresAndCoversByMaker)
+
 		return nil
 	}
 }

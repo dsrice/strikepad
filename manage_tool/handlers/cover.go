@@ -79,18 +79,9 @@ func (h *coverHandler) ShowCovers(c echo.Context) error {
 	}
 
 	// メーカー一覧を取得（フィルター用）
-	makerList, err := h.makerRepo.GetAllMakers(0, 1000) // 全件取得
-	var makers []*models.Maker
+	makers, err := h.makerRepo.GetAllSimple()
 	if err != nil {
 		makers = []*models.Maker{} // エラー時は空配列
-	} else {
-		makers = make([]*models.Maker, len(makerList))
-		for i, m := range makerList {
-			makers[i] = &models.Maker{
-				ID:   m.ID,
-				Name: m.Name,
-			}
-		}
 	}
 
 	// ページネーション情報を計算
@@ -121,18 +112,10 @@ func (h *coverHandler) ShowCovers(c echo.Context) error {
 
 // ShowCreateCover はカバー作成画面を表示
 func (h *coverHandler) ShowCreateCover(c echo.Context) error {
-	// メーカー一覧を取得（全件取得のため大きな数値を指定）
-	makerList, err := h.makerRepo.GetAllMakers(0, 1000)
+	// メーカー一覧を取得
+	makers, err := h.makerRepo.GetAllSimple()
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "メーカー取得エラー: "+err.Error())
-	}
-
-	makers := make([]*models.Maker, len(makerList))
-	for i, m := range makerList {
-		makers[i] = &models.Maker{
-			ID:   m.ID,
-			Name: m.Name,
-		}
 	}
 
 	data := map[string]interface{}{
@@ -142,7 +125,7 @@ func (h *coverHandler) ShowCreateCover(c echo.Context) error {
 		"IsEdit":      false,
 	}
 
-	return c.Render(http.StatusOK, "cover_form_new.html", data)
+	return c.Render(http.StatusOK, "cover_form.html", data)
 }
 
 // ShowEditCover はカバー編集画面を表示
@@ -164,17 +147,9 @@ func (h *coverHandler) ShowEditCover(c echo.Context) error {
 	}
 
 	// メーカー一覧を取得
-	makerList, err := h.makerRepo.GetAllMakers(0, 1000)
+	makers, err := h.makerRepo.GetAllSimple()
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "メーカー取得エラー: "+err.Error())
-	}
-
-	makers := make([]*models.Maker, len(makerList))
-	for i, m := range makerList {
-		makers[i] = &models.Maker{
-			ID:   m.ID,
-			Name: m.Name,
-		}
 	}
 
 	data := map[string]interface{}{
@@ -185,7 +160,7 @@ func (h *coverHandler) ShowEditCover(c echo.Context) error {
 		"IsEdit":      true,
 	}
 
-	return c.Render(http.StatusOK, "cover_form_new.html", data)
+	return c.Render(http.StatusOK, "cover_form.html", data)
 }
 
 // CreateCover は新しいカバーを作成
