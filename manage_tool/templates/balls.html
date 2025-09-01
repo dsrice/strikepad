@@ -270,6 +270,14 @@
                                     </small>
                                 </div>
 
+                                {{if .ReleaseDate}}
+                                <div class="mb-2">
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar-event me-1"></i>{{.ReleaseDate.Format "2006年01月"}}
+                                    </small>
+                                </div>
+                                {{end}}
+
                                 <div class="mt-auto">
                                     <small class="text-muted ball-url">
                                         <i class="bi bi-link me-1"></i>

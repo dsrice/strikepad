@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"strikepad-manage-tool/handlers/hi"
 	"strikepad-manage-tool/models"
@@ -162,6 +163,7 @@ func (h *ballHandler) CreateBall(c echo.Context) error {
 	makerIDStr := strings.TrimSpace(c.FormValue("maker_id"))
 	coreIDStr := strings.TrimSpace(c.FormValue("core_id"))
 	coverIDStr := strings.TrimSpace(c.FormValue("cover_id"))
+	releaseDateStr := strings.TrimSpace(c.FormValue("release_date"))
 
 	// バリデーション
 	if name == "" {
@@ -211,13 +213,24 @@ func (h *ballHandler) CreateBall(c echo.Context) error {
 		return h.showFormWithError(c, "指定されたカバーが見つかりません", nil, false)
 	}
 
+	// 発売日の処理
+	var releaseDate *time.Time
+	if releaseDateStr != "" {
+		parsedDate, err := time.Parse("2006-01", releaseDateStr)
+		if err != nil {
+			return h.showFormWithError(c, "発売月の形式が無効です", nil, false)
+		}
+		releaseDate = &parsedDate
+	}
+
 	// 新しいボールを作成
 	ball := &models.Ball{
-		Name:    name,
-		URL:     url,
-		MakerID: uint(makerID),
-		CoreID:  uint(coreID),
-		CoverID: uint(coverID),
+		Name:        name,
+		URL:         url,
+		MakerID:     uint(makerID),
+		CoreID:      uint(coreID),
+		CoverID:     uint(coverID),
+		ReleaseDate: releaseDate,
 	}
 
 	err = h.ballRepo.Create(ball)
@@ -322,6 +335,7 @@ func (h *ballHandler) UpdateBall(c echo.Context) error {
 	makerIDStr := strings.TrimSpace(c.FormValue("maker_id"))
 	coreIDStr := strings.TrimSpace(c.FormValue("core_id"))
 	coverIDStr := strings.TrimSpace(c.FormValue("cover_id"))
+	releaseDateStr := strings.TrimSpace(c.FormValue("release_date"))
 
 	// バリデーション
 	if name == "" {
@@ -371,12 +385,23 @@ func (h *ballHandler) UpdateBall(c echo.Context) error {
 		return h.showFormWithError(c, "指定されたカバーが見つかりません", existingBall, true)
 	}
 
+	// 発売日の処理
+	var releaseDate *time.Time
+	if releaseDateStr != "" {
+		parsedDate, err := time.Parse("2006-01", releaseDateStr)
+		if err != nil {
+			return h.showFormWithError(c, "発売月の形式が無効です", existingBall, true)
+		}
+		releaseDate = &parsedDate
+	}
+
 	// ボール情報を更新
 	existingBall.Name = name
 	existingBall.URL = url
 	existingBall.MakerID = uint(makerID)
 	existingBall.CoreID = uint(coreID)
 	existingBall.CoverID = uint(coverID)
+	existingBall.ReleaseDate = releaseDate
 
 	err = h.ballRepo.Update(existingBall)
 	if err != nil {

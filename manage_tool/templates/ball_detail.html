@@ -208,6 +208,15 @@
                                     </span>
                                 </div>
 
+                                {{if .Ball.ReleaseDate}}
+                                <div class="info-item">
+                                    <span class="info-label">
+                                        <i class="bi bi-calendar-event me-2"></i>発売月:
+                                    </span>
+                                    <span class="info-value">{{.Ball.ReleaseDate.Format "2006年01月"}}</span>
+                                </div>
+                                {{end}}
+
                                 <div class="info-item">
                                     <span class="info-label">
                                         <i class="bi bi-calendar-plus me-2"></i>作成日時:
