@@ -148,6 +148,9 @@ func (Core) TableName() string {
 type Ball struct {
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
+	Maker     Maker          `gorm:"foreignKey:MakerID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
+	Core      Core           `gorm:"foreignKey:CoreID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
+	Cover     Cover          `gorm:"foreignKey:CoverID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 	Name      string         `gorm:"size:100;not null" json:"name"`
 	URL       string         `gorm:"size:200;not null" json:"url"`
