@@ -5,33 +5,34 @@ import (
 	"net/http"
 	"strings"
 
-	"strikepad-manage-tool/repository"
+	"strikepad-manage-tool/handlers/hi"
+	"strikepad-manage-tool/repository/ri"
 	"strikepad-manage-tool/utils"
 
 	"github.com/labstack/echo/v4"
 )
 
-// AuthHandler は認証関連のハンドラー
-type AuthHandler struct {
-	adminRepo *repository.AdminRepository
+// authHandler は認証関連のハンドラー
+type authHandler struct {
+	adminRepo AdminRepositoryInterface
 }
 
-// NewAuthHandler は新しい認証ハンドラーを作成
-func NewAuthHandler(adminRepo *repository.AdminRepository) *AuthHandler {
-	return &AuthHandler{
+// NewAuthHandlerInterface はDI用のAuthHandlerInterfaceを返す
+func NewAuthHandlerInterface(adminRepo ri.AdminRepositoryInterface) hi.AuthHandlerInterface {
+	return &authHandler{
 		adminRepo: adminRepo,
 	}
 }
 
 // ShowLogin はログイン画面を表示
-func (h *AuthHandler) ShowLogin(c echo.Context) error {
+func (h *authHandler) ShowLogin(c echo.Context) error {
 	return c.Render(http.StatusOK, "login.html", map[string]interface{}{
 		"Error": "",
 	})
 }
 
 // Login はログイン処理を実行
-func (h *AuthHandler) Login(c echo.Context) error {
+func (h *authHandler) Login(c echo.Context) error {
 	loginID := strings.TrimSpace(c.FormValue("login_id"))
 	password := strings.TrimSpace(c.FormValue("password"))
 
@@ -82,7 +83,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 }
 
 // Logout はログアウト処理を実行
-func (h *AuthHandler) Logout(c echo.Context) error {
+func (h *authHandler) Logout(c echo.Context) error {
 	// セッションをクリア
 	err := utils.ClearAdminSession(c)
 	if err != nil {

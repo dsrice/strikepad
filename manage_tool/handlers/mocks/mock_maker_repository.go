@@ -69,3 +69,11 @@ func (m *MockMakerRepository) GetMakerStats() (*models.MakerStats, error) {
 	}
 	return args.Get(0).(*models.MakerStats), args.Error(1)
 }
+
+func (m *MockMakerRepository) GetAllSimple() ([]*models.Maker, error) {
+	args := m.Called()
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*models.Maker), args.Error(1)
+}

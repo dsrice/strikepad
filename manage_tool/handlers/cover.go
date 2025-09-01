@@ -6,28 +6,29 @@ import (
 	"strconv"
 	"strings"
 
+	"strikepad-manage-tool/handlers/hi"
 	"strikepad-manage-tool/models"
-	"strikepad-manage-tool/repository"
+	"strikepad-manage-tool/repository/ri"
 
 	"github.com/labstack/echo/v4"
 )
 
-// CoverHandler はカバー関連のHTTPハンドラー
-type CoverHandler struct {
-	coverRepo *repository.CoverRepository
-	makerRepo *repository.MakerRepository
+// coverHandler はカバー関連のHTTPハンドラー
+type coverHandler struct {
+	coverRepo CoverRepositoryInterface
+	makerRepo MakerRepositoryInterface
 }
 
-// NewCoverHandler は新しいカバーハンドラーを作成
-func NewCoverHandler(coverRepo *repository.CoverRepository, makerRepo *repository.MakerRepository) *CoverHandler {
-	return &CoverHandler{
+// NewCoverHandlerInterface はDI用のCoverHandlerInterfaceを返す
+func NewCoverHandlerInterface(coverRepo ri.CoverRepositoryInterface, makerRepo ri.MakerRepositoryInterface) hi.CoverHandlerInterface {
+	return &coverHandler{
 		coverRepo: coverRepo,
 		makerRepo: makerRepo,
 	}
 }
 
 // ShowCovers はカバー一覧画面を表示
-func (h *CoverHandler) ShowCovers(c echo.Context) error {
+func (h *coverHandler) ShowCovers(c echo.Context) error {
 	// 検索フォームをバインド
 	searchForm := new(SearchForm)
 	if err := c.Bind(searchForm); err != nil {
@@ -119,7 +120,7 @@ func (h *CoverHandler) ShowCovers(c echo.Context) error {
 }
 
 // ShowCreateCover はカバー作成画面を表示
-func (h *CoverHandler) ShowCreateCover(c echo.Context) error {
+func (h *coverHandler) ShowCreateCover(c echo.Context) error {
 	// メーカー一覧を取得（全件取得のため大きな数値を指定）
 	makerList, err := h.makerRepo.GetAllMakers(0, 1000)
 	if err != nil {
@@ -145,7 +146,7 @@ func (h *CoverHandler) ShowCreateCover(c echo.Context) error {
 }
 
 // ShowEditCover はカバー編集画面を表示
-func (h *CoverHandler) ShowEditCover(c echo.Context) error {
+func (h *coverHandler) ShowEditCover(c echo.Context) error {
 	// カバーIDを取得
 	idParam := c.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
@@ -188,7 +189,7 @@ func (h *CoverHandler) ShowEditCover(c echo.Context) error {
 }
 
 // CreateCover は新しいカバーを作成
-func (h *CoverHandler) CreateCover(c echo.Context) error {
+func (h *coverHandler) CreateCover(c echo.Context) error {
 	// フォームデータをバインド
 	form := new(CoverForm)
 	if bindErr := c.Bind(form); bindErr != nil {
@@ -228,7 +229,7 @@ func (h *CoverHandler) CreateCover(c echo.Context) error {
 }
 
 // UpdateCover はカバー情報を更新
-func (h *CoverHandler) UpdateCover(c echo.Context) error {
+func (h *coverHandler) UpdateCover(c echo.Context) error {
 	// カバーIDを取得
 	idParam := c.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
@@ -281,7 +282,7 @@ func (h *CoverHandler) UpdateCover(c echo.Context) error {
 }
 
 // ShowCoverDetail はカバー詳細画面を表示
-func (h *CoverHandler) ShowCoverDetail(c echo.Context) error {
+func (h *coverHandler) ShowCoverDetail(c echo.Context) error {
 	idParam := c.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if err != nil {
@@ -305,7 +306,7 @@ func (h *CoverHandler) ShowCoverDetail(c echo.Context) error {
 }
 
 // DeleteCover はカバーを論理削除
-func (h *CoverHandler) DeleteCover(c echo.Context) error {
+func (h *coverHandler) DeleteCover(c echo.Context) error {
 	idParam := c.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if err != nil {
@@ -331,7 +332,7 @@ func (h *CoverHandler) DeleteCover(c echo.Context) error {
 }
 
 // GetCoverStats はカバー統計情報を取得
-func (h *CoverHandler) GetCoverStats(c echo.Context) error {
+func (h *coverHandler) GetCoverStats(c echo.Context) error {
 	totalCount, err := h.coverRepo.Count()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "統計取得エラー"})

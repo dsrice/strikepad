@@ -4,27 +4,28 @@ import (
 	"net/http"
 	"strconv"
 
+	"strikepad-manage-tool/handlers/hi"
 	"strikepad-manage-tool/models"
-	"strikepad-manage-tool/repository"
+	"strikepad-manage-tool/repository/ri"
 	"strikepad-manage-tool/utils"
 
 	"github.com/labstack/echo/v4"
 )
 
-// AdminHandler は管理機能のハンドラー
-type AdminHandler struct {
-	userRepo *repository.UserRepository
+// adminHandler は管理機能のハンドラー
+type adminHandler struct {
+	userRepo UserRepositoryInterface
 }
 
-// NewAdminHandler は新しい管理ハンドラーを作成
-func NewAdminHandler(userRepo *repository.UserRepository) *AdminHandler {
-	return &AdminHandler{
+// NewAdminHandlerInterface はDI用のAdminHandlerInterfaceを返す
+func NewAdminHandlerInterface(userRepo ri.UserRepositoryInterface) hi.AdminHandlerInterface {
+	return &adminHandler{
 		userRepo: userRepo,
 	}
 }
 
 // ShowDashboard はダッシュボードを表示
-func (h *AdminHandler) ShowDashboard(c echo.Context) error {
+func (h *adminHandler) ShowDashboard(c echo.Context) error {
 	// セッションから管理者ユーザー情報を取得
 	currentUser := utils.GetCurrentAdminUser(c)
 	if currentUser == nil {
@@ -54,7 +55,7 @@ func (h *AdminHandler) ShowDashboard(c echo.Context) error {
 }
 
 // ShowUsers はユーザー一覧画面を表示
-func (h *AdminHandler) ShowUsers(c echo.Context) error {
+func (h *adminHandler) ShowUsers(c echo.Context) error {
 	// セッションから管理者ユーザー情報を取得
 	currentUser := utils.GetCurrentAdminUser(c)
 	if currentUser == nil {
@@ -113,7 +114,7 @@ func (h *AdminHandler) ShowUsers(c echo.Context) error {
 }
 
 // ShowUserDetail はユーザー詳細画面を表示
-func (h *AdminHandler) ShowUserDetail(c echo.Context) error {
+func (h *adminHandler) ShowUserDetail(c echo.Context) error {
 	// セッションから管理者ユーザー情報を取得
 	currentUser := utils.GetCurrentAdminUser(c)
 	if currentUser == nil {
@@ -145,7 +146,7 @@ func (h *AdminHandler) ShowUserDetail(c echo.Context) error {
 }
 
 // UpdateUserStatus はユーザーのアクティブ状態を更新
-func (h *AdminHandler) UpdateUserStatus(c echo.Context) error {
+func (h *adminHandler) UpdateUserStatus(c echo.Context) error {
 	// セッションから管理者ユーザー情報を取得
 	currentUser := utils.GetCurrentAdminUser(c)
 	if currentUser == nil {
@@ -177,7 +178,7 @@ func (h *AdminHandler) UpdateUserStatus(c echo.Context) error {
 }
 
 // DeleteUser はユーザーを削除
-func (h *AdminHandler) DeleteUser(c echo.Context) error {
+func (h *adminHandler) DeleteUser(c echo.Context) error {
 	// セッションから管理者ユーザー情報を取得
 	currentUser := utils.GetCurrentAdminUser(c)
 	if currentUser == nil {

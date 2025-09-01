@@ -47,7 +47,8 @@
       "Bash(wmic process where:*)",
       "Bash(for:*)",
       "Bash(do sed -i '1i//go:build tools\\n// +build tools\\n' \"$file\")",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(CGO_ENABLED=1 go test ./repository/... -v)"
     ],
     "deny": [],
     "additionalDirectories": [
