@@ -226,6 +226,9 @@
                                             <li><a class="dropdown-item" href="/admin/cores/{{.ID}}">
                                                 <i class="bi bi-eye me-2"></i>詳細
                                             </a></li>
+                                            <li><a class="dropdown-item" href="/admin/cores/{{.ID}}/edit">
+                                                <i class="bi bi-pencil me-2"></i>編集
+                                            </a></li>
                                             <li>
                                                 <hr class="dropdown-divider">
                                             </li>
@@ -243,9 +246,6 @@
                             </span>
                                 </div>
 
-                                {{if .Description}}
-                                <p class="card-text text-muted small mb-3">{{.Description}}</p>
-                                {{end}}
 
                                 <div class="mt-auto">
                                     <small class="text-muted">

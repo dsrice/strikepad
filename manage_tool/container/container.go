@@ -7,6 +7,7 @@ import (
 	"strikepad-manage-tool/repository"
 	"strikepad-manage-tool/templates"
 
+	"github.com/labstack/echo/v4"
 	"go.uber.org/dig"
 )
 
@@ -40,7 +41,9 @@ func BuildContainer() (*Container, error) {
 	}
 
 	// テンプレートレンダラー
-	if err := container.Provide(templates.NewTemplateRenderer); err != nil {
+	if err := container.Provide(func() echo.Renderer {
+		return templates.NewTemplateRenderer()
+	}); err != nil {
 		return nil, err
 	}
 
@@ -65,6 +68,10 @@ func BuildContainer() (*Container, error) {
 		return nil, err
 	}
 
+	if err := container.Provide(repository.NewBallRepositoryInterface); err != nil {
+		return nil, err
+	}
+
 	// ハンドラー層
 	if err := container.Provide(handlers.NewAuthHandlerInterface); err != nil {
 		return nil, err
@@ -86,6 +93,10 @@ func BuildContainer() (*Container, error) {
 		return nil, err
 	}
 
+	if err := container.Provide(handlers.NewBallHandlerInterface); err != nil {
+		return nil, err
+	}
+
 	// ハンドラーコンテナー
 	if err := container.Provide(NewHandlersContainer); err != nil {
 		return nil, err
@@ -94,7 +105,6 @@ func BuildContainer() (*Container, error) {
 	return container, nil
 }
 
-
 // HandlersContainer は全てのハンドラーを格納する構造体
 type HandlersContainer struct {
 	AuthHandler  hi.AuthHandlerInterface
@@ -102,6 +112,7 @@ type HandlersContainer struct {
 	MakerHandler hi.MakerHandlerInterface
 	CoreHandler  hi.CoreHandlerInterface
 	CoverHandler hi.CoverHandlerInterface
+	BallHandler  hi.BallHandlerInterface
 }
 
 // NewHandlersContainer は全てのハンドラーを含むコンテナーを作成
@@ -111,6 +122,7 @@ func NewHandlersContainer(
 	makerHandler hi.MakerHandlerInterface,
 	coreHandler hi.CoreHandlerInterface,
 	coverHandler hi.CoverHandlerInterface,
+	ballHandler hi.BallHandlerInterface,
 ) *HandlersContainer {
 	return &HandlersContainer{
 		AuthHandler:  authHandler,
@@ -118,5 +130,6 @@ func NewHandlersContainer(
 		MakerHandler: makerHandler,
 		CoreHandler:  coreHandler,
 		CoverHandler: coverHandler,
+		BallHandler:  ballHandler,
 	}
 }

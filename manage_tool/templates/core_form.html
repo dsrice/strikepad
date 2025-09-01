@@ -169,7 +169,9 @@
                                 {{end}}
 
                                 <!-- コア作成・編集フォーム -->
-                                <form method="POST" action="/admin/cores/create" id="coreForm">
+                                <form method="POST"
+                                      action="{{if .IsEdit}}/admin/cores/{{.Core.ID}}/edit{{else}}/admin/cores/create{{end}}"
+                                      id="coreForm">
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="mb-3">
@@ -234,7 +236,7 @@
                                                 <div class="input-group">
                                                     <input type="number" class="form-control" id="delta_rg"
                                                            name="delta_rg"
-                                                           step="0.01" min="0" max="2"
+                                                           step="0.001" min="0" max="2"
                                                            value="{{if .Core}}{{.Core.DeltaRG}}{{else}}0.0{{end}}"
                                                            placeholder="0.0">
                                                 </div>

@@ -39,6 +39,8 @@ type CoreHandlerInterface interface {
 	ShowCreateCore(c echo.Context) error
 	CreateCore(c echo.Context) error
 	ShowCoreDetail(c echo.Context) error
+	ShowEditCore(c echo.Context) error
+	UpdateCore(c echo.Context) error
 	DeleteCore(c echo.Context) error
 	GetCoreStats(c echo.Context) error
 }
@@ -53,4 +55,16 @@ type CoverHandlerInterface interface {
 	ShowCoverDetail(c echo.Context) error
 	DeleteCover(c echo.Context) error
 	GetCoverStats(c echo.Context) error
+}
+
+// BallHandlerInterface はボールハンドラーのインターフェース
+type BallHandlerInterface interface {
+	ShowBalls(c echo.Context) error
+	ShowCreateBall(c echo.Context) error
+	CreateBall(c echo.Context) error
+	ShowBallDetail(c echo.Context) error
+	ShowEditBall(c echo.Context) error
+	UpdateBall(c echo.Context) error
+	DeleteBall(c echo.Context) error
+	GetBallStats(c echo.Context) error
 }

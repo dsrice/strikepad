@@ -7,7 +7,7 @@ create table "cores"
     "rg"            real                                not null,
     "delta_rg"      real                                not null,
     "init_diff"     real,
-    "symmetry_flga" BOOLEAN                             not null,
+    "symmetry_flag" BOOLEAN not null,
     "maker_id"      integer                             not null,
     "created_at"    timestamp default CURRENT_TIMESTAMP not null,
     "updated_at"    timestamp default CURRENT_TIMESTAMP not null,
@@ -23,7 +23,7 @@ comment on column "cores"."name" is 'コア名';
 comment on column "cores"."rg" is 'RG';
 comment on column "cores"."delta_rg" is 'ΔRG';
 comment on column "cores"."init_diff" is 'InitDiff';
-comment on column "cores"."symmetry_flga" is '対称フラグ';
+comment on column "cores"."symmetry_flag" is '対称フラグ';
 comment on column "cores"."maker_id" is 'メーカーID';
 comment on column "cores"."created_at" is '作成日';
 comment on column "cores"."updated_at" is '更新日';

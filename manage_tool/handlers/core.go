@@ -133,38 +133,72 @@ func (h *coreHandler) CreateCore(c echo.Context) error {
 	// フォームデータを取得
 	name := strings.TrimSpace(c.FormValue("name"))
 	makerIDStr := strings.TrimSpace(c.FormValue("maker_id"))
+	rgStr := strings.TrimSpace(c.FormValue("rg"))
+	deltaRgStr := strings.TrimSpace(c.FormValue("delta_rg"))
+	initDiffStr := strings.TrimSpace(c.FormValue("init_diff"))
+	symmetryFlag := c.FormValue("symmetry_flag") == "1"
 
 	// バリデーション
 	if name == "" {
-		return c.String(http.StatusBadRequest, "コア名は必須です")
+		return h.showFormWithError(c, "コア名は必須です", nil, false)
 	}
 
 	makerID, err := strconv.ParseUint(makerIDStr, 10, 32)
 	if err != nil {
-		return c.String(http.StatusBadRequest, "無効なメーカーIDです")
+		return h.showFormWithError(c, "無効なメーカーIDです", nil, false)
+	}
+
+	// フォームデータをパース
+	rg := float32(2.5) // デフォルト値
+	if rgStr != "" {
+		rgFloat, err := strconv.ParseFloat(rgStr, 32)
+		if err != nil {
+			return h.showFormWithError(c, "RGの値が無効です", nil, false)
+		}
+		rg = float32(rgFloat)
+	}
+
+	deltaRg := float32(0.0) // デフォルト値
+	if deltaRgStr != "" {
+		deltaRgFloat, err := strconv.ParseFloat(deltaRgStr, 32)
+		if err != nil {
+			return h.showFormWithError(c, "ΔRGの値が無効です", nil, false)
+		}
+		deltaRg = float32(deltaRgFloat)
+	}
+
+	var initDiff *float32
+	if initDiffStr != "" {
+		initDiffFloat, err := strconv.ParseFloat(initDiffStr, 32)
+		if err != nil {
+			return h.showFormWithError(c, "InitDiffの値が無効です", nil, false)
+		}
+		initDiffFloat32 := float32(initDiffFloat)
+		initDiff = &initDiffFloat32
 	}
 
 	// メーカーが存在するかチェック
 	maker, err := h.makerRepo.GetByID(uint(makerID))
 	if err != nil {
-		return c.String(http.StatusInternalServerError, "メーカー確認エラー: "+err.Error())
+		return h.showFormWithError(c, "メーカー確認エラー: "+err.Error(), nil, false)
 	}
 	if maker == nil {
-		return c.String(http.StatusBadRequest, "指定されたメーカーが見つかりません")
+		return h.showFormWithError(c, "指定されたメーカーが見つかりません", nil, false)
 	}
 
-	// 新しいコアを作成（基本値を設定）
+	// 新しいコアを作成
 	core := &models.Core{
 		Name:         name,
 		MakerID:      uint(makerID),
-		RG:           2.5,   // デフォルト値
-		DeltaRG:      0.0,   // デフォルト値
-		SymmetryFlag: false, // デフォルト値
+		RG:           rg,
+		DeltaRG:      deltaRg,
+		InitDiff:     initDiff,
+		SymmetryFlag: symmetryFlag,
 	}
 
 	err = h.coreRepo.Create(core)
 	if err != nil {
-		return c.String(http.StatusInternalServerError, "コア作成エラー: "+err.Error())
+		return h.showFormWithError(c, "コア作成エラー: "+err.Error(), nil, false)
 	}
 
 	// コア一覧にリダイレクト
@@ -233,4 +267,150 @@ func (h *coreHandler) GetCoreStats(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, stats)
+}
+
+// ShowEditCore はコア編集画面を表示
+func (h *coreHandler) ShowEditCore(c echo.Context) error {
+	idParam := c.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "無効なコアIDです")
+	}
+
+	core, err := h.coreRepo.GetByID(uint(id))
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "コア取得エラー: "+err.Error())
+	}
+	if core == nil {
+		return c.String(http.StatusNotFound, "コアが見つかりません")
+	}
+
+	// メーカー一覧を取得
+	makers, err := h.makerRepo.GetAllSimple()
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "メーカー取得エラー: "+err.Error())
+	}
+
+	data := map[string]interface{}{
+		"Title":  "コア編集",
+		"Core":   core,
+		"Makers": makers,
+		"IsEdit": true,
+	}
+
+	return c.Render(http.StatusOK, "core_form.html", data)
+}
+
+// UpdateCore はコア情報を更新
+func (h *coreHandler) UpdateCore(c echo.Context) error {
+	idParam := c.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "無効なコアIDです")
+	}
+
+	// 既存のコアを取得
+	existingCore, err := h.coreRepo.GetByID(uint(id))
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "コア取得エラー: "+err.Error())
+	}
+	if existingCore == nil {
+		return c.String(http.StatusNotFound, "コアが見つかりません")
+	}
+
+	// フォームデータを取得
+	name := strings.TrimSpace(c.FormValue("name"))
+	makerIDStr := strings.TrimSpace(c.FormValue("maker_id"))
+	rgStr := strings.TrimSpace(c.FormValue("rg"))
+	deltaRgStr := strings.TrimSpace(c.FormValue("delta_rg"))
+	initDiffStr := strings.TrimSpace(c.FormValue("init_diff"))
+	symmetryFlag := c.FormValue("symmetry_flag") == "1"
+
+	// バリデーション
+	if name == "" {
+		return h.showFormWithError(c, "コア名は必須です", existingCore, true)
+	}
+
+	makerID, err := strconv.ParseUint(makerIDStr, 10, 32)
+	if err != nil {
+		return h.showFormWithError(c, "無効なメーカーIDです", existingCore, true)
+	}
+
+	// フォームデータをパース
+	rg := float32(2.5) // デフォルト値
+	if rgStr != "" {
+		rgFloat, err := strconv.ParseFloat(rgStr, 32)
+		if err != nil {
+			return h.showFormWithError(c, "RGの値が無効です", existingCore, true)
+		}
+		rg = float32(rgFloat)
+	}
+
+	deltaRg := float32(0.0) // デフォルト値
+	if deltaRgStr != "" {
+		deltaRgFloat, err := strconv.ParseFloat(deltaRgStr, 32)
+		if err != nil {
+			return h.showFormWithError(c, "ΔRGの値が無効です", existingCore, true)
+		}
+		deltaRg = float32(deltaRgFloat)
+	}
+
+	var initDiff *float32
+	if initDiffStr != "" {
+		initDiffFloat, err := strconv.ParseFloat(initDiffStr, 32)
+		if err != nil {
+			return h.showFormWithError(c, "InitDiffの値が無効です", existingCore, true)
+		}
+		initDiffFloat32 := float32(initDiffFloat)
+		initDiff = &initDiffFloat32
+	}
+
+	// メーカーが存在するかチェック
+	maker, err := h.makerRepo.GetByID(uint(makerID))
+	if err != nil {
+		return h.showFormWithError(c, "メーカー確認エラー: "+err.Error(), existingCore, true)
+	}
+	if maker == nil {
+		return h.showFormWithError(c, "指定されたメーカーが見つかりません", existingCore, true)
+	}
+
+	// コア情報を更新
+	existingCore.Name = name
+	existingCore.MakerID = uint(makerID)
+	existingCore.RG = rg
+	existingCore.DeltaRG = deltaRg
+	existingCore.InitDiff = initDiff
+	existingCore.SymmetryFlag = symmetryFlag
+
+	err = h.coreRepo.Update(existingCore)
+	if err != nil {
+		return h.showFormWithError(c, "コア更新エラー: "+err.Error(), existingCore, true)
+	}
+
+	// コア一覧にリダイレクト
+	return c.Redirect(http.StatusSeeOther, "/admin/cores")
+}
+
+// showFormWithError はエラーメッセージ付きでフォームを表示するヘルパーメソッド
+func (h *coreHandler) showFormWithError(c echo.Context, errorMsg string, core *models.Core, isEdit bool) error {
+	// メーカー一覧を取得
+	makers, err := h.makerRepo.GetAllSimple()
+	if err != nil {
+		makers = []*models.Maker{} // エラー時は空配列
+	}
+
+	title := "コア作成"
+	if isEdit {
+		title = "コア編集"
+	}
+
+	data := map[string]interface{}{
+		"Title":  title,
+		"Core":   core,
+		"Makers": makers,
+		"IsEdit": isEdit,
+		"Error":  errorMsg,
+	}
+
+	return c.Render(http.StatusBadRequest, "core_form.html", data)
 }

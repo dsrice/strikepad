@@ -62,3 +62,16 @@ type CoverRepositoryInterface interface {
 	Update(cover *models.Cover) error
 	Delete(id uint) error
 }
+
+// BallRepositoryInterface はボールリポジトリのインターフェース
+type BallRepositoryInterface interface {
+	GetAll(offset, limit int) ([]*models.Ball, error)
+	GetByID(id uint) (*models.Ball, error)
+	Create(ball *models.Ball) error
+	Update(ball *models.Ball) error
+	Delete(id uint) error
+	Count() (int64, error)
+	Search(query string, offset, limit int) ([]*models.Ball, error)
+	GetByMakerID(makerID uint, offset, limit int) ([]*models.Ball, error)
+	CountByMaker(makerID uint) (int64, error)
+}

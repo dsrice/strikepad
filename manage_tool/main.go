@@ -105,6 +105,8 @@ func setupRoutes(e *echo.Echo) interface{} {
 		admin.GET("/cores/create", handlers.CoreHandler.ShowCreateCore)
 		admin.POST("/cores/create", handlers.CoreHandler.CreateCore)
 		admin.GET("/cores/:id", handlers.CoreHandler.ShowCoreDetail)
+		admin.GET("/cores/:id/edit", handlers.CoreHandler.ShowEditCore)
+		admin.POST("/cores/:id/edit", handlers.CoreHandler.UpdateCore)
 		admin.DELETE("/cores/:id", handlers.CoreHandler.DeleteCore)
 		admin.GET("/cores/stats", handlers.CoreHandler.GetCoreStats)
 
@@ -117,6 +119,16 @@ func setupRoutes(e *echo.Echo) interface{} {
 		admin.GET("/covers/:id/edit", handlers.CoverHandler.ShowEditCover)
 		admin.POST("/covers/:id/update", handlers.CoverHandler.UpdateCover)
 		admin.DELETE("/covers/:id", handlers.CoverHandler.DeleteCover)
+
+		// ボール管理
+		admin.GET("/balls", handlers.BallHandler.ShowBalls)
+		admin.GET("/balls/create", handlers.BallHandler.ShowCreateBall)
+		admin.POST("/balls/create", handlers.BallHandler.CreateBall)
+		admin.GET("/balls/:id", handlers.BallHandler.ShowBallDetail)
+		admin.GET("/balls/:id/edit", handlers.BallHandler.ShowEditBall)
+		admin.POST("/balls/:id/edit", handlers.BallHandler.UpdateBall)
+		admin.DELETE("/balls/:id", handlers.BallHandler.DeleteBall)
+		admin.GET("/balls/stats", handlers.BallHandler.GetBallStats)
 
 		return nil
 	}
