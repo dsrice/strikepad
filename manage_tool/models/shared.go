@@ -146,16 +146,20 @@ func (Core) TableName() string {
 
 // Ball はボールモデル
 type Ball struct {
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
-	Name      string         `gorm:"size:100;not null" json:"name"`
-	URL       string         `gorm:"size:200;not null" json:"url"`
-	ID        uint           `gorm:"primarykey" json:"id"`
-	MakerID   uint           `gorm:"not null" json:"maker_id"`
-	CoreID    uint           `gorm:"not null" json:"core_id"`
-	CoverID   uint           `gorm:"not null" json:"cover_id"`
-	IsDeleted bool           `gorm:"default:false" json:"is_deleted"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	ReleaseDate *time.Time     `json:"release_date,omitempty"`
+	Maker       Maker          `gorm:"foreignKey:MakerID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
+	Core        Core           `gorm:"foreignKey:CoreID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
+	Cover       Cover          `gorm:"foreignKey:CoverID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
+	Name        string         `gorm:"size:100;not null" json:"name"`
+	URL         string         `gorm:"size:200;not null" json:"url"`
+	ID          uint           `gorm:"primarykey" json:"id"`
+	MakerID     uint           `gorm:"not null" json:"maker_id"`
+	CoreID      uint           `gorm:"not null" json:"core_id"`
+	CoverID     uint           `gorm:"not null" json:"cover_id"`
+	IsDeleted   bool           `gorm:"default:false" json:"is_deleted"`
 }
 
 // TableName はテーブル名を指定

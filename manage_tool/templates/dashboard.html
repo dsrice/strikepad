@@ -121,6 +121,49 @@
         </div>
     </div>
 
+    <!-- Product Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-building text-warning fs-1"></i>
+                    <h6 class="card-title mt-3 text-muted">メーカー数</h6>
+                    <div class="stat-value text-warning">{{if .MakerStats}}{{.MakerStats.TotalMakers}}{{else}}0{{end}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-circle text-primary fs-1"></i>
+                    <h6 class="card-title mt-3 text-muted">コア数</h6>
+                    <div class="stat-value text-primary">{{if .CoreStats}}{{.CoreStats.TotalCores}}{{else}}0{{end}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-square text-success fs-1"></i>
+                    <h6 class="card-title mt-3 text-muted">カバー数</h6>
+                    <div class="stat-value text-success">{{if .CoverStats}}{{.CoverStats.TotalCovers}}{{else}}0{{end}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-globe text-info fs-1"></i>
+                    <h6 class="card-title mt-3 text-muted">ボール数</h6>
+                    <div class="stat-value text-info">{{if .BallStats}}{{.BallStats.TotalBalls}}{{else}}0{{end}}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Management Actions -->
     <div class="row">
         <div class="col-12">
@@ -161,6 +204,14 @@
                                 <div class="card-body text-center">
                                     <i class="bi bi-square fs-2"></i>
                                     <h6 class="mt-2">カバー管理</h6>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="/admin/balls" class="card action-card text-decoration-none">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-globe fs-2"></i>
+                                    <h6 class="mt-2">ボール管理</h6>
                                 </div>
                             </a>
                         </div>

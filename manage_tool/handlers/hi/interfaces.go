@@ -67,4 +67,5 @@ type BallHandlerInterface interface {
 	UpdateBall(c echo.Context) error
 	DeleteBall(c echo.Context) error
 	GetBallStats(c echo.Context) error
+	GetCoresAndCoversByMaker(c echo.Context) error
 }
